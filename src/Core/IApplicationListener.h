@@ -1,0 +1,27 @@
+#pragma once
+
+#include <memory>
+
+#include "Core/ResourceLocator.h"
+
+// Forward declaration
+class ILayer;
+class LayerStack;
+
+class IApplicationListener
+{
+public:
+	virtual void Create() = 0;
+	void PushLayer(std::unique_ptr<ILayer> layer);
+
+	// Setters
+	void SetLayerStack(LayerStack* layerStack) { mLayerStack = layerStack; }		
+	void SetResourceLocator(ResourceLocator* resourceLocator) { mResourceLocator = resourceLocator; }
+	
+	// Getters
+	ResourceLocator& GetResourceLocator() const { return *mResourceLocator; }
+
+private:
+	LayerStack* mLayerStack;
+	ResourceLocator* mResourceLocator;
+};
