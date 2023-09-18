@@ -31,6 +31,8 @@ add_library(PydewValleyLibrary STATIC
     src/Core/TextureManager.cpp
     src/Game.cpp
     src/Level.h
+    src/Settings.h
+    src/Settings.cpp
 )
 
 target_link_libraries(PydewValleyLibrary PUBLIC

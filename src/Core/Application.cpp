@@ -3,8 +3,9 @@
 #include "Core/IApplicationListener.h"
 #include "Core/LayerStack.h"
 
-Application::Application(std::unique_ptr<IApplicationListener> listener)
-	: mListener(std::move(listener))
+Application::Application(std::unique_ptr<IApplicationListener> listener, ApplicationConfig config)
+	: mListener(std::move(listener)),
+	  mWindow(sf::VideoMode(sf::Vector2u(config.mWidth, config.mHeight), config.mBPP), config.mCaption)
 {	
 	mResourceLocator.SetTextureManager(std::make_unique<TextureManager>());
 
@@ -15,5 +16,26 @@ Application::Application(std::unique_ptr<IApplicationListener> listener)
 
 void Application::Run()
 {	
-	mLayerStack.Update();
+    while (mWindow.isOpen())
+    {
+        sf::Event event;
+        while (mWindow.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+            {
+                mWindow.close();
+            }
+            else if (event.type == sf::Event::Resized)
+            {
+                mLayerStack.OnWindowResize(sf::Vector2u(event.size.width, event.size.height));
+            }
+            mLayerStack.OnEvent(event);
+        }
+
+        mLayerStack.Update(mClock.restart());
+
+        mWindow.clear();
+        mLayerStack.Draw(mWindow);
+        mWindow.display();
+    }	
 }

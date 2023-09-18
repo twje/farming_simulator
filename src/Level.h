@@ -13,7 +13,7 @@ public:
 		std::cout << "Create" << std::endl;
 	}
 
-	void Update()
+	void Update(const sf::Time& timestamp)
 	{
 		std::cout << "Update" << std::endl;
 	}
