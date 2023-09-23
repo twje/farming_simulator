@@ -16,6 +16,14 @@ void LayerStack::Draw(sf::RenderWindow& window)
 	}
 }
 
+void LayerStack::EndFrame()
+{
+	for (auto& layer : mLayers)
+	{
+		layer->EndFrame();
+	}
+}
+
 void LayerStack::OnWindowResize(const sf::Vector2u& size)
 {
 	for (auto& layer : mLayers)

@@ -47,5 +47,6 @@ _deps
 # Custom
 build
 scratch.txt
+notes.txt
 todo.txt
 .vs

@@ -19,6 +19,8 @@ set(PydewValleyIncludes
 )
 
 add_library(PydewValleyLibrary STATIC    
+    "src/Core/ResourceManager.h"
+    src/Core/AnimationManager.h
     src/Core/Application.h
     src/Core/Application.cpp
     src/Core/IApplicationListener.h
@@ -27,8 +29,15 @@ add_library(PydewValleyLibrary STATIC
     src/Core/LayerStack.h
     src/Core/LayerStack.cpp
     src/Core/ResourceLocator.h
+    src/Core/GameObject.h
+    src/Core/GameObject.cpp
+    src/Core/Scene.h
+    src/Core/Group.h
+    src/Core/Group.cpp
     src/Core/TextureManager.h
-    src/Core/TextureManager.cpp
+    src/Core/AnimationManager.h
+    src/Core/Animation.h
+    src/Player.h
     src/Game.cpp
     src/Level.h
     src/Settings.h

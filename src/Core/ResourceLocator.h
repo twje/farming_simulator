@@ -3,16 +3,15 @@
 #include <memory>
 
 #include "Core/TextureManager.h"
+#include "Core/AnimationManager.h"
 
 class ResourceLocator
 {
-public:
-	// Setters	
-	void SetTextureManager(std::unique_ptr<TextureManager> textureManager) { mTextureManager = std::move(textureManager); }
-
-	// Getters	
-	TextureManager& GetTextureManager() const { return *mTextureManager; }
+public:		
+	TextureManager& GetTextureManager() { return mTextureManager; }
+	AnimationManager& GetAnimationManager() { return mAnimationManager; }
 
 private:	
-	std::unique_ptr<TextureManager> mTextureManager;
+	TextureManager mTextureManager;	
+	AnimationManager mAnimationManager;
 };

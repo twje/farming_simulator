@@ -9,8 +9,9 @@ class Game : public IApplicationListener
 public:
 	void Create() override
 	{
-		// Load game specific resources
-		ResourceLocator().GetTextureManager(); 
+		auto& locator = GetResourceLocator();
+		locator.GetTextureManager().LoadConfig("../../config/textures.cfg");
+		locator.GetAnimationManager().LoadConfig("../../config/animations.cfg");
 
 		PushLayer(std::make_unique<Level>());
 	}

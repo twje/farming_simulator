@@ -3,14 +3,14 @@
 #include "Core/IApplicationListener.h"
 #include "Core/LayerStack.h"
 
+#include <iostream>
+
 Application::Application(std::unique_ptr<IApplicationListener> listener, ApplicationConfig config)
 	: mListener(std::move(listener)),
 	  mWindow(sf::VideoMode(sf::Vector2u(config.mWidth, config.mHeight), config.mBPP), config.mCaption)
 {	
-	mResourceLocator.SetTextureManager(std::make_unique<TextureManager>());
-
 	mListener->SetLayerStack(&mLayerStack);
-	mListener->SetResourceLocator(&mResourceLocator);
+	mListener->SetResourceLocator(&mResourceLocator);    
 	mListener->Create();
 }
 
@@ -31,11 +31,13 @@ void Application::Run()
             }
             mLayerStack.OnEvent(event);
         }
-
+        
         mLayerStack.Update(mClock.restart());
 
         mWindow.clear();
         mLayerStack.Draw(mWindow);
         mWindow.display();
+
+        mLayerStack.EndFrame();
     }	
 }
