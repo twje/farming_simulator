@@ -9,24 +9,22 @@
 class TextureAnimationSequence : public AnimationSequence
 {
 public:
-	TextureAnimationSequence(
-		std::string sequenceId, 
-		uint16_t framesPerSecond, 
-		TextureManager& textureManager,
-		std::initializer_list<std::string> frames
-	)
-		: AnimationSequence(sequenceId, framesPerSecond),
-		  mTextureManager(textureManager)
+	TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
+		: AnimationSequence(sequenceId, framesPerSecond)		  
+	{
+	}
+
+	void AddFrames(TextureManager& textureManager, std::initializer_list<std::string> frames)
 	{
 		for (const std::string& textureId : frames)
 		{
-			AddFrame(textureId);
+			AddFrame(textureManager, textureId);
 		}
 	}
 
 	void GetFrame(SequenceFrame& outFrame, uint16_t frameIndex) override
 	{
-		sf::Texture* texture = mFrames.at(frameIndex);
+		sf::Texture* texture = mFrames.at(frameIndex).second;
 		if (texture != outFrame.mTexture)
 		{
 			outFrame.mTexture = texture;
@@ -35,14 +33,33 @@ public:
 	}
 
 	virtual uint16_t GetFrameCount() { return mFrames.size(); }
-
-private:
-	void TextureAnimationSequence::AddFrame(std::string textureId)
-	{			
-		mFrames.emplace_back(&mTextureManager.Get(textureId));
+	
+	// ISerializable interface
+	void Serialize(YAML::Emitter& emitter) override
+	{
+		emitter << YAML::BeginMap;
+		emitter << YAML::Key << "TextureAnimationSequence" << YAML::Value;
+		emitter << YAML::BeginMap;		
+		emitter << YAML::Key << "textures" << YAML::Value;
+		emitter << YAML::BeginSeq;
+		for (const auto& frame : mFrames)
+		{
+			emitter << frame.first;
+		}
+		emitter << YAML::EndSeq;
+		emitter << YAML::EndMap;
+		emitter << YAML::EndMap;
 	}
 
+	void Deserialize(const YAML::Node& node, ResourceLocator& locator) override;
+
 private:
-	TextureManager& mTextureManager;
-	std::vector<sf::Texture*> mFrames;
+	void TextureAnimationSequence::AddFrame(TextureManager& textureManager, std::string textureId)
+	{	
+		auto frame = std::make_pair(textureId, &textureManager.Get(textureId));
+		mFrames.emplace_back(frame);
+	}
+
+private:	
+	std::vector<std::pair<std::string, sf::Texture*>> mFrames;
 };

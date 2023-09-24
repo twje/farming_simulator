@@ -12,8 +12,7 @@ public:
 	Player(ResourceLocator& locator, const sf::Vector2f& position)	
 		: mAnimation(locator.GetAnimationManager().Get("up"))
 	{
-		mAnimation.SetOriginAnchor(sf::Vector2f(0.5f, 0.5f));		
-		SetPosition(position);
+		mAnimation.SetOriginAnchor(sf::Vector2f(0.5f, 0.5f));
 	}
 
 	sf::FloatRect GetLocalBounds() const override { return mAnimation.GetGlobalBounds(); }

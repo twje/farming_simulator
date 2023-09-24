@@ -4,6 +4,15 @@ project(PydewValley C CXX)
 
 include(FetchContent)
 
+# Add yaml-cpp
+set(YAML_CPP_BUILD_TESTS OFF)
+FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(yaml-cpp)
+
 # Add SFML dependency
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 FetchContent_Declare(SFML
@@ -16,15 +25,18 @@ FetchContent_MakeAvailable(SFML)
 set(PydewValleyIncludes
     src
     ${SFML_SOURCE_DIR}/include    
+    ${yaml-cpp_SOURCE_DIR}/include
 )
 
 add_library(PydewValleyLibrary STATIC    
+    src/Core/ISerializable.h
     src/Core/Timer.h    
     src/Core/ResourceManager.h
     src/Core/ResourceManager.cpp
     src/Core/AnimationManager.h
     src/Core/AnimationManager.cpp
     src/Core/TextureAnimationSequence.h
+    src/Core/TextureAnimationSequence.cpp
     src/Core/Application.h
     src/Core/Application.cpp
     src/Core/IApplicationListener.h
@@ -42,6 +54,7 @@ add_library(PydewValleyLibrary STATIC
     src/Core/TextureManager.cpp
     src/Core/AnimationManager.h
     src/Core/Animation.h
+    src/Core/Animation.cpp
     src/Player.h
     src/Game.cpp
     src/Level.h
@@ -54,7 +67,8 @@ target_link_libraries(PydewValleyLibrary PUBLIC
     sfml-window
     sfml-graphics
     sfml-audio
-    sfml-network    
+    sfml-network
+    yaml-cpp
 )
 
 target_include_directories(PydewValleyLibrary PUBLIC
