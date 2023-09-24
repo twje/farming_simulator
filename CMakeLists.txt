@@ -19,8 +19,12 @@ set(PydewValleyIncludes
 )
 
 add_library(PydewValleyLibrary STATIC    
-    "src/Core/ResourceManager.h"
+    src/Core/Timer.h    
+    src/Core/ResourceManager.h
+    src/Core/ResourceManager.cpp
     src/Core/AnimationManager.h
+    src/Core/AnimationManager.cpp
+    src/Core/TextureAnimationSequence.h
     src/Core/Application.h
     src/Core/Application.cpp
     src/Core/IApplicationListener.h
@@ -35,6 +39,7 @@ add_library(PydewValleyLibrary STATIC
     src/Core/Group.h
     src/Core/Group.cpp
     src/Core/TextureManager.h
+    src/Core/TextureManager.cpp
     src/Core/AnimationManager.h
     src/Core/Animation.h
     src/Player.h

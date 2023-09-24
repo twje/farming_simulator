@@ -7,19 +7,23 @@
 #include <map>
 #include <string>
 
+// Forward declaration
+class ResourceLocator;
+
 template<typename T>
 class ResourceLoader
 {
 public:
-	virtual std::unique_ptr<T> Load(std::string filepath) = 0;
+	virtual std::unique_ptr<T> Load(std::string filepath, ResourceLocator& locator) = 0;
 };
 
 template<typename T>
 class ResourceManager
 {
 public:
-	ResourceManager(std::unique_ptr<ResourceLoader<T>> loader)
-		: mLoader(std::move(loader))
+	ResourceManager(std::unique_ptr<ResourceLoader<T>> loader, ResourceLocator& locator)
+		: mLoader(std::move(loader)),
+          mLocator(locator)
 	{}
 
 	void LoadConfig(std::string filePath)
@@ -49,7 +53,7 @@ public:
                 {
                     throw std::runtime_error("Resouce " + resourcePath + " does not exist");
                 }
-                mResources[resourceId] = mLoader->Load(resourcePath);
+                mResources[resourceId] = mLoader->Load(resourcePath, mLocator);
             }
         }
 	}
@@ -71,4 +75,5 @@ public:
 private:
 	std::map<std::string, std::unique_ptr<T>> mResources;
 	std::unique_ptr<ResourceLoader<T>> mLoader;
+    ResourceLocator& mLocator;
 };

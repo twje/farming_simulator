@@ -13,6 +13,7 @@ public:
 	
 	// Setters
 	void SetPosition(const sf::Vector2f& position) { setPosition(position); }
+	void SetOrigin(const sf::Vector2f& origin) { setOrigin(origin); }
 	void SetRotation(float value) { setRotation(sf::degrees(value)); }
 
 	void Move(const sf::Vector2f& offset) { move(offset); }

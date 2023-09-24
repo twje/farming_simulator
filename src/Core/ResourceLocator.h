@@ -7,7 +7,12 @@
 
 class ResourceLocator
 {
-public:		
+public:
+	ResourceLocator()
+		: mTextureManager(*this),
+		  mAnimationManager(*this)
+	{ }
+
 	TextureManager& GetTextureManager() { return mTextureManager; }
 	AnimationManager& GetAnimationManager() { return mAnimationManager; }
 

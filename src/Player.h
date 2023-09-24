@@ -4,19 +4,19 @@
 
 #include "Core/GameObject.h"
 #include "Core/ResourceLocator.h"
+#include "Core/Animation.h"
 
 class Player : public Sprite
 {
 public:
-	Player(ResourceLocator& locator, const sf::Vector2f& position)		
+	Player(ResourceLocator& locator, const sf::Vector2f& position)	
+		: mAnimation(locator.GetAnimationManager().Get("up"))
 	{
-		auto& textureManager = locator.GetTextureManager();
-		mSprite = std::make_unique<sf::Sprite>(textureManager.Get("player"));
-		mSprite->setPosition(-.5f * mSprite->getLocalBounds().getSize());
+		mAnimation.SetOriginAnchor(sf::Vector2f(0.5f, 0.5f));		
 		SetPosition(position);
 	}
 
-	sf::FloatRect GetLocalBounds() const override { return mSprite->getGlobalBounds(); }
+	sf::FloatRect GetLocalBounds() const override { return mAnimation.GetGlobalBounds(); }
 
 	void Input()
 	{
@@ -62,15 +62,17 @@ public:
 	{
 		Input();
 		Move(timestamp);
+
+		mAnimation.Upate(timestamp);
 	};
 
 	void Draw(sf::RenderWindow& window) override
 	{
-		window.draw(*mSprite, GetTransform());
+		window.draw(mAnimation.GetSprite(), GetTransform());		
 	}
 
 private:		
-	sf::Vector2f mDirection;
-	std::unique_ptr<sf::Sprite> mSprite;	
+	sf::Vector2f mDirection;	
 	float mSpeed{ 200.0f };
+	Animation mAnimation;
 };
