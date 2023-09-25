@@ -11,6 +11,8 @@ class LayerStack;
 class IApplicationListener
 {
 public:
+	virtual ~IApplicationListener() = default;
+
 	virtual void Create() = 0;
 	void PushLayer(std::unique_ptr<ILayer> layer);
 
