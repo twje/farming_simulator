@@ -4,6 +4,7 @@
 
 void Animation::Deserialize(const YAML::Node& node, ResourceLocator& locator)
 {
+	// Define a type alias for AnimationSequence factory functions
 	using AnimationSequenceFactory = std::shared_ptr<AnimationSequence>(*)(
 		const YAML::Node&, 
 		std::string, 
@@ -11,6 +12,7 @@ void Animation::Deserialize(const YAML::Node& node, ResourceLocator& locator)
 		ResourceLocator&
 	);
 	
+	// Factory function for TextureAnimationSequence
 	AnimationSequenceFactory textureAnimationSequence = [](
 		const YAML::Node& node,
 		std::string sequenceId,
@@ -23,10 +25,12 @@ void Animation::Deserialize(const YAML::Node& node, ResourceLocator& locator)
 			return sequence;
 		};
 	
+	// Map of sequence type names to their factory functions
 	std::map<std::string, AnimationSequenceFactory> animationSequenceFactories {
 		{"TextureAnimationSequence", textureAnimationSequence}
 	};
 
+	// Iterate over nodes in the input YAML
 	for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
 	{
 		std::string sequenceId = (*it)["key"].as<std::string>();

@@ -1,9 +1,0 @@
-- key: up
-  framesPerSecond: 8
-  frames:
-    TextureAnimationSequence:
-      textures:
-        - character_up_0
-        - character_up_1
-        - character_up_2
-        - character_up_3

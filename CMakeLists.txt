@@ -55,6 +55,8 @@ add_library(PydewValleyLibrary STATIC
     src/Core/AnimationManager.h
     src/Core/Animation.h
     src/Core/Animation.cpp
+    src/Core/Support.h
+    src/Core/Support.cpp
     src/Player.h
     src/Game.cpp
     src/Level.h

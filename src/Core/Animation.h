@@ -106,12 +106,18 @@ public:
 	}
 
 	void SetAnimationSequence(const std::string& sequenceId)
-	{
+	{		
+		if (mCurrentSequence != nullptr && mCurrentSequence->GetSequenceId() == sequenceId)
+		{			
+			return;
+		}		
+
 		auto iter = mSequences.find(sequenceId);
 		assert(iter != mSequences.end());
 		mCurrentSequence = iter->second.get();
 		mTimer.Reset(mCurrentSequence->GetDuration());
 		mFrameIndex = 0;
+		UpdateFrame();
 	}
 
 	void SaveToFile(const std::string& filePath)
@@ -164,10 +170,13 @@ private:
 
 	void UpdateFrame()
 	{
-		auto& frame = GetFrame();
-		mSprite->setTexture(*frame.mTexture);
-		mSprite->setTextureRect(frame.mTextureRect);
-		mSprite->setOrigin(frame.GetOrigin(mOriginAnchor));
+		if (mSprite != nullptr)
+		{
+			auto& frame = GetFrame();
+			mSprite->setTexture(*frame.mTexture);
+			mSprite->setTextureRect(frame.mTextureRect);
+			mSprite->setOrigin(frame.GetOrigin(mOriginAnchor));
+		}
 	}
 
 private:
