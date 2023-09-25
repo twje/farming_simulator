@@ -1,4 +1,4 @@
-- key: up
+- sequenceId: up
   framesPerSecond: 8
   frames:
     TextureAnimationSequence:
@@ -7,7 +7,7 @@
         - character_up_1
         - character_up_2
         - character_up_3
-- key: down
+- sequenceId: down
   framesPerSecond: 8
   frames:
     TextureAnimationSequence:
@@ -16,7 +16,7 @@
         - character_down_1
         - character_down_2
         - character_down_3
-- key: left
+- sequenceId: left
   framesPerSecond: 8
   frames:
     TextureAnimationSequence:
@@ -25,7 +25,7 @@
         - character_left_1
         - character_left_2
         - character_left_3
-- key: right
+- sequenceId: right
   framesPerSecond: 8
   frames:
     TextureAnimationSequence:
@@ -34,112 +34,112 @@
         - character_right_1
         - character_right_2
         - character_right_3
-- key: right_idle
+- sequenceId: right_idle
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_right_idle_0
         - character_right_idle_1
-- key: left_idle
+- sequenceId: left_idle
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_left_idle_0
         - character_left_idle_1
-- key: up_idle
+- sequenceId: up_idle
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_up_idle_0
         - character_up_idle_1
-- key: down_idle
+- sequenceId: down_idle
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_down_idle_0
         - character_down_idle_1
-- key: right_hoe
+- sequenceId: right_hoe
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_right_hoe_0
         - character_right_hoe_1
-- key: left_hoe
+- sequenceId: left_hoe
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_left_hoe_0
         - character_left_hoe_1
-- key: up_hoe
+- sequenceId: up_hoe
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_up_hoe_0
         - character_up_hoe_1
-- key: down_hoe
+- sequenceId: down_hoe
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_down_hoe_0
         - character_down_hoe_1
-- key: right_axe
+- sequenceId: right_axe
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_right_axe_0
         - character_right_axe_1
-- key: left_axe
+- sequenceId: left_axe
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_left_axe_0
         - character_left_axe_1
-- key: up_axe
+- sequenceId: up_axe
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_up_axe_0
         - character_up_axe_1
-- key: down_axe
+- sequenceId: down_axe
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_down_axe_0
         - character_down_axe_1
-- key: right_water
+- sequenceId: right_water
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_right_water_0
         - character_right_water_1
-- key: left_water
+- sequenceId: left_water
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_left_water_0
         - character_left_water_1
-- key: up_water
+- sequenceId: up_water
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
       textures:
         - character_up_water_0
         - character_up_water_1
-- key: down_water
+- sequenceId: down_water
   framesPerSecond: 4
   frames:
     TextureAnimationSequence:
