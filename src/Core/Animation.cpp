@@ -18,8 +18,8 @@ sf::Vector2f SequenceFrame::GetOrigin(const sf::Vector2f& originAnchor)
 // ----------------------------------------------------------
 AnimationSequence::AnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
 	: mSequenceId(sequenceId),
-	mFramesPerSecond(framesPerSecond),
-	mDuration(1.0f / framesPerSecond)
+	  mFramesPerSecond(framesPerSecond),
+	  mDuration(sf::seconds(1.0f / framesPerSecond))
 { }
 
 
@@ -41,6 +41,7 @@ void Animation::Upate(const sf::Time& timestamp)
 		mFrameIndex = (mFrameIndex + 1) % mCurrentSequence->GetFrameCount();
 		RefreshFrame();
 		mTimer.Reset();
+		mTimer.Start();
 	}
 }
 
@@ -85,7 +86,9 @@ void Animation::SetAnimationSequence(const std::string& sequenceId)
 	auto iter = mSequences.find(sequenceId);
 	assert(iter != mSequences.end());
 	mCurrentSequence = iter->second.get();
-	mTimer.Reset(mCurrentSequence->GetDuration());
+	mTimer.SetDuration(mCurrentSequence->GetDuration());
+	mTimer.Reset();
+	mTimer.Start();
 	mFrameIndex = 0;
 	RefreshFrame();
 }

@@ -25,7 +25,7 @@ public:
 	
 	// Getters
 	const std::string& GetSequenceId() { return mSequenceId; }	
-	float GetDuration() { return mDuration; }
+	sf::Time GetDuration() { return mDuration; }
 	uint16_t GetFramesPerSecond() const { return mFramesPerSecond; }
 	
 	// Hooks
@@ -34,7 +34,7 @@ public:
 
 private:
 	std::string mSequenceId;	
-	float mDuration;
+	sf::Time mDuration;
 	uint16_t mFramesPerSecond;
 };
 
