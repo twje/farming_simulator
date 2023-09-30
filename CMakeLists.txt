@@ -7,6 +7,8 @@ project(${PROJECT_NAME} C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+enable_testing()
+
 # Configure project-wide include directories
 set(GameIncludes
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -50,3 +52,5 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PUBLIC 
     ${GameLibrary}
 )
+
+add_subdirectory(tests)
