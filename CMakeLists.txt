@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(PydewValley C CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
@@ -22,13 +24,31 @@ FetchContent_Declare(SFML
 FetchContent_MakeAvailable(SFML)
 
 # Configure project
-set(PydewValleyIncludes
-    src
-    ${SFML_SOURCE_DIR}/include    
+add_library(CommonIncludes INTERFACE)
+target_include_directories(CommonIncludes INTERFACE
+    ${SFML_SOURCE_DIR}/include
     ${yaml-cpp_SOURCE_DIR}/include
 )
 
-add_library(PydewValleyLibrary STATIC    
+set(PydewValleyIncludes
+    src
+    src/Game
+)
+
+set(PydewValleyCoreIncludes
+    src
+)
+
+add_library(PydewValleyLibrary STATIC
+    src/Game/Overlay.h
+    src/Game/Player.h
+    src/Game/Game.cpp
+    src/Game/Level.h
+    src/Game/Settings.h
+    src/Game/Settings.cpp
+)
+
+add_library(PydewValleyCoreLibrary STATIC
     src/Core/ISerializable.h
     src/Core/Timer.h    
     src/Core/ResourceManager.h
@@ -60,15 +80,12 @@ add_library(PydewValleyLibrary STATIC
     src/Core/ItemPicker.h
     src/Core/RectUtils.h
     src/Core/RectUtils.cpp
-    src/Overlay.h
-    src/Player.h
-    src/Game.cpp
-    src/Level.h
-    src/Settings.h
-    src/Settings.cpp
 )
 
-target_link_libraries(PydewValleyLibrary PUBLIC
+target_link_libraries(PydewValleyLibrary PUBLIC CommonIncludes)
+
+target_link_libraries(PydewValleyCoreLibrary PUBLIC 
+    CommonIncludes
     sfml-system
     sfml-window
     sfml-graphics
@@ -77,12 +94,18 @@ target_link_libraries(PydewValleyLibrary PUBLIC
     yaml-cpp
 )
 
+target_link_libraries(PydewValleyLibrary PUBLIC PydewValleyCoreLibrary)
+
 target_include_directories(PydewValleyLibrary PUBLIC
     ${PydewValleyIncludes}
+)
+
+target_include_directories(PydewValleyCoreLibrary PUBLIC
+    ${PydewValleyCoreIncludes}
 )
 
 add_executable(PydewValley 
     bootstrap/Main.cpp
  )
 
-target_link_libraries(PydewValley PRIVATE PydewValleyLibrary)
+target_link_libraries(PydewValley PUBLIC PydewValleyLibrary PydewValleyCoreLibrary)
