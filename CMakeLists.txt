@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Set project name and specify C++ standard
-project(PydewValley C CXX)
+set(PROJECT_NAME PydewValley)
+project(${PROJECT_NAME} C CXX)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -25,59 +27,42 @@ FetchContent_Declare(SFML
 )
 FetchContent_MakeAvailable(SFML)
 
-# Create an interface library for common includes
-add_library(CommonIncludes INTERFACE)
-target_include_directories(CommonIncludes INTERFACE
-    ${SFML_SOURCE_DIR}/include
-    ${yaml-cpp_SOURCE_DIR}/include
-)
-
 # Configure project-wide include directories
-set(PydewValleyIncludes
+set(GameIncludes
     src
     src/Game
 )
 
-set(PydewValleyCoreIncludes
+set(CoreIncludes
     vendor/Core/include
+    ${SFML_SOURCE_DIR}/include
+    ${yaml-cpp_SOURCE_DIR}/include
 )
 
-# Gather source and header files for PydewValleyLibrary
-file(GLOB_RECURSE PydewValleyHeaders
-    "src/Game/*.h"
-)
-
-file(GLOB_RECURSE PydewValleySources
+# Gather source files for GameLibrary
+file(GLOB_RECURSE GameSources
     "src/Game/*.cpp"
 )
 
-# Create PydewValleyLibrary static library
-add_library(PydewValleyLibrary STATIC
-    ${PydewValleyHeaders}
-    ${PydewValleySources}
+# Create GameLibrary static library
+set(GameLibrary PydewValleyLibrary)
+add_library(${GameLibrary} STATIC    
+    ${GameSources}
 )
 
-# Gather source and header files for PydewValleyCoreLibrary
-file(GLOB_RECURSE PydewValleyCoreHeaders
-    "vendor/Core/include/Core/*.h"
-)
-
-file(GLOB_RECURSE PydewValleyCoreSources
+# Gather source files for CoreLibrary
+file(GLOB_RECURSE CoreSources
     "vendor/Core/src/Core/*.cpp"
 )
 
-# Create PydewValleyCoreLibrary static library
-add_library(PydewValleyCoreLibrary STATIC
-    ${PydewValleyCoreHeaders}
-    ${PydewValleyCoreSources}
+# Create CoreLibrary static library
+set(CoreLibrary PydewValleyCoreLibrary)
+add_library(${CoreLibrary} STATIC    
+    ${CoreSources}
 )
 
-# Link PydewValleyLibrary against CommonIncludes
-target_link_libraries(PydewValleyLibrary PUBLIC CommonIncludes)
-
-# Link PydewValleyCoreLibrary against CommonIncludes, SFML, and yaml-cpp
-target_link_libraries(PydewValleyCoreLibrary PUBLIC 
-    CommonIncludes
+# Link CoreLibrary against CommonIncludes, SFML, and yaml-cpp
+target_link_libraries(${CoreLibrary} PUBLIC
     sfml-system
     sfml-window
     sfml-graphics
@@ -86,21 +71,21 @@ target_link_libraries(PydewValleyCoreLibrary PUBLIC
     yaml-cpp
 )
 
-# Link PydewValleyLibrary against PydewValleyCoreLibrary
-target_link_libraries(PydewValleyLibrary PUBLIC PydewValleyCoreLibrary)
+# Link GameLibrary against CoreLibrary
+target_link_libraries(${GameLibrary} PUBLIC ${CoreLibrary})
 
-# Specify include directories for PydewValleyLibrary and PydewValleyCoreLibrary
-target_include_directories(PydewValleyLibrary PUBLIC
-    ${PydewValleyIncludes}
+# Specify include directories for GameLibrary and CoreLibrary
+target_include_directories(${GameLibrary} PUBLIC
+    ${GameIncludes}
 )
 
-target_include_directories(PydewValleyCoreLibrary PUBLIC
-    ${PydewValleyCoreIncludes}
+target_include_directories(${CoreLibrary} PUBLIC
+    ${CoreIncludes}
 )
 
-# Create the executable PydewValley and link against PydewValleyLibrary and PydewValleyCoreLibrary
-add_executable(PydewValley 
+# Create the executable PydewValley and link against GameLibrary and CoreLibrary
+add_executable(${PROJECT_NAME} 
     bootstrap/Main.cpp
 )
 
-target_link_libraries(PydewValley PUBLIC PydewValleyLibrary PydewValleyCoreLibrary)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${GameLibrary})
