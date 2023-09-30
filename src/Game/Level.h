@@ -36,7 +36,7 @@ public:
 		}
 		mOverlay->Draw(window);
 	}
-
+	
 private:
 	Player* mPlayer;
 	Group mAllSprites;

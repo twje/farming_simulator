@@ -39,7 +39,7 @@ set(PydewValleyIncludes
 )
 
 set(PydewValleyCoreIncludes
-    src
+    vendor/Core/include
 )
 
 # Gather source and header files for PydewValleyLibrary
@@ -59,11 +59,11 @@ add_library(PydewValleyLibrary STATIC
 
 # Gather source and header files for PydewValleyCoreLibrary
 file(GLOB_RECURSE PydewValleyCoreHeaders
-    "src/Core/*.h"
+    "vendor/Core/include/Core/*.h"
 )
 
 file(GLOB_RECURSE PydewValleyCoreSources
-    "src/Core/*.cpp"
+    "vendor/Core/src/Core/*.cpp"
 )
 
 # Create PydewValleyCoreLibrary static library
