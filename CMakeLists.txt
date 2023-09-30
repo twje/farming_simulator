@@ -14,11 +14,21 @@ set(GameIncludes
 )
 
 # Gather source files for GameLibrary
-file(GLOB_RECURSE GameSources "src/Game/*.cpp")
+file(GLOB_RECURSE GameSources 
+    "src/Game/*.cpp"
+)
+
+# Gather header files for GameLibrary
+file(GLOB_RECURSE GameHeaders 
+    "src/Game/*.h"
+)
 
 # Create GameLibrary static library
 set(GameLibrary PydewValleyLibrary)
-add_library(${GameLibrary} STATIC ${GameSources})
+add_library(${GameLibrary} STATIC 
+    ${GameSources}
+    ${GameHeaders} # not required but makes VS code navigation work for CTRL K,O
+)
 
 add_subdirectory(vendor/Core)
 

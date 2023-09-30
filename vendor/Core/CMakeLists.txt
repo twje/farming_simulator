@@ -39,10 +39,16 @@ file(GLOB_RECURSE CoreSources
     "src/Core/*.cpp"
 )
 
+# Gather header files for CoreLibrary
+file(GLOB_RECURSE CoreHeaders
+    "include/Core/*.h"
+)
+
 # Create CoreLibrary static library
 set(CoreLibrary CoreLibrary)
 add_library(${CoreLibrary} STATIC    
     ${CoreSources}
+    ${CoreHeaders} # not required but makes VS code navigation work for CTRL K,O
 )
 
 # Link CoreLibrary against SFML, and yaml-cpp
