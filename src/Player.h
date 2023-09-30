@@ -1,37 +1,96 @@
 #pragma once
 
 #include <iostream>
+#include <unordered_map>
+#include <vector>
 
 #include "Core/GameObject.h"
 #include "Core/ResourceLocator.h"
 #include "Core/Animation.h"
 #include "Core/Support.h"
+#include "Core/ItemPicker.h"
 
-class Player : public Sprite
+// --------------------------------------------------------------------------------
+enum class TimerId
+{
+	TOOL_USE = 0,
+	TOOL_SWITCH = 1,
+	SEED_USE = 2,
+	SEED_SWITCH = 3
+};
+
+// --------------------------------------------------------------------------------
+class IPlayerObserver
+{
+public:
+	virtual void ToolChanged(std::string tool) { }
+	virtual void SeedChanged(std::string seed) { }
+};
+
+// --------------------------------------------------------------------------------
+class PlayerSubject
+{
+public:
+	void Subscribe(IPlayerObserver* observer) { mObservers.emplace_back(observer); }
+
+	void NotifyToolChanged(std::string tool)
+	{
+		for (auto& observer : mObservers)
+		{
+			observer->ToolChanged(tool);
+		}
+	}
+
+	void NotifySeedChanged(std::string seed)
+	{
+		for (auto& observer : mObservers)
+		{
+			observer->SeedChanged(seed);
+		}
+	}
+
+private:
+	std::vector<IPlayerObserver*> mObservers;
+};
+
+// --------------------------------------------------------------------------------
+class Player : public Sprite, public PlayerSubject
 {
 public:
 	Player(ResourceLocator& locator, const sf::Vector2f& position)	
 		: mAnimation(locator.GetAnimationManager().Get("character")),
 		  mSpeed(200),
-		  mStatus("down_idle"),
-		  mToolUseTimer(sf::milliseconds(350), std::bind(&Player::UseTool, this)),
-		  mSelectedTool("water")
+		  mStatus("down_idle"),		  
+		  mToolPicker({ "hoe", "axe", "water"}),
+		  mSeedPicker({ "corn", "tomato" })		  
 	{
 		mAnimation.SetOriginAnchor(sf::Vector2f(0.5f, 0.5f));
 		mAnimation.SetAnimationSequence(mStatus);
-	}
+
+		mTimers.emplace(TimerId::TOOL_USE, Timer(sf::milliseconds(350), std::bind(&Player::UseTool, this)));
+		mTimers.emplace(TimerId::TOOL_SWITCH, Timer(sf::milliseconds(200)));
+		mTimers.emplace(TimerId::SEED_USE, Timer(sf::milliseconds(350), std::bind(&Player::UseSeed, this)));
+		mTimers.emplace(TimerId::SEED_SWITCH, Timer(sf::milliseconds(200)));
+	}	
+
+	std::string GetActiveTool() const { return mToolPicker.GetItem(); }
+	std::string GetActiveSeed() const { return mSeedPicker.GetItem(); }
 
 	void UseTool()
 	{
-		std::cout << mSelectedTool << std::endl;
-		mToolUseTimer.Reset();
+		std::cout << mToolPicker.GetItem() << std::endl;			
+	}
+
+	void UseSeed()
+	{
+		std::cout << mSeedPicker.GetItem() << std::endl;		
 	}
 
 	sf::FloatRect GetLocalBounds() const override { return mAnimation.GetGlobalBounds(); }
 
 	void Input()
 	{
-		if (!mToolUseTimer.IsActive())
+		if (!mTimers[TimerId::TOOL_USE].IsActive())
 		{
 			// directions
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
@@ -67,8 +126,31 @@ public:
 			// tool use
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
 			{
-				mToolUseTimer.Start();
+				mTimers[TimerId::TOOL_USE].Start();
 				mDirection = sf::Vector2f();
+			}
+
+			// change tool
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q) && !mTimers[TimerId::TOOL_SWITCH].IsActive())
+			{
+				mTimers[TimerId::TOOL_SWITCH].Start();
+				mToolPicker.Next();
+				NotifyToolChanged(mToolPicker.GetItem());
+			}
+
+			// seed use
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl))
+			{
+				mTimers[TimerId::SEED_USE].Start();
+				mDirection = sf::Vector2f();
+			}
+
+			// change seed
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E) && !mTimers[TimerId::SEED_SWITCH].IsActive())
+			{
+				mTimers[TimerId::SEED_SWITCH].Start();
+				mSeedPicker.Next();
+				NotifySeedChanged(mSeedPicker.GetItem());
 			}
 		}
 	}
@@ -82,15 +164,21 @@ public:
 		}
 
 		// tool use
-		if (mToolUseTimer.IsActive())
+		if (mTimers[TimerId::TOOL_USE].IsActive())
 		{
-			mStatus = SplitAndGetElement(mStatus, '_', 0) + "_" + mSelectedTool;			
+			mStatus = SplitAndGetElement(mStatus, '_', 0) + "_" + mToolPicker.GetItem();			
 		}
 	}
 
 	void UpdateTimers(const sf::Time& timestamp)
 	{
-		mToolUseTimer.Update(timestamp);		
+		for (auto& pair : mTimers) {
+			pair.second.Update(timestamp);
+			if (pair.second.IsFinished()) 
+			{
+				pair.second.Reset();
+			}
+		}		
 	}
 
 	void Move(const sf::Time& timestamp)
@@ -128,7 +216,9 @@ private:
 	sf::Vector2f mDirection;	
 	float mSpeed;
 	std::string mStatus;
-	Animation mAnimation;
-	Timer mToolUseTimer;
+	Animation mAnimation;	
+	std::unordered_map<TimerId, Timer> mTimers;
 	std::string mSelectedTool;
+	ItemPicker<std::string> mToolPicker;
+	ItemPicker<std::string> mSeedPicker;
 };

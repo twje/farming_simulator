@@ -57,6 +57,10 @@ add_library(PydewValleyLibrary STATIC
     src/Core/Animation.cpp
     src/Core/Support.h
     src/Core/Support.cpp
+    src/Core/ItemPicker.h
+    src/Core/RectUtils.h
+    src/Core/RectUtils.cpp
+    src/Overlay.h
     src/Player.h
     src/Game.cpp
     src/Level.h
