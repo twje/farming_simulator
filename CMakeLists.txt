@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 
+# Set project name and specify C++ standard
 project(PydewValley C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Include external dependencies using FetchContent
 include(FetchContent)
 
 # Add yaml-cpp
@@ -23,13 +25,14 @@ FetchContent_Declare(SFML
 )
 FetchContent_MakeAvailable(SFML)
 
-# Configure project
+# Create an interface library for common includes
 add_library(CommonIncludes INTERFACE)
 target_include_directories(CommonIncludes INTERFACE
     ${SFML_SOURCE_DIR}/include
     ${yaml-cpp_SOURCE_DIR}/include
 )
 
+# Configure project-wide include directories
 set(PydewValleyIncludes
     src
     src/Game
@@ -39,6 +42,7 @@ set(PydewValleyCoreIncludes
     src
 )
 
+# Gather source and header files for PydewValleyLibrary
 file(GLOB_RECURSE PydewValleyHeaders
     "src/Game/*.h"
 )
@@ -47,6 +51,13 @@ file(GLOB_RECURSE PydewValleySources
     "src/Game/*.cpp"
 )
 
+# Create PydewValleyLibrary static library
+add_library(PydewValleyLibrary STATIC
+    ${PydewValleyHeaders}
+    ${PydewValleySources}
+)
+
+# Gather source and header files for PydewValleyCoreLibrary
 file(GLOB_RECURSE PydewValleyCoreHeaders
     "src/Core/*.h"
 )
@@ -55,18 +66,16 @@ file(GLOB_RECURSE PydewValleyCoreSources
     "src/Core/*.cpp"
 )
 
-add_library(PydewValleyLibrary STATIC
-    ${PydewValleyHeaders}
-    ${PydewValleySources}
-)
-
+# Create PydewValleyCoreLibrary static library
 add_library(PydewValleyCoreLibrary STATIC
     ${PydewValleyCoreHeaders}
     ${PydewValleyCoreSources}
 )
 
+# Link PydewValleyLibrary against CommonIncludes
 target_link_libraries(PydewValleyLibrary PUBLIC CommonIncludes)
 
+# Link PydewValleyCoreLibrary against CommonIncludes, SFML, and yaml-cpp
 target_link_libraries(PydewValleyCoreLibrary PUBLIC 
     CommonIncludes
     sfml-system
@@ -77,8 +86,10 @@ target_link_libraries(PydewValleyCoreLibrary PUBLIC
     yaml-cpp
 )
 
+# Link PydewValleyLibrary against PydewValleyCoreLibrary
 target_link_libraries(PydewValleyLibrary PUBLIC PydewValleyCoreLibrary)
 
+# Specify include directories for PydewValleyLibrary and PydewValleyCoreLibrary
 target_include_directories(PydewValleyLibrary PUBLIC
     ${PydewValleyIncludes}
 )
@@ -87,8 +98,9 @@ target_include_directories(PydewValleyCoreLibrary PUBLIC
     ${PydewValleyCoreIncludes}
 )
 
+# Create the executable PydewValley and link against PydewValleyLibrary and PydewValleyCoreLibrary
 add_executable(PydewValley 
     bootstrap/Main.cpp
- )
+)
 
 target_link_libraries(PydewValley PUBLIC PydewValleyLibrary PydewValleyCoreLibrary)
