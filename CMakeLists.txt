@@ -39,47 +39,30 @@ set(PydewValleyCoreIncludes
     src
 )
 
+file(GLOB_RECURSE PydewValleyHeaders
+    "src/Game/*.h"
+)
+
+file(GLOB_RECURSE PydewValleySources
+    "src/Game/*.cpp"
+)
+
+file(GLOB_RECURSE PydewValleyCoreHeaders
+    "src/Core/*.h"
+)
+
+file(GLOB_RECURSE PydewValleyCoreSources
+    "src/Core/*.cpp"
+)
+
 add_library(PydewValleyLibrary STATIC
-    src/Game/Overlay.h
-    src/Game/Player.h
-    src/Game/Game.cpp
-    src/Game/Level.h
-    src/Game/Settings.h
-    src/Game/Settings.cpp
+    ${PydewValleyHeaders}
+    ${PydewValleySources}
 )
 
 add_library(PydewValleyCoreLibrary STATIC
-    src/Core/ISerializable.h
-    src/Core/Timer.h    
-    src/Core/ResourceManager.h
-    src/Core/ResourceManager.cpp
-    src/Core/AnimationManager.h
-    src/Core/AnimationManager.cpp
-    src/Core/TextureAnimationSequence.h
-    src/Core/TextureAnimationSequence.cpp
-    src/Core/Application.h
-    src/Core/Application.cpp
-    src/Core/IApplicationListener.h
-    src/Core/IApplicationListener.cpp    
-    src/Core/ILayer.h                
-    src/Core/LayerStack.h
-    src/Core/LayerStack.cpp
-    src/Core/ResourceLocator.h
-    src/Core/GameObject.h
-    src/Core/GameObject.cpp
-    src/Core/Scene.h
-    src/Core/Group.h
-    src/Core/Group.cpp
-    src/Core/TextureManager.h
-    src/Core/TextureManager.cpp
-    src/Core/AnimationManager.h
-    src/Core/Animation.h
-    src/Core/Animation.cpp
-    src/Core/Support.h
-    src/Core/Support.cpp
-    src/Core/ItemPicker.h
-    src/Core/RectUtils.h
-    src/Core/RectUtils.cpp
+    ${PydewValleyCoreHeaders}
+    ${PydewValleyCoreSources}
 )
 
 target_link_libraries(PydewValleyLibrary PUBLIC CommonIncludes)
