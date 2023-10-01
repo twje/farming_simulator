@@ -32,7 +32,7 @@ public:
 		{
 			if (!gameObject->IsMarkedForRemoval()) { continue; }
 
-			gameObject->Draw(window);
+			window.draw(*gameObject);
 		}
 		mOverlay->Draw(window);
 	}

@@ -45,7 +45,7 @@ void Animation::Upate(const sf::Time& timestamp)
 	}
 }
 
-sf::Sprite& Animation::GetSprite()
+sf::Sprite& Animation::GetSprite() const
 {
 	assert(mSprite != nullptr);
 	return *mSprite;

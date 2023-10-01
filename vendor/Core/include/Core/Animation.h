@@ -47,7 +47,7 @@ public:
 	void Upate(const sf::Time& timestamp);
 
 	// Getters
-	sf::Sprite& GetSprite();
+	sf::Sprite& GetSprite() const;
 	sf::FloatRect GetGlobalBounds() const;
 
 	// Setters

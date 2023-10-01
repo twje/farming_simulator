@@ -4,24 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 
-class Transformable : private sf::Transformable
-{
-public:
-	// Getters
-	const sf::Transform& GetTransform() const { return getTransform(); }
-	const sf::Vector2f& GetPosition() const { return getPosition(); }
-
-	// Setters
-	void SetPosition(const sf::Vector2f& position) { setPosition(position); }
-	void SetOrigin(const sf::Vector2f& origin) { setOrigin(origin); }
-	void SetRotation(float value) { setRotation(sf::degrees(value)); }
-
-	void Move(const sf::Vector2f& offset) { move(offset); }
-	void MoveX(float value) { move(sf::Vector2f(value, 0)); }
-	void MoveY(float value) { move(sf::Vector2f(0, value)); }
-};
-
-class GameObject : public Transformable
+class GameObject: public sf::Drawable
 {
 	friend class Scene;
 	friend class Group;
@@ -29,7 +12,6 @@ class GameObject : public Transformable
 public:
 	// Hooks
 	virtual void Update(const sf::Time& timestamp) { };
-	virtual void Draw(sf::RenderWindow& window) { }
 
 	// Helper methods
 	bool IsMarkedForRemoval();
@@ -45,25 +27,32 @@ private:
 	std::vector<Group*> mGroups;
 };
 
-class Sprite : public GameObject
+class Sprite : public GameObject, private sf::Transformable
 {
 public:
 	// Hooks
 	virtual sf::FloatRect GetLocalBounds() const { return sf::FloatRect(); }
+	virtual void Draw(sf::RenderTarget& target, const sf::RenderStates& states) const { }
 
 	// Getters
 	sf::FloatRect GetGlobalBounds() const { return GetTransform().transformRect(GetLocalBounds()); }
-};
+	const sf::Transform& GetTransform() const { return getTransform(); }
+	const sf::Vector2f& GetPosition() const { return getPosition(); }
 
-//// Custom hash function
-//namespace std
-//{
-//	template<>
-//	struct hash<GameObject*>
-//	{
-//		size_t operator()(const GameObject* obj) const
-//		{
-//			return std::hash<const GameObject*>{}(obj);
-//		}
-//	};
-//}
+	// Setters
+	void SetPosition(const sf::Vector2f& position) { setPosition(position); }
+	void SetOrigin(const sf::Vector2f& origin) { setOrigin(origin); }
+	void SetRotation(float value) { setRotation(sf::degrees(value)); }
+
+	void Move(const sf::Vector2f& offset) { move(offset); }
+	void MoveX(float value) { move(sf::Vector2f(value, 0)); }
+	void MoveY(float value) { move(sf::Vector2f(0, value)); }
+
+private:
+	void draw(sf::RenderTarget& target, const sf::RenderStates& states) const override final
+	{
+		sf::RenderStates statesCopy(states);
+		statesCopy.transform *= getTransform();
+		Draw(target, statesCopy);
+	}
+};

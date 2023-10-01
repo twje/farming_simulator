@@ -207,9 +207,9 @@ public:
 		Animate(timestamp);
 	};
 
-	void Draw(sf::RenderWindow& window) override
+	void Draw(sf::RenderTarget& target, const sf::RenderStates& states) const override
 	{
-		window.draw(mAnimation.GetSprite(), GetTransform());
+		target.draw(mAnimation.GetSprite(), states);
 	}
 
 private:
