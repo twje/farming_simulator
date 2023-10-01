@@ -10,7 +10,7 @@ class TextureAnimationSequence : public AnimationSequence
 {
 public:
 	TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
-		: AnimationSequence(sequenceId, framesPerSecond)		  
+		: AnimationSequence(sequenceId, framesPerSecond)
 	{
 	}
 
@@ -33,13 +33,13 @@ public:
 	}
 
 	virtual uint16_t GetFrameCount() { return mFrames.size(); }
-	
+
 	// ISerializable interface
 	void Serialize(YAML::Emitter& emitter) override
 	{
 		emitter << YAML::BeginMap;
 		emitter << YAML::Key << "TextureAnimationSequence" << YAML::Value;
-		emitter << YAML::BeginMap;		
+		emitter << YAML::BeginMap;
 		emitter << YAML::Key << "textures" << YAML::Value;
 		emitter << YAML::BeginSeq;
 		for (const auto& frame : mFrames)
@@ -55,11 +55,11 @@ public:
 
 private:
 	void TextureAnimationSequence::AddFrame(TextureManager& textureManager, std::string textureId)
-	{	
+	{
 		auto frame = std::make_pair(textureId, &textureManager.Get(textureId));
 		mFrames.emplace_back(frame);
 	}
 
-private:	
+private:
 	std::vector<std::pair<std::string, sf::Texture*>> mFrames;
 };

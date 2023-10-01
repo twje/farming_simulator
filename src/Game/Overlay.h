@@ -21,7 +21,7 @@ public:
 		SetOverlayTexture(player.GetActiveSeed(), "seed", mSeedSprite);
 		player.Subscribe(this);
 	}
-	
+
 	void Draw(sf::RenderWindow& window)
 	{
 		window.draw(mToolSprite);
@@ -43,9 +43,9 @@ private:
 	{
 		sf::Texture& texture = mResourceLocator.GetTextureManager().Get(textureId);
 		sprite.setTexture(texture, true);
-		sprite.setOrigin(GetRectMidBottom(sprite.getLocalBounds()));		
+		sprite.setOrigin(GetRectMidBottom(sprite.getLocalBounds()));
 		sprite.setPosition(OVERLAY_POSITIONS.at(overlayId));
-	}	
+	}
 
 private:
 	ResourceLocator& mResourceLocator;

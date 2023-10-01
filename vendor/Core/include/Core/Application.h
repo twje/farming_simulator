@@ -20,7 +20,7 @@ class Application
 {
 public:
 	Application(std::unique_ptr<IApplicationListener> listener, ApplicationConfig config);
-	
+
 	void Run();
 
 private:

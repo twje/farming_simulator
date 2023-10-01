@@ -8,14 +8,14 @@
 Application::Application(std::unique_ptr<IApplicationListener> listener, ApplicationConfig config)
 	: mListener(std::move(listener)),
 	  mWindow(sf::VideoMode(sf::Vector2u(config.mWidth, config.mHeight), config.mBPP), config.mCaption)
-{	
+{
 	mListener->SetLayerStack(&mLayerStack);
-	mListener->SetResourceLocator(&mResourceLocator);    
+	mListener->SetResourceLocator(&mResourceLocator);
 	mListener->Create();
 }
 
 void Application::Run()
-{	
+{
     while (mWindow.isOpen())
     {
         sf::Event event;
@@ -31,7 +31,7 @@ void Application::Run()
             }
             mLayerStack.OnEvent(event);
         }
-        
+
         mLayerStack.Update(mClock.restart());
 
         mWindow.clear();
@@ -39,5 +39,5 @@ void Application::Run()
         mWindow.display();
 
         mLayerStack.EndFrame();
-    }	
+    }
 }

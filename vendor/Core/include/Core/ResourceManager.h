@@ -64,7 +64,7 @@ public:
         {
             throw std::runtime_error("resourceId does not exist: " + resourceId);
         }
-        return *mResources.at(resourceId);		
+        return *mResources.at(resourceId);
 	}
 
 	void Clone(std::string resourceId)

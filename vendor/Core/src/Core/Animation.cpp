@@ -46,9 +46,9 @@ void Animation::Upate(const sf::Time& timestamp)
 }
 
 sf::Sprite& Animation::GetSprite()
-{ 
+{
 	assert(mSprite != nullptr);
-	return *mSprite; 
+	return *mSprite;
 }
 
 sf::FloatRect Animation::GetGlobalBounds() const
@@ -126,12 +126,12 @@ void Animation::Deserialize(const YAML::Node& node, ResourceLocator& locator)
 {
 	// Define a type alias for AnimationSequence factory functions
 	using AnimationSequenceFactory = std::shared_ptr<AnimationSequence>(*)(
-		const YAML::Node&, 
-		std::string, 
+		const YAML::Node&,
+		std::string,
 		uint16_t,
 		ResourceLocator&
 	);
-	
+
 	// Factory function for TextureAnimationSequence
 	AnimationSequenceFactory textureAnimationSequence = [](
 		const YAML::Node& node,
@@ -144,7 +144,7 @@ void Animation::Deserialize(const YAML::Node& node, ResourceLocator& locator)
 			sequence->Deserialize(node, locator);
 			return sequence;
 		};
-	
+
 	// Map of sequence type names to their factory functions
 	std::map<std::string, AnimationSequenceFactory> animationSequenceFactories {
 		{"TextureAnimationSequence", textureAnimationSequence}

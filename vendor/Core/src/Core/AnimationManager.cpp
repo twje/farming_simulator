@@ -5,7 +5,7 @@
 #include <Core/ResourceLocator.h>
 
 std::unique_ptr<Animation> AnimationLoader::Load(std::string filePath, ResourceLocator& locator)
-{	
+{
     auto animation = std::make_unique<Animation>();
     animation->LoadFromFile(filePath, locator);
     return animation;

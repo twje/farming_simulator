@@ -15,14 +15,14 @@ public:
 	{
 		auto gameObject = std::make_unique<T>(std::forward<Args>(args)...);
 		gameObject->SetScene(this);
-		
+
 		T* ptr = gameObject.get();
 		mGameObjects[ptr] = std::move(gameObject);
 		return ptr;
 	}
-	
+
 	void DeleteGameObject(GameObject* gameObject)
-	{		
+	{
 		mDeadGameObjectList.insert(gameObject);
 	}
 

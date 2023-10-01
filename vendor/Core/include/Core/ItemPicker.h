@@ -17,7 +17,7 @@ public:
 		}
 	}
 	void Next() { mIndex = (mIndex + 1) % vectorList.size(); }
-	
+
 	const T& GetItem() const { return vectorList[mIndex]; }
 	T& GetItem() { return vectorList[mIndex]; }
 

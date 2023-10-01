@@ -57,12 +57,12 @@ private:
 class Player : public Sprite, public PlayerSubject
 {
 public:
-	Player(ResourceLocator& locator, const sf::Vector2f& position)	
+	Player(ResourceLocator& locator, const sf::Vector2f& position)
 		: mAnimation(locator.GetAnimationManager().Get("character")),
 		  mSpeed(200),
-		  mStatus("down_idle"),		  
+		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),
-		  mSeedPicker({ "corn", "tomato" })		  
+		  mSeedPicker({ "corn", "tomato" })
 	{
 		mAnimation.SetOriginAnchor(sf::Vector2f(0.5f, 0.5f));
 		mAnimation.SetAnimationSequence(mStatus);
@@ -71,19 +71,19 @@ public:
 		mTimers.emplace(TimerId::TOOL_SWITCH, Timer(sf::milliseconds(200)));
 		mTimers.emplace(TimerId::SEED_USE, Timer(sf::milliseconds(350), std::bind(&Player::UseSeed, this)));
 		mTimers.emplace(TimerId::SEED_SWITCH, Timer(sf::milliseconds(200)));
-	}	
+	}
 
 	std::string GetActiveTool() const { return mToolPicker.GetItem(); }
 	std::string GetActiveSeed() const { return mSeedPicker.GetItem(); }
 
 	void UseTool()
 	{
-		std::cout << mToolPicker.GetItem() << std::endl;			
+		std::cout << mToolPicker.GetItem() << std::endl;
 	}
 
 	void UseSeed()
 	{
-		std::cout << mSeedPicker.GetItem() << std::endl;		
+		std::cout << mSeedPicker.GetItem() << std::endl;
 	}
 
 	sf::FloatRect GetLocalBounds() const override { return mAnimation.GetGlobalBounds(); }
@@ -160,13 +160,13 @@ public:
 		// idle
 		if (mDirection.lengthSq() == 0)
 		{
-			mStatus = SplitAndGetElement(mStatus, '_', 0) + "_idle";			
+			mStatus = SplitAndGetElement(mStatus, '_', 0) + "_idle";
 		}
 
 		// tool use
 		if (mTimers[TimerId::TOOL_USE].IsActive())
 		{
-			mStatus = SplitAndGetElement(mStatus, '_', 0) + "_" + mToolPicker.GetItem();			
+			mStatus = SplitAndGetElement(mStatus, '_', 0) + "_" + mToolPicker.GetItem();
 		}
 	}
 
@@ -174,11 +174,11 @@ public:
 	{
 		for (auto& pair : mTimers) {
 			pair.second.Update(timestamp);
-			if (pair.second.IsFinished()) 
+			if (pair.second.IsFinished())
 			{
 				pair.second.Reset();
 			}
-		}		
+		}
 	}
 
 	void Move(const sf::Time& timestamp)
@@ -187,9 +187,9 @@ public:
 		{
 			mDirection = mDirection.normalized();
 		}
-		
+
 		MoveX(mDirection.x * timestamp.asSeconds() * mSpeed);
-		MoveY(mDirection.y * timestamp.asSeconds() * mSpeed);		
+		MoveY(mDirection.y * timestamp.asSeconds() * mSpeed);
 	}
 
 	void Animate(const sf::Time& timestamp)
@@ -209,14 +209,14 @@ public:
 
 	void Draw(sf::RenderWindow& window) override
 	{
-		window.draw(mAnimation.GetSprite(), GetTransform());		
+		window.draw(mAnimation.GetSprite(), GetTransform());
 	}
 
-private:		
-	sf::Vector2f mDirection;	
+private:
+	sf::Vector2f mDirection;
 	float mSpeed;
 	std::string mStatus;
-	Animation mAnimation;	
+	Animation mAnimation;
 	std::unordered_map<TimerId, Timer> mTimers;
 	std::string mSelectedTool;
 	ItemPicker<std::string> mToolPicker;

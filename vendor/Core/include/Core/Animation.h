@@ -11,39 +11,39 @@
 class TextureManager;
 
 struct SequenceFrame
-{	
+{
 	sf::Vector2f GetOrigin(const sf::Vector2f& originAnchor);
-	
+
 	sf::Texture* mTexture{ nullptr };
-	sf::IntRect mTextureRect;	
+	sf::IntRect mTextureRect;
 };
 
 class AnimationSequence : public ISerializable
 {
 public:
 	AnimationSequence(std::string sequenceId, uint16_t framesPerSecond);
-	
+
 	// Getters
-	const std::string& GetSequenceId() { return mSequenceId; }	
+	const std::string& GetSequenceId() { return mSequenceId; }
 	sf::Time GetDuration() { return mDuration; }
 	uint16_t GetFramesPerSecond() const { return mFramesPerSecond; }
-	
+
 	// Hooks
 	virtual void GetFrame(SequenceFrame& outFrame, uint16_t frameIndex) = 0;
 	virtual uint16_t GetFrameCount() = 0;
 
 private:
-	std::string mSequenceId;	
+	std::string mSequenceId;
 	sf::Time mDuration;
 	uint16_t mFramesPerSecond;
 };
 
 class Animation : public ISerializable
 {
-public:	
+public:
 	Animation() = default;
 	Animation(const Animation& other);
-	
+
 	void Upate(const sf::Time& timestamp);
 
 	// Getters
@@ -71,13 +71,13 @@ private:
 	// sequence memebers
 	std::unordered_map<std::string, std::shared_ptr<AnimationSequence>> mSequences;
 	AnimationSequence* mCurrentSequence{ nullptr };
-	SequenceFrame mOutSequenceFrame;	
+	SequenceFrame mOutSequenceFrame;
 
 	// animation members
 	uint16_t mFrameIndex{ 0 };
 	Timer mTimer;
-	
+
 	// graphics members
 	sf::Vector2f mOriginAnchor;
-	std::unique_ptr<sf::Sprite> mSprite;	
+	std::unique_ptr<sf::Sprite> mSprite;
 };

@@ -19,8 +19,8 @@ public:
 		  mCallback(std::forward<Callable>(callable))
 	{ }
 
-	void Update(const sf::Time& timestamp) 
-	{ 
+	void Update(const sf::Time& timestamp)
+	{
 		if (mActive)
 		{
 			mElapsedTime += timestamp.asSeconds();
@@ -36,12 +36,12 @@ public:
 	void Start() { mActive = true; }
 
 	// Getters
-	bool IsFinished() { return mElapsedTime >= mDuration.asSeconds(); }		
+	bool IsFinished() { return mElapsedTime >= mDuration.asSeconds(); }
 	bool IsActive() { return mActive; }
 
 	// Setters
 	void SetDuration(const sf::Time& duration) { mDuration = duration; }
-	
+
 	template <typename Callable>
 	void SetCallback(Callable&& callable) { mCallback = std::forward<Callable>(callable); }
 
