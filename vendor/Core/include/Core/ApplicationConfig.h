@@ -9,5 +9,5 @@ struct ApplicationConfig
 	uint16_t mBPP;
 	std::string mCaption;
 
-	sf::Vector2u GetWindowSize() { return sf::Vector2u(mWidth, mHeight); }
+	sf::Vector2u GetWindowSize() const { return sf::Vector2u(mWidth, mHeight); }
 };
