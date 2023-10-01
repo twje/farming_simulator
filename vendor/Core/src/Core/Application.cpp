@@ -1,13 +1,14 @@
-#include "Core/Application.h"
+#include <iostream>
 
+#include "Core/Application.h"
 #include "Core/IApplicationListener.h"
 #include "Core/LayerStack.h"
-
-#include <iostream>
+#include "Core/ApplicationConfig.h"
 
 Application::Application(std::unique_ptr<IApplicationListener> listener, ApplicationConfig config)
 	: mListener(std::move(listener)),
-	  mWindow(sf::VideoMode(sf::Vector2u(config.mWidth, config.mHeight), config.mBPP), config.mCaption)
+	  mWindow(sf::VideoMode(sf::Vector2u(config.mWidth, config.mHeight), config.mBPP), config.mCaption),
+      mResourceLocator(config)
 {
 	mListener->SetLayerStack(&mLayerStack);
 	mListener->SetResourceLocator(&mResourceLocator);
@@ -27,7 +28,9 @@ void Application::Run()
             }
             else if (event.type == sf::Event::Resized)
             {
-                mLayerStack.OnWindowResize(sf::Vector2u(event.size.width, event.size.height));
+                mResourceLocator.mConfig.mHeight = event.size.width;
+                mResourceLocator.mConfig.mWidth = event.size.height;
+                mLayerStack.OnWindowResize(mResourceLocator.mConfig.GetWindowSize());
             }
             mLayerStack.OnEvent(event);
         }

@@ -35,6 +35,7 @@ public:
 	virtual void Draw(sf::RenderTarget& target, const sf::RenderStates& states) const { }
 
 	// Getters
+	sf::Vector2f GetCenter() const { return getPosition() + 0.5f * GetGlobalBounds().getSize(); }
 	sf::FloatRect GetGlobalBounds() const { return GetTransform().transformRect(GetLocalBounds()); }
 	const sf::Transform& GetTransform() const { return getTransform(); }
 	const sf::Vector2f& GetPosition() const { return getPosition(); }
