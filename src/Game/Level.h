@@ -29,6 +29,8 @@ public:
 
 	void Update(const sf::Time& timestamp) override
 	{
+		mWorldView.setCenter(mPlayer->GetCenter());
+
 		for (GameObject* gameObject : mAllSprites)
 		{
 			if (!gameObject->IsMarkedForRemoval()) { continue; }
@@ -39,9 +41,7 @@ public:
 
 	virtual void Draw(sf::RenderWindow& window)
 	{
-		mWorldView.setCenter(mPlayer->GetCenter());
 		window.setView(mWorldView);
-
 		for (GameObject* gameObject : mAllSprites)
 		{
 			if (!gameObject->IsMarkedForRemoval()) { continue; }
