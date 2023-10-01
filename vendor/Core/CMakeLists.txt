@@ -64,3 +64,5 @@ target_link_libraries(${CoreLibrary} PUBLIC
 target_include_directories(${CoreLibrary} PUBLIC
     ${CoreIncludes}
 )
+
+add_subdirectory(tests)
