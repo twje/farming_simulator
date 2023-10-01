@@ -3,5 +3,4 @@ repos:
     rev: v4.0.1
     hooks:
     -   id: trailing-whitespace
-        files: '\.(cpp|h)$'
-        args: ['--fail-fast']
+        files: '\.(cpp|h)$'        
