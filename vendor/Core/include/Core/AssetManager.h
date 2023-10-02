@@ -7,6 +7,9 @@
 #include <queue>
 #include <filesystem>
 
+// Forward declarations
+class AssetManager;
+
 // ----------------------------------------------------------------
 class AssetBase
 {
@@ -34,7 +37,7 @@ class AssetLoader
 {
 public:
 	virtual ~AssetLoader() = default;
-	virtual std::unique_ptr<AssetBase> Load(const std::string& fileName) = 0;
+	virtual std::unique_ptr<AssetBase> Load(const std::string& fileName, AssetManager& assetManager) = 0;
 };
 
 // ----------------------------------------------------------------
@@ -82,10 +85,7 @@ class AssetManager
 	using AssetQueue = std::queue<std::unique_ptr<AssetDescriptorBase>>;
 
 public:
-	AssetManager()
-	{
-		// Register common loaders
-	}
+	AssetManager();
 
 	template<typename T>
 	void RegisterLoader(std::unique_ptr<AssetLoader> loader)
@@ -144,7 +144,7 @@ public:
 			}
 
 			AssetLoader& loader = GetLoader(assetTypeId);
-			auto asset = loader.Load(fileName);
+			auto asset = loader.Load(fileName, *this);
 			mAssets[assetTypeId].emplace(assetId, std::move(asset));
 		}
 	}

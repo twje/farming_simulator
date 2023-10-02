@@ -5,6 +5,8 @@
 #include "Core/TextureManager.h"
 #include "Core/AnimationManager.h"
 #include "Core/ApplicationConfig.h"
+#include "Core/AssetManager.h"
+
 
 class ResourceLocator
 {
@@ -20,9 +22,11 @@ public:
 	const ApplicationConfig& GetApplicationConfig() const { return mConfig; }
 	TextureManager& GetTextureManager() { return mTextureManager; }
 	AnimationManager& GetAnimationManager() { return mAnimationManager; }
+	AssetManager& GetAssetManager() { return mAssetManager; }
 
 private:
 	ApplicationConfig mConfig;
 	TextureManager mTextureManager;
 	AnimationManager mAnimationManager;
+	AssetManager mAssetManager;
 };
