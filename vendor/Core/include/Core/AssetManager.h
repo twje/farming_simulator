@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <typeindex>
 #include <queue>
+#include <filesystem>
 
 // ----------------------------------------------------------------
 class AssetBase
@@ -84,7 +85,6 @@ public:
 	AssetManager()
 	{
 		// Register common loaders
-
 	}
 
 	template<typename T>
@@ -94,10 +94,37 @@ public:
 	}
 
 	template<typename T>
-	void LoadAsset(const std::string& assetId, const std::string& fileName)
+	void LoadAssetsFromManifest(std::string fileName)
 	{
-		auto descriptor = std::make_unique<AssetDescriptor<T>>(assetId, fileName);
-		mQueue.push(std::move(descriptor));
+		namespace fs = std::filesystem;
+
+		std::ifstream file(fileName);
+		if (!file.is_open())
+		{
+			throw std::runtime_error("Failed to load configuration file " + fileName);
+		}
+
+		std::string line;
+		while (std::getline(file, line))
+		{
+			auto isSpace = [](char c) { return std::isspace(c); };
+			if (line.empty() || std::all_of(line.begin(), line.end(), isSpace) || line[0] == '#')
+			{
+				continue;
+			}
+
+			std::istringstream iss(line);
+			std::string assetId, assetFileName;
+			if (std::getline(iss >> std::ws, assetId, ',') && std::getline(iss >> std::ws, assetFileName, ','))
+			{
+				if (!fs::is_regular_file(assetFileName))
+				{
+					throw std::runtime_error("Resouce " + assetFileName + " does not exist");
+				}
+
+				QueueAssetDescriptor<T>(assetId, assetFileName);
+			}
+		}
 	}
 
 	void ProcessAssetQueue()
@@ -138,6 +165,13 @@ public:
 	}
 
 private:
+	template<typename T>
+	void QueueAssetDescriptor(const std::string& assetId, const std::string& fileName)
+	{
+		auto descriptor = std::make_unique<AssetDescriptor<T>>(assetId, fileName);
+		mQueue.push(std::move(descriptor));
+	}
+
 	AssetLoader& GetLoader(std::type_index assetTypeId) const
 	{
 		auto loaderIt = mLoaders.find(assetTypeId);
