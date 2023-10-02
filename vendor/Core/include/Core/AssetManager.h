@@ -6,6 +6,7 @@
 #include <typeindex>
 #include <queue>
 #include <filesystem>
+#include <fstream>
 
 // Forward declarations
 class AssetManager;

@@ -8,8 +8,10 @@
 class AnimationLoader2 : public AssetLoader
 {
 public:
-	virtual std::unique_ptr<AssetBase> Load(const std::string& fileName, AssetManager& assetManager) override
+	virtual std::unique_ptr<AssetBase> Load(const std::string& filePath, AssetManager& assetManager) override
 	{
-		return nullptr;
+		auto animation = std::make_unique<Animation>();
+		animation->LoadFromFile(filePath, assetManager);
+		return std::make_unique<Asset<Animation>>(std::move(animation));
 	}
 };

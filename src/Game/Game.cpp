@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "Core/IApplicationListener.h"
-
+#include "Core/AssetManager.h"
 #include "Level.h"
 
 class Game : public IApplicationListener
@@ -9,12 +9,17 @@ class Game : public IApplicationListener
 public:
 	void Create() override
 	{
-		auto& locator = GetResourceLocator();
-		locator.GetTextureManager().LoadConfig("../../config/textures.cfg");
-		locator.GetAnimationManager().LoadConfig("../../config/animations.cfg");
+		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
+
+		assetManager.LoadAssetsFromManifest<sf::Texture>("../../config/textures.cfg");
+		assetManager.LoadAssetsFromManifest<Animation>("../../config/animations.cfg");
+		assetManager.ProcessAssetQueue();
 
 		PushLayer(std::make_unique<Level>());
 	}
+
+private:
+	AssetManager mAssetManager;
 };
 
 std::unique_ptr<IApplicationListener> CreateApplication()

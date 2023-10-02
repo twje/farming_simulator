@@ -6,9 +6,7 @@
 
 std::unique_ptr<Animation> AnimationLoader::Load(std::string filePath, ResourceLocator& locator)
 {
-    auto animation = std::make_unique<Animation>();
-    animation->LoadFromFile(filePath, locator);
-    return animation;
+    return nullptr;
 }
 
 AnimationManager::AnimationManager(ResourceLocator& locator)

@@ -2,6 +2,8 @@
 
 #include "Core/Scene.h"
 #include "Core/Group.h"
+#include "Core/AssetManager.h"
+
 #include "Player.h"
 #include "Overlay.h"
 
@@ -11,6 +13,8 @@ class Level : public Scene
 public:
 	void Create() override
 	{
+		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
+
 		const ApplicationConfig& config = GetResourceLocator().GetApplicationConfig();
 		sf::Vector2f windowSize = sf::Vector2f(config.GetWindowSize());
 
@@ -20,11 +24,11 @@ public:
 		mHUDView.setSize(windowSize);
 		mHUDView.setCenter(windowSize * 0.5f);
 
-		mPlayer = CreateGameObject<Player>(GetResourceLocator(), sf::Vector2f(0, 0));
+		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(0, 0));
 
 		mAllSprites.Add(mPlayer);
 
-		mOverlay = std::make_unique<Overlay>(GetResourceLocator(), *mPlayer);
+		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
 	}
 
 	void Update(const sf::Time& timestamp) override

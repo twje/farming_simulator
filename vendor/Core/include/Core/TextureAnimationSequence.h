@@ -5,6 +5,7 @@
 
 #include "Core/Animation.h"
 #include "Core/TextureManager.h"
+#include "Core/AssetManager.h"
 
 class TextureAnimationSequence : public AnimationSequence
 {
@@ -14,11 +15,11 @@ public:
 	{
 	}
 
-	void AddFrames(TextureManager& textureManager, std::initializer_list<std::string> frames)
+	void AddFrames(AssetManager& assetManager, std::initializer_list<std::string> frames)
 	{
 		for (const std::string& textureId : frames)
 		{
-			AddFrame(textureManager, textureId);
+			AddFrame(assetManager, textureId);
 		}
 	}
 
@@ -51,12 +52,13 @@ public:
 		emitter << YAML::EndMap;
 	}
 
-	void Deserialize(const YAML::Node& node, ResourceLocator& locator) override;
+	void Deserialize(const YAML::Node& node, AssetManager& assetManager) override;
 
 private:
-	void TextureAnimationSequence::AddFrame(TextureManager& textureManager, std::string textureId)
+	void TextureAnimationSequence::AddFrame(AssetManager& assetManager, std::string textureId)
 	{
-		auto frame = std::make_pair(textureId, &textureManager.Get(textureId));
+		sf::Texture& texture = assetManager.GetAsset<sf::Texture>(textureId);
+		auto frame = std::make_pair(textureId, &texture);
 		mFrames.emplace_back(frame);
 	}
 

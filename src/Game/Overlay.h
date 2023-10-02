@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "Core/ResourceLocator.h"
+#include "Core/AssetManager.h"
 #include "Core/RectUtils.h"
 
 #include "Player.h"
@@ -11,11 +11,11 @@
 class Overlay : public IPlayerObserver
 {
 public:
-	Overlay(ResourceLocator& resourceLocator, Player& player)
-		: mResourceLocator(resourceLocator),
+	Overlay(AssetManager& assetManager, Player& player)
+		: mAssetManager(assetManager),
 		  mPlayer(player),
-		  mToolSprite(resourceLocator.GetTextureManager().Get(player.GetActiveTool())),
-		  mSeedSprite(resourceLocator.GetTextureManager().Get(player.GetActiveSeed()))
+		  mToolSprite(assetManager.GetAsset<sf::Texture>(player.GetActiveTool())),
+		  mSeedSprite(assetManager.GetAsset<sf::Texture>(player.GetActiveSeed()))
 	{
 		SetOverlayTexture(player.GetActiveTool(), "tool", mToolSprite);
 		SetOverlayTexture(player.GetActiveSeed(), "seed", mSeedSprite);
@@ -41,14 +41,14 @@ private:
 
 	void SetOverlayTexture(const std::string& textureId, const std::string& overlayId, sf::Sprite& sprite)
 	{
-		sf::Texture& texture = mResourceLocator.GetTextureManager().Get(textureId);
+		sf::Texture& texture = mAssetManager.GetAsset<sf::Texture>(textureId);
 		sprite.setTexture(texture, true);
 		sprite.setOrigin(GetRectMidBottom(sprite.getLocalBounds()));
 		sprite.setPosition(OVERLAY_POSITIONS.at(overlayId));
 	}
 
 private:
-	ResourceLocator& mResourceLocator;
+	AssetManager& mAssetManager;
 	Player& mPlayer;
 	sf::Sprite mToolSprite;
 	sf::Sprite mSeedSprite;

@@ -57,11 +57,11 @@ public:
 
 	// IO
 	void SaveToFile(const std::string& filePath);
-	void LoadFromFile(const std::string& filePath, ResourceLocator& locator);
+	void LoadFromFile(const std::string& filePath, AssetManager& assetManager);
 
 	// ISerialize interface
 	void Serialize(YAML::Emitter& emitter) override;
-	void Deserialize(const YAML::Node& node, ResourceLocator& locator) override;
+	void Deserialize(const YAML::Node& node, AssetManager& assetManager) override;
 
 private:
 	void RefreshFrame();

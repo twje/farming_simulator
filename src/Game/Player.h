@@ -9,6 +9,7 @@
 #include "Core/Animation.h"
 #include "Core/Support.h"
 #include "Core/ItemPicker.h"
+#include "Core/AssetManager.h">
 
 // --------------------------------------------------------------------------------
 enum class TimerId
@@ -57,8 +58,8 @@ private:
 class Player : public Sprite, public PlayerSubject
 {
 public:
-	Player(ResourceLocator& locator, const sf::Vector2f& position)
-		: mAnimation(locator.GetAnimationManager().Get("character")),
+	Player(AssetManager& assetManager, const sf::Vector2f& position)
+		: mAnimation(assetManager.GetAsset<Animation>("character")),
 		  mSpeed(200),
 		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),

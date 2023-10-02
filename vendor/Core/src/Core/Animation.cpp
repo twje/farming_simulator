@@ -101,10 +101,10 @@ void Animation::SaveToFile(const std::string& filePath)
 	file << emitter.c_str();
 }
 
-void Animation::LoadFromFile(const std::string& filePath, ResourceLocator& locator)
+void Animation::LoadFromFile(const std::string& filePath, AssetManager& assetManager)
 {
 	YAML::Node node = YAML::LoadFile(filePath);
-	Deserialize(node, locator);
+	Deserialize(node, assetManager);
 }
 
 void Animation::Serialize(YAML::Emitter& emitter)
@@ -122,14 +122,14 @@ void Animation::Serialize(YAML::Emitter& emitter)
 	emitter << YAML::EndSeq;
 }
 
-void Animation::Deserialize(const YAML::Node& node, ResourceLocator& locator)
+void Animation::Deserialize(const YAML::Node& node, AssetManager& assetManager)
 {
 	// Define a type alias for AnimationSequence factory functions
 	using AnimationSequenceFactory = std::shared_ptr<AnimationSequence>(*)(
 		const YAML::Node&,
 		std::string,
 		uint16_t,
-		ResourceLocator&
+		AssetManager&
 	);
 
 	// Factory function for TextureAnimationSequence
@@ -137,7 +137,7 @@ void Animation::Deserialize(const YAML::Node& node, ResourceLocator& locator)
 		const YAML::Node& node,
 		std::string sequenceId,
 		uint16_t framesPerSecond,
-		ResourceLocator& locator
+		AssetManager& locator
 		) -> std::shared_ptr<AnimationSequence>
 		{
 			auto sequence = std::make_unique<TextureAnimationSequence>(sequenceId, framesPerSecond);
@@ -162,7 +162,7 @@ void Animation::Deserialize(const YAML::Node& node, ResourceLocator& locator)
 				frames.second,
 				sequenceId,
 				framesPerSecond,
-				locator
+				assetManager
 			);
 			AddAnimationSequence(sequence);
 		}
