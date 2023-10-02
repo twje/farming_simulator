@@ -17,12 +17,12 @@ set(GameIncludes
 
 # Gather source files for GameLibrary
 file(GLOB_RECURSE GameSources 
-    "src/Game/*.cpp"
+    "src/*.cpp"
 )
 
 # Gather header files for GameLibrary
 file(GLOB_RECURSE GameHeaders 
-    "src/Game/*.h"
+    "src/*.h"
 )
 
 # Create GameLibrary static library
