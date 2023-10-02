@@ -4,7 +4,6 @@
 #include <initializer_list>
 
 #include "Core/Animation.h"
-#include "Core/TextureManager.h"
 #include "Core/AssetManager.h"
 
 class TextureAnimationSequence : public AnimationSequence
