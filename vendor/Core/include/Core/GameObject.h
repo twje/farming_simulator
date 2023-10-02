@@ -12,6 +12,7 @@ class GameObject: public sf::Drawable
 public:
 	// Hooks
 	virtual void Update(const sf::Time& timestamp) { };
+	virtual uint16_t GetDepth() const { return 0; }
 
 	// Helper methods
 	bool IsMarkedForRemoval();

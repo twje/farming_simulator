@@ -11,6 +11,8 @@
 #include "Core/ItemPicker.h"
 #include "Core/AssetManager.h">
 
+#include "Settings.h"
+
 // --------------------------------------------------------------------------------
 enum class TimerId
 {
@@ -67,6 +69,7 @@ public:
 	{
 		mAnimation.SetOriginAnchor(sf::Vector2f(0.5f, 0.5f));
 		mAnimation.SetAnimationSequence(mStatus);
+		SetPosition(position);
 
 		mTimers.emplace(TimerId::TOOL_USE, Timer(sf::milliseconds(350), std::bind(&Player::UseTool, this)));
 		mTimers.emplace(TimerId::TOOL_SWITCH, Timer(sf::milliseconds(200)));
@@ -74,6 +77,7 @@ public:
 		mTimers.emplace(TimerId::SEED_SWITCH, Timer(sf::milliseconds(200)));
 	}
 
+	uint16_t GetDepth() const override { return LAYERS.at("main"); }
 	std::string GetActiveTool() const { return mToolPicker.GetItem(); }
 	std::string GetActiveSeed() const { return mSeedPicker.GetItem(); }
 

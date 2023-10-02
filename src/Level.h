@@ -1,13 +1,15 @@
 #pragma once
 
+#include <iostream>
+
 #include "Core/Scene.h"
 #include "Core/Group.h"
 #include "Core/AssetManager.h"
 
 #include "Player.h"
 #include "Overlay.h"
+#include "Sprites.h"
 
-#include <iostream>
 class Level : public Scene
 {
 public:
@@ -24,9 +26,11 @@ public:
 		mHUDView.setSize(windowSize);
 		mHUDView.setCenter(windowSize * 0.5f);
 
-		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(0, 0));
+		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(640, 360));
+		mGround = CreateGameObject<Generic>(assetManager.GetAsset<sf::Texture>("ground"), sf::Vector2f(0, 0), LAYERS.at("ground"));
 
 		mAllSprites.Add(mPlayer);
+		mAllSprites.Add(mGround);
 
 		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
 	}
@@ -46,11 +50,17 @@ public:
 	virtual void Draw(sf::RenderWindow& window)
 	{
 		window.setView(mWorldView);
-		for (GameObject* gameObject : mAllSprites)
+		for (size_t z = 0; z < LAYERS.size(); z++)
 		{
-			if (!gameObject->IsMarkedForRemoval()) { continue; }
+			for (GameObject* gameObject : mAllSprites)
+			{
+				if (!gameObject->IsMarkedForRemoval()) { continue; }
 
-			window.draw(*gameObject);
+				if (z == gameObject->GetDepth())
+				{
+					window.draw(*gameObject);
+				}
+			}
 		}
 
 		window.setView(mHUDView);
@@ -65,6 +75,8 @@ public:
 
 private:
 	Player* mPlayer;
+	Generic* mGround;
+
 	Group mAllSprites;
 	std::unique_ptr<Overlay> mOverlay;
 	sf::View mWorldView;
