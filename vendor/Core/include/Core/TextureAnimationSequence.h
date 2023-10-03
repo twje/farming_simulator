@@ -22,13 +22,13 @@ public:
 		}
 	}
 
-	void GetFrame(SequenceFrame& outFrame, uint16_t frameIndex) override
+	void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) override
 	{
 		sf::Texture* texture = mFrames.at(frameIndex).second;
-		if (texture != outFrame.mTexture)
+		if (texture != outFrame.GetTexture())
 		{
-			outFrame.mTexture = texture;
-			outFrame.mTextureRect = sf::IntRect(sf::Vector2i(), sf::Vector2i(outFrame.mTexture->getSize()));
+			outFrame.SetTexture(texture);
+			outFrame.SetRegion(sf::IntRect(sf::Vector2i(), sf::Vector2i(texture->getSize())));
 		}
 	}
 

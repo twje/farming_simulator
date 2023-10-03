@@ -6,17 +6,7 @@
 
 #include "Core/Timer.h"
 #include "Core/ISerializable.h"
-
-// Forward declaration
-class TextureManager;
-
-struct SequenceFrame
-{
-	sf::Vector2f GetOrigin(const sf::Vector2f& originAnchor);
-
-	sf::Texture* mTexture{ nullptr };
-	sf::IntRect mTextureRect;
-};
+#include "Core/TextureRegion.h"
 
 class AnimationSequence : public ISerializable
 {
@@ -29,7 +19,7 @@ public:
 	uint16_t GetFramesPerSecond() const { return mFramesPerSecond; }
 
 	// Hooks
-	virtual void GetFrame(SequenceFrame& outFrame, uint16_t frameIndex) = 0;
+	virtual void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) = 0;
 	virtual uint16_t GetFrameCount() = 0;
 
 private:
@@ -65,13 +55,14 @@ public:
 
 private:
 	void RefreshFrame();
-	SequenceFrame& GetFrame();
+	TextureRegion& GetFrame();
+	void Animation::SetOriginAnchor(TextureRegion& frame);
 
 private:
 	// sequence memebers
 	std::unordered_map<std::string, std::shared_ptr<AnimationSequence>> mSequences;
 	AnimationSequence* mCurrentSequence{ nullptr };
-	SequenceFrame mOutSequenceFrame;
+	TextureRegion mOutSequenceFrame;
 
 	// animation members
 	uint16_t mFrameIndex{ 0 };

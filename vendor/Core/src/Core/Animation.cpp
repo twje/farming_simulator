@@ -8,20 +8,11 @@
 #include "Core/ResourceLocator.h"
 
 // ----------------------------------------------------------
-sf::Vector2f SequenceFrame::GetOrigin(const sf::Vector2f& originAnchor)
-{
-	float originX = originAnchor.x * mTextureRect.getSize().x;
-	float originY = originAnchor.y * mTextureRect.getSize().y;
-	return sf::Vector2f(originX, originY);
-}
-
-// ----------------------------------------------------------
 AnimationSequence::AnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
 	: mSequenceId(sequenceId),
 	  mFramesPerSecond(framesPerSecond),
 	  mDuration(sf::seconds(1.0f / framesPerSecond))
 { }
-
 
 // ----------------------------------------------------------
 Animation::Animation(const Animation& other)
@@ -32,6 +23,7 @@ Animation::Animation(const Animation& other)
 	}
 }
 
+// ----------------------------------------------------------
 void Animation::Upate(const sf::Time& timestamp)
 {
 	assert(mCurrentSequence != nullptr);
@@ -45,25 +37,28 @@ void Animation::Upate(const sf::Time& timestamp)
 	}
 }
 
+// ----------------------------------------------------------
 sf::Sprite& Animation::GetSprite() const
 {
 	assert(mSprite != nullptr);
 	return *mSprite;
 }
 
+// ----------------------------------------------------------
 sf::FloatRect Animation::GetGlobalBounds() const
 {
 	assert(mSprite != nullptr);
 	return mSprite->getGlobalBounds();
 }
 
+// ----------------------------------------------------------
 void Animation::SetOriginAnchor(sf::Vector2f originAnchor)
 {
 	mOriginAnchor = originAnchor;
-	auto& frame = GetFrame();
-	mSprite->setOrigin(frame.GetOrigin(mOriginAnchor));
+	SetOriginAnchor(GetFrame());
 }
 
+// ----------------------------------------------------------
 void Animation::AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence)
 {
 	const auto& sequenceId = sequence->GetSequenceId();
@@ -76,6 +71,7 @@ void Animation::AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence
 	}
 }
 
+// ----------------------------------------------------------
 void Animation::SetAnimationSequence(const std::string& sequenceId)
 {
 	if (mCurrentSequence != nullptr && mCurrentSequence->GetSequenceId() == sequenceId)
@@ -93,6 +89,7 @@ void Animation::SetAnimationSequence(const std::string& sequenceId)
 	RefreshFrame();
 }
 
+// ----------------------------------------------------------
 void Animation::SaveToFile(const std::string& filePath)
 {
 	YAML::Emitter emitter;
@@ -101,12 +98,14 @@ void Animation::SaveToFile(const std::string& filePath)
 	file << emitter.c_str();
 }
 
+// ----------------------------------------------------------
 void Animation::LoadFromFile(const std::string& filePath, AssetManager& assetManager)
 {
 	YAML::Node node = YAML::LoadFile(filePath);
 	Deserialize(node, assetManager);
 }
 
+// ----------------------------------------------------------
 void Animation::Serialize(YAML::Emitter& emitter)
 {
 	emitter << YAML::BeginSeq;
@@ -122,6 +121,7 @@ void Animation::Serialize(YAML::Emitter& emitter)
 	emitter << YAML::EndSeq;
 }
 
+// ----------------------------------------------------------
 void Animation::Deserialize(const YAML::Node& node, AssetManager& assetManager)
 {
 	// Define a type alias for AnimationSequence factory functions
@@ -169,24 +169,34 @@ void Animation::Deserialize(const YAML::Node& node, AssetManager& assetManager)
 	}
 }
 
+// ----------------------------------------------------------
 void Animation::RefreshFrame()
 {
 	auto& frame = GetFrame();
 	if (mSprite == nullptr)
 	{
-		mSprite = std::make_unique<sf::Sprite>(*frame.mTexture);
+		mSprite = std::make_unique<sf::Sprite>(*frame.GetTexture());
 	}
 	else
 	{
-		mSprite->setTexture(*frame.mTexture);
+		mSprite->setTexture(*frame.GetTexture());
 	}
-	mSprite->setTextureRect(frame.mTextureRect);
-	mSprite->setOrigin(frame.GetOrigin(mOriginAnchor));
+	mSprite->setTextureRect(frame.GetRegion());
+	SetOriginAnchor(frame);
 }
 
-SequenceFrame& Animation::GetFrame()
+// ----------------------------------------------------------
+TextureRegion& Animation::GetFrame()
 {
 	assert(mCurrentSequence != nullptr);
 	mCurrentSequence->GetFrame(mOutSequenceFrame, mFrameIndex);
 	return mOutSequenceFrame;
+}
+
+// ----------------------------------------------------------
+void Animation::SetOriginAnchor(TextureRegion& frame)
+{
+	float originX = mOriginAnchor.x * frame.GetTexture()->getSize().x;
+	float originY = mOriginAnchor.y * frame.GetTexture()->getSize().y;
+	mSprite->setOrigin(sf::Vector2f(originX, originY));
 }
