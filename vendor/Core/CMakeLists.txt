@@ -31,11 +31,20 @@ FetchContent_Declare(SFML
 )
 FetchContent_MakeAvailable(SFML)
 
+# Add nlohmann/json dependency
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.10.4
+)
+FetchContent_MakeAvailable(json)
+
 # Configure project-wide include directories
 set(CoreIncludes
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${SFML_SOURCE_DIR}/include
     ${yaml-cpp_SOURCE_DIR}/include
+    ${json_SOURCE_DIR}/include
 )
 
 # Gather source files for CoreLibrary
@@ -62,7 +71,7 @@ target_link_libraries(${CoreLibrary} PUBLIC
     sfml-graphics
     sfml-audio
     sfml-network
-    yaml-cpp
+    yaml-cpp    
 )
 
 target_include_directories(${CoreLibrary} PUBLIC
