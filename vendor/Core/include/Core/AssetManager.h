@@ -78,20 +78,45 @@ private:
 };
 
 // ----------------------------------------------------------------
+class AssetRegistry
+{
+public:
+	AssetRegistry(std::unique_ptr<AssetLoader> loader)
+		: mLoader(std::move(loader))
+	{ }
+
+	void LoadAsset(AssetManager& manager, const std::string assetId, const std::string filePath)
+	{
+		assert(mAssets.find(assetId) == mAssets.end() && "Asset already loaded");
+		auto asset = mLoader->Load(filePath, manager);
+		mAssets.emplace(assetId, std::move(asset));
+	}
+
+	template<typename T>
+	T& GetAsset(const std::string assetId)
+	{
+		assert(mAssets.find(assetId) != mAssets.end() && "Asset not loaded");
+		AssetBase* assetBase = mAssets.at(assetId).get();
+		Asset<T>* asset = static_cast<Asset<T>*>(assetBase);
+		return asset->GetInstance();
+	}
+
+private:
+	std::unordered_map<std::string, std::unique_ptr<AssetBase>> mAssets;
+	std::unique_ptr<AssetLoader> mLoader;
+};
+
+// ----------------------------------------------------------------
 class AssetManager
 {
-	using AssetLookupMap = std::unordered_map<std::string, std::unique_ptr<AssetBase>>;
-	using AssetMap = std::unordered_map<std::type_index, AssetLookupMap>;
-	using AssetLoaderMap = std::unordered_map<std::type_index, std::unique_ptr<AssetLoader>>;
-	using AssetQueue = std::queue<std::unique_ptr<AssetDescriptorBase>>;
-
 public:
 	AssetManager();
 
 	template<typename T>
 	void RegisterLoader(std::unique_ptr<AssetLoader> loader)
 	{
-		mLoaders.emplace(std::type_index(typeid(T)), std::move(loader));
+		auto result = mAssetRegistries.emplace(std::type_index(typeid(T)), std::move(loader));
+		assert(result.second && "Loader already registered");
 	}
 
 	template<typename T>
@@ -135,34 +160,20 @@ public:
 			std::unique_ptr<AssetDescriptorBase> descriptor = std::move(mQueue.front());
 			mQueue.pop();
 
+			std::string fileName = descriptor->GetFileName();
 			std::type_index assetTypeId = descriptor->GetAssetTypeId();
 			std::string assetId = descriptor->GetAssetId();
-			std::string fileName = descriptor->GetFileName();
 
-			if (IsAssetLoaded(assetTypeId, assetId))
-			{
-				throw std::runtime_error("Asset is already loaded");
-			}
-
-			AssetLoader& loader = GetLoader(assetTypeId);
-			auto asset = loader.Load(fileName, *this);
-			mAssets[assetTypeId].emplace(assetId, std::move(asset));
+			AssetRegistry& registry = GetAssetRegistry(assetTypeId);
+			registry.LoadAsset(*this, assetId, fileName);
 		}
 	}
 
 	template<typename T>
-	T& GetAsset(const std::string& assetId) const
+	T& GetAsset(const std::string& assetId)
 	{
-		std::type_index assetTypeId = std::type_index(typeid(T));
-		if (!IsAssetLoaded(assetTypeId, assetId))
-		{
-			throw std::runtime_error("Asset not loaded");
-		}
-
-		auto assetLookupIt = mAssets.at(assetTypeId).find(assetId);
-		AssetBase* assetBase = assetLookupIt->second.get();
-		Asset<T>* asset = dynamic_cast<Asset<T>*>(assetBase);
-		return asset->GetInstance();
+		AssetRegistry& registry = GetAssetRegistry(std::type_index(typeid(T)));
+		return registry.GetAsset<T>(assetId);
 	}
 
 private:
@@ -173,35 +184,14 @@ private:
 		mQueue.push(std::move(descriptor));
 	}
 
-	AssetLoader& GetLoader(std::type_index assetTypeId) const
+	AssetRegistry& GetAssetRegistry(std::type_index assetTypeId)
 	{
-		auto loaderIt = mLoaders.find(assetTypeId);
-		if (loaderIt == mLoaders.end())
-		{
-			throw std::runtime_error("Loader not found for the asset type");
-		}
-		return *loaderIt->second.get();
-	}
-
-	bool IsAssetLoaded(std::type_index assetTypeId, const std::string& assetId) const
-	{
-		auto assetIt = mAssets.find(assetTypeId);
-		if (assetIt == mAssets.end())
-		{
-			return false;
-		}
-
-		auto assetLookupIt = mAssets.at(assetTypeId).find(assetId);
-		if (assetLookupIt == mAssets.at(assetTypeId).end())
-		{
-			return false;
-		}
-
-		return true;
+		auto it = mAssetRegistries.find(assetTypeId);
+		assert(it != mAssetRegistries.end() && "Loader not registered");
+		return it->second;
 	}
 
 private:
-	AssetMap mAssets;
-	AssetLoaderMap mLoaders;
-	AssetQueue mQueue;
+	std::unordered_map<std::type_index, AssetRegistry> mAssetRegistries;
+	std::queue<std::unique_ptr<AssetDescriptorBase>> mQueue;
 };
