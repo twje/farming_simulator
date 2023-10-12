@@ -93,7 +93,7 @@ public:
 	}
 
 	template<typename T>
-	T& GetAsset(const std::string assetId)
+	T& GetAsset(const std::string assetId) const
 	{
 		assert(mAssets.find(assetId) != mAssets.end() && "Asset not loaded");
 		AssetBase* assetBase = mAssets.at(assetId).get();
@@ -170,9 +170,9 @@ public:
 	}
 
 	template<typename T>
-	T& GetAsset(const std::string& assetId)
+	T& GetAsset(const std::string& assetId) const
 	{
-		AssetRegistry& registry = GetAssetRegistry(std::type_index(typeid(T)));
+		const AssetRegistry& registry = GetAssetRegistry(std::type_index(typeid(T)));
 		return registry.GetAsset<T>(assetId);
 	}
 
@@ -185,6 +185,13 @@ private:
 	}
 
 	AssetRegistry& GetAssetRegistry(std::type_index assetTypeId)
+	{
+		auto it = mAssetRegistries.find(assetTypeId);
+		assert(it != mAssetRegistries.end() && "Loader not registered");
+		return it->second;
+	}
+
+	const AssetRegistry& GetAssetRegistry(std::type_index assetTypeId) const
 	{
 		auto it = mAssetRegistries.find(assetTypeId);
 		assert(it != mAssetRegistries.end() && "Loader not registered");
