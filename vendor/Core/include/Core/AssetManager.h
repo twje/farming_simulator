@@ -61,7 +61,7 @@ public:
 	const std::string& GetId() const { return mId; }
 
 	// Hook
-	virtual std::type_index GetTypeId() const = 0;
+	virtual uint32_t GetTypeId() const = 0;
 
 private:
 	std::string mfilePath;
@@ -75,13 +75,13 @@ class AssetDescriptor : public AssetDescriptorBase
 public:
 	AssetDescriptor(const std::string& assetId, const std::string& filePath)
 		: AssetDescriptorBase(assetId, filePath),
-		  mAssetTypeId(std::type_index(typeid(T)))
+		  mTypeId(TypeId<T>::Get())
 	{ }
 
-	std::type_index GetTypeId() const override { return mAssetTypeId; }
+	uint32_t GetTypeId() const override { return mTypeId; }
 
 private:
-	std::type_index mAssetTypeId;
+	uint32_t mTypeId;
 };
 
 // ----------------------------------------------------------------
@@ -122,7 +122,7 @@ public:
 	template<typename T>
 	void RegisterLoader(std::unique_ptr<AssetLoader> loader)
 	{
-		auto result = mAssetRegistries.emplace(std::type_index(typeid(T)), std::move(loader));
+		auto result = mAssetRegistries.emplace(TypeId<T>::Get(), std::move(loader));
 		assert(result.second && "Loader already registered");
 	}
 
@@ -175,7 +175,7 @@ public:
 	template<typename T>
 	T& GetAsset(const std::string& assetId) const
 	{
-		const AssetRegistry& registry = GetAssetRegistry(std::type_index(typeid(T)));
+		const AssetRegistry& registry = GetAssetRegistry(TypeId<T>::Get());
 		return registry.GetAsset<T>(assetId);
 	}
 
@@ -187,19 +187,19 @@ private:
 		mQueue.push(std::move(descriptor));
 	}
 
-	const AssetRegistry& GetAssetRegistry(std::type_index assetTypeId) const
+	const AssetRegistry& GetAssetRegistry(uint32_t assetTypeId) const
 	{
 		auto it = mAssetRegistries.find(assetTypeId);
 		assert(it != mAssetRegistries.end() && "Loader not registered");
 		return it->second;
 	}
 
-	AssetRegistry& GetAssetRegistry(std::type_index assetTypeId)
+	AssetRegistry& GetAssetRegistry(std::uint32_t assetTypeId)
 	{
 		return const_cast<AssetRegistry&>(std::as_const(*this).GetAssetRegistry(assetTypeId));
 	}
 
 private:
-	std::unordered_map<std::type_index, AssetRegistry> mAssetRegistries;
+	std::unordered_map<uint32_t, AssetRegistry> mAssetRegistries;
 	std::queue<std::unique_ptr<AssetDescriptorBase>> mQueue;
 };
