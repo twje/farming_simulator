@@ -10,6 +10,8 @@
 #include <utility>
 #include <cassert>
 
+#include "Core/TypeUtils.h"
+
 // Forward declarations
 class AssetManager;
 
@@ -55,7 +57,7 @@ public:
 	virtual ~AssetDescriptorBase() = default;
 
 	const std::string& GetAssetId() const { return mAssetId; }
-	const std::string& GetfilePath() const { return mfilePath; }
+	const std::string& GetFilePath() const { return mfilePath; }
 	virtual std::type_index GetAssetTypeId() const = 0;
 
 private:
@@ -70,7 +72,7 @@ class AssetDescriptor : public AssetDescriptorBase
 public:
 	AssetDescriptor(const std::string& assetId, const std::string& filePath)
 		: AssetDescriptorBase(assetId, filePath),
-		mAssetTypeId(std::type_index(typeid(T)))
+		  mAssetTypeId(std::type_index(typeid(T)))
 	{ }
 
 	std::type_index GetAssetTypeId() const override { return mAssetTypeId; }
@@ -162,7 +164,7 @@ public:
 			std::unique_ptr<AssetDescriptorBase> descriptor = std::move(mQueue.front());
 			mQueue.pop();
 
-			std::string filePath = descriptor->GetfilePath();
+			std::string filePath = descriptor->GetFilePath();
 			std::type_index assetTypeId = descriptor->GetAssetTypeId();
 			std::string assetId = descriptor->GetAssetId();
 
