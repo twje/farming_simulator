@@ -7,6 +7,8 @@
 #include <queue>
 #include <filesystem>
 #include <fstream>
+#include <utility>
+#include <cassert>
 
 // Forward declarations
 class AssetManager;
@@ -47,7 +49,7 @@ class AssetDescriptorBase
 public:
 	AssetDescriptorBase(const std::string& assetId, const std::string& fileName)
 		: mAssetId(assetId),
-		mFileName(fileName)
+		  mFileName(fileName)
 	{ }
 
 	virtual ~AssetDescriptorBase() = default;
@@ -164,8 +166,8 @@ public:
 			std::type_index assetTypeId = descriptor->GetAssetTypeId();
 			std::string assetId = descriptor->GetAssetId();
 
-			AssetRegistry& registry = GetAssetRegistry(assetTypeId);
-			registry.LoadAsset(*this, assetId, fileName);
+			AssetRegistry& registry = GetAssetRegistry(descriptor->GetAssetTypeId());
+			registry.LoadAsset(*this, descriptor->GetAssetId(), fileName);
 		}
 	}
 
@@ -184,18 +186,16 @@ private:
 		mQueue.push(std::move(descriptor));
 	}
 
-	AssetRegistry& GetAssetRegistry(std::type_index assetTypeId)
+	const AssetRegistry& GetAssetRegistry(std::type_index assetTypeId) const
 	{
 		auto it = mAssetRegistries.find(assetTypeId);
 		assert(it != mAssetRegistries.end() && "Loader not registered");
 		return it->second;
 	}
 
-	const AssetRegistry& GetAssetRegistry(std::type_index assetTypeId) const
+	AssetRegistry& GetAssetRegistry(std::type_index assetTypeId)
 	{
-		auto it = mAssetRegistries.find(assetTypeId);
-		assert(it != mAssetRegistries.end() && "Loader not registered");
-		return it->second;
+		return const_cast<AssetRegistry&>(std::as_const(*this).GetAssetRegistry(assetTypeId));
 	}
 
 private:
