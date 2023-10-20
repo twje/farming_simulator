@@ -40,27 +40,27 @@ class AssetLoader
 {
 public:
 	virtual ~AssetLoader() = default;
-	virtual std::unique_ptr<AssetBase> Load(const std::string& fileName, AssetManager& assetManager) = 0;
+	virtual std::unique_ptr<AssetBase> Load(const std::string& filePath, AssetManager& assetManager) = 0;
 };
 
 // ----------------------------------------------------------------
 class AssetDescriptorBase
 {
 public:
-	AssetDescriptorBase(const std::string& assetId, const std::string& fileName)
+	AssetDescriptorBase(const std::string& assetId, const std::string& filePath)
 		: mAssetId(assetId),
-		  mFileName(fileName)
+		  mfilePath(filePath)
 	{ }
 
 	virtual ~AssetDescriptorBase() = default;
 
 	const std::string& GetAssetId() const { return mAssetId; }
-	const std::string& GetFileName() const { return mFileName; }
+	const std::string& GetfilePath() const { return mfilePath; }
 	virtual std::type_index GetAssetTypeId() const = 0;
 
 private:
 	std::string mAssetId;
-	std::string mFileName;
+	std::string mfilePath;
 };
 
 // ----------------------------------------------------------------
@@ -68,8 +68,8 @@ template <typename T>
 class AssetDescriptor : public AssetDescriptorBase
 {
 public:
-	AssetDescriptor(const std::string& assetId, const std::string& fileName)
-		: AssetDescriptorBase(assetId, fileName),
+	AssetDescriptor(const std::string& assetId, const std::string& filePath)
+		: AssetDescriptorBase(assetId, filePath),
 		mAssetTypeId(std::type_index(typeid(T)))
 	{ }
 
@@ -122,14 +122,14 @@ public:
 	}
 
 	template<typename T>
-	void LoadAssetsFromManifest(std::string fileName)
+	void LoadAssetsFromManifest(std::string filePath)
 	{
 		namespace fs = std::filesystem;
 
-		std::ifstream file(fileName);
+		std::ifstream file(filePath);
 		if (!file.is_open())
 		{
-			throw std::runtime_error("Failed to load configuration file " + fileName);
+			throw std::runtime_error("Failed to load configuration file " + filePath);
 		}
 
 		std::string line;
@@ -142,15 +142,15 @@ public:
 			}
 
 			std::istringstream iss(line);
-			std::string assetId, assetFileName;
-			if (std::getline(iss >> std::ws, assetId, ',') && std::getline(iss >> std::ws, assetFileName, ','))
+			std::string assetId, assetfilePath;
+			if (std::getline(iss >> std::ws, assetId, ',') && std::getline(iss >> std::ws, assetfilePath, ','))
 			{
-				if (!fs::is_regular_file(assetFileName))
+				if (!fs::is_regular_file(assetfilePath))
 				{
-					throw std::runtime_error("Resouce " + assetFileName + " does not exist");
+					throw std::runtime_error("Resouce " + assetfilePath + " does not exist");
 				}
 
-				QueueAssetDescriptor<T>(assetId, assetFileName);
+				QueueAssetDescriptor<T>(assetId, assetfilePath);
 			}
 		}
 	}
@@ -162,12 +162,12 @@ public:
 			std::unique_ptr<AssetDescriptorBase> descriptor = std::move(mQueue.front());
 			mQueue.pop();
 
-			std::string fileName = descriptor->GetFileName();
+			std::string filePath = descriptor->GetfilePath();
 			std::type_index assetTypeId = descriptor->GetAssetTypeId();
 			std::string assetId = descriptor->GetAssetId();
 
 			AssetRegistry& registry = GetAssetRegistry(descriptor->GetAssetTypeId());
-			registry.LoadAsset(*this, descriptor->GetAssetId(), fileName);
+			registry.LoadAsset(*this, descriptor->GetAssetId(), filePath);
 		}
 	}
 
@@ -180,9 +180,9 @@ public:
 
 private:
 	template<typename T>
-	void QueueAssetDescriptor(const std::string& assetId, const std::string& fileName)
+	void QueueAssetDescriptor(const std::string& assetId, const std::string& filePath)
 	{
-		auto descriptor = std::make_unique<AssetDescriptor<T>>(assetId, fileName);
+		auto descriptor = std::make_unique<AssetDescriptor<T>>(assetId, filePath);
 		mQueue.push(std::move(descriptor));
 	}
 
