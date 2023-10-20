@@ -49,20 +49,23 @@ public:
 class AssetDescriptorBase
 {
 public:
-	AssetDescriptorBase(const std::string& assetId, const std::string& filePath)
-		: mAssetId(assetId),
-		  mfilePath(filePath)
+	AssetDescriptorBase(const std::string& id, const std::string& filePath)
+		: mfilePath(filePath),
+		  mId(id)
 	{ }
 
 	virtual ~AssetDescriptorBase() = default;
 
-	const std::string& GetAssetId() const { return mAssetId; }
+	// Getters
 	const std::string& GetFilePath() const { return mfilePath; }
-	virtual std::type_index GetAssetTypeId() const = 0;
+	const std::string& GetId() const { return mId; }
+
+	// Hook
+	virtual std::type_index GetTypeId() const = 0;
 
 private:
-	std::string mAssetId;
 	std::string mfilePath;
+	std::string mId;
 };
 
 // ----------------------------------------------------------------
@@ -75,7 +78,7 @@ public:
 		  mAssetTypeId(std::type_index(typeid(T)))
 	{ }
 
-	std::type_index GetAssetTypeId() const override { return mAssetTypeId; }
+	std::type_index GetTypeId() const override { return mAssetTypeId; }
 
 private:
 	std::type_index mAssetTypeId;
@@ -161,15 +164,11 @@ public:
 	{
 		while (!mQueue.empty())
 		{
-			std::unique_ptr<AssetDescriptorBase> descriptor = std::move(mQueue.front());
+			std::unique_ptr<AssetDescriptorBase> desc = std::move(mQueue.front());
 			mQueue.pop();
 
-			std::string filePath = descriptor->GetFilePath();
-			std::type_index assetTypeId = descriptor->GetAssetTypeId();
-			std::string assetId = descriptor->GetAssetId();
-
-			AssetRegistry& registry = GetAssetRegistry(descriptor->GetAssetTypeId());
-			registry.LoadAsset(*this, descriptor->GetAssetId(), filePath);
+			AssetRegistry& registry = GetAssetRegistry(desc->GetTypeId());
+			registry.LoadAsset(*this, desc->GetId(), desc->GetFilePath());
 		}
 	}
 
