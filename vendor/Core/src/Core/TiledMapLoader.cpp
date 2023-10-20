@@ -37,6 +37,7 @@
 {
     for (const json& layerNode : parentNode["layers"])
     {
+        uint32_t layerId = ExtractUInt32(layerNode, "id");
         const std::string& layerName = ExtractString(layerNode,"name");
         const std::string& layerType = ExtractString(layerNode, "type");
         if (layerType == "tilelayer")
@@ -50,7 +51,7 @@
                 tiles.emplace_back(tileNode.get<uint32_t>());
             }
 
-            TiledLayer layer(layerName, layerWidth, layerHeight, std::move(tiles));
+            TiledLayer layer(layerId, layerName, layerWidth, layerHeight, std::move(tiles));
             tiledMap.AddLayer(std::move(layer));
         }
     }
