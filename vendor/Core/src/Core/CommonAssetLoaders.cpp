@@ -2,6 +2,7 @@
 
 #include "Core/CommonAssetLoaders.h"
 #include "Core/Animation.h"
+#include "Core/Spritesheet.h"
 
 // --------------------------------------------------------------------------------
 std::unique_ptr<AssetBase> TextureLoader::Load(const std::string& fileName, AssetManager& assetManager)
@@ -20,4 +21,12 @@ std::unique_ptr<AssetBase> AnimationLoader::Load(const std::string& filePath, As
 	auto animation = std::make_unique<Animation>();
 	animation->LoadFromFile(filePath, assetManager);
 	return std::make_unique<Asset<Animation>>(std::move(animation));
+}
+
+// --------------------------------------------------------------------------------
+std::unique_ptr<AssetBase> SpritesheetLoader::Load(const std::string& filePath, AssetManager& assetManager)
+{
+	auto spritesheet = std::make_unique<Spritesheet>();
+	spritesheet->LoadFromFile(filePath, assetManager);
+	return std::make_unique<Asset<Spritesheet>>(std::move(spritesheet));
 }

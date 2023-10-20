@@ -19,4 +19,8 @@ public:
 };
 
 // --------------------------------------------------------------------------------
-// Add spritesheet loader
+class SpritesheetLoader : public AssetLoader
+{
+public:
+	virtual std::unique_ptr<AssetBase> Load(const std::string& filePath, AssetManager& assetManager) override;
+};
