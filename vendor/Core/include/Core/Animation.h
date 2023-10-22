@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <filesystem>
 
 #include <SFML/Graphics.hpp>
 
@@ -8,12 +9,15 @@
 #include "Core/ISerializable.h"
 #include "Core/TextureRegion.h"
 
+namespace fs = std::filesystem;
+
 class AnimationSequence : public ISerializable
 {
 public:
-	AnimationSequence(std::string sequenceId, uint16_t framesPerSecond);
+	AnimationSequence(uint32_t sequenceIndex, std::string sequenceId, uint16_t framesPerSecond);
 
 	// Getters
+	uint32_t GetSequenceIndex() const { return mSequenceIndex; }
 	const std::string& GetSequenceId() { return mSequenceId; }
 	sf::Time GetDuration() { return mDuration; }
 	uint16_t GetFramesPerSecond() const { return mFramesPerSecond; }
@@ -23,6 +27,7 @@ public:
 	virtual uint16_t GetFrameCount() = 0;
 
 private:
+	uint32_t mSequenceIndex;
 	std::string mSequenceId;
 	sf::Time mDuration;
 	uint16_t mFramesPerSecond;

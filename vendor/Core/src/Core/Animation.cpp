@@ -8,8 +8,9 @@
 #include "Core/ResourceLocator.h"
 
 // ----------------------------------------------------------
-AnimationSequence::AnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
-	: mSequenceId(sequenceId),
+AnimationSequence::AnimationSequence(uint32_t sequenceIndex, std::string sequenceId, uint16_t framesPerSecond)
+	: mSequenceIndex(sequenceIndex),
+	  mSequenceId(sequenceId),
 	  mFramesPerSecond(framesPerSecond),
 	  mDuration(sf::seconds(1.0f / framesPerSecond))
 { }
@@ -108,11 +109,21 @@ void Animation::LoadFromFile(const std::string& filePath, AssetManager& assetMan
 // ----------------------------------------------------------
 void Animation::Serialize(YAML::Emitter& emitter)
 {
+	// Sort by sequence index - ASC
+	std::vector<std::pair<std::string, std::shared_ptr<AnimationSequence>>> sequences(
+		mSequences.begin(), mSequences.end()
+	);
+
+	std::sort(sequences.begin(), sequences.end(), [](const auto& a, const auto& b) {
+		return a.second->GetSequenceIndex() < b.second->GetSequenceIndex();
+	});
+
+	// Serialize
 	emitter << YAML::BeginSeq;
-	for (const auto& sequence : mSequences)
+	for (const auto& sequence : sequences)
 	{
 		emitter << YAML::BeginMap;
-		emitter << YAML::Key << "key" << YAML::Value << sequence.first;
+		emitter << YAML::Key << "sequenceId" << YAML::Value << sequence.first;
 		emitter << YAML::Key << "framesPerSecond" << YAML::Value << sequence.second->GetFramesPerSecond();
 		emitter << YAML::Key << "frames" << YAML::Value;
 		sequence.second->Serialize(emitter);
@@ -127,6 +138,7 @@ void Animation::Deserialize(const YAML::Node& node, AssetManager& assetManager)
 	// Define a type alias for AnimationSequence factory functions
 	using AnimationSequenceFactory = std::shared_ptr<AnimationSequence>(*)(
 		const YAML::Node&,
+		uint16_t,
 		std::string,
 		uint16_t,
 		AssetManager&
@@ -135,12 +147,13 @@ void Animation::Deserialize(const YAML::Node& node, AssetManager& assetManager)
 	// Factory function for TextureAnimationSequence
 	AnimationSequenceFactory textureAnimationSequence = [](
 		const YAML::Node& node,
+		uint16_t sequenceIndex,
 		std::string sequenceId,
 		uint16_t framesPerSecond,
 		AssetManager& locator
 		) -> std::shared_ptr<AnimationSequence>
 		{
-			auto sequence = std::make_unique<TextureAnimationSequence>(sequenceId, framesPerSecond);
+			auto sequence = std::make_unique<TextureAnimationSequence>(sequenceIndex, sequenceId, framesPerSecond);
 			sequence->Deserialize(node, locator);
 			return sequence;
 		};
@@ -151,6 +164,7 @@ void Animation::Deserialize(const YAML::Node& node, AssetManager& assetManager)
 	};
 
 	// Iterate over nodes in the input YAML
+	uint16_t sequenceIndex = 0;
 	for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
 	{
 		std::string sequenceId = (*it)["sequenceId"].as<std::string>();
@@ -160,6 +174,7 @@ void Animation::Deserialize(const YAML::Node& node, AssetManager& assetManager)
 			std::string sequenceType = frames.first.as<std::string>();
 			std::shared_ptr<AnimationSequence> sequence = animationSequenceFactories[sequenceType](
 				frames.second,
+				sequenceIndex++,
 				sequenceId,
 				framesPerSecond,
 				assetManager
