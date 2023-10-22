@@ -2,10 +2,29 @@
 
 #include <string>
 #include <initializer_list>
+#include <cassert>
 
 #include "Core/Animation.h"
 #include "Core/AssetManager.h"
 
+// --------------------------------------------------------------------------------
+class TextureAnimationSequenceFrame
+{
+public:
+	TextureAnimationSequenceFrame(std::string textureId, sf::Texture* texture)
+		: mTextureId(textureId),
+		  mTexture(texture)
+	{ }
+
+	const std::string& GetTextureId() const { return mTextureId; }
+	sf::Texture* GetTexture() { return mTexture; }
+
+private:
+	std::string mTextureId;
+	sf::Texture* mTexture;
+};
+
+// --------------------------------------------------------------------------------
 class TextureAnimationSequence : public AnimationSequence
 {
 public:
@@ -24,7 +43,7 @@ public:
 
 	void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) override
 	{
-		sf::Texture* texture = mFrames.at(frameIndex).second;
+		sf::Texture* texture = mFrames.at(frameIndex).GetTexture();
 		if (texture != outFrame.GetTexture())
 		{
 			outFrame.SetTexture(texture);
@@ -44,7 +63,7 @@ public:
 		emitter << YAML::BeginSeq;
 		for (const auto& frame : mFrames)
 		{
-			emitter << frame.first;
+			emitter << frame.GetTextureId();
 		}
 		emitter << YAML::EndSeq;
 		emitter << YAML::EndMap;
@@ -57,10 +76,9 @@ private:
 	void TextureAnimationSequence::AddFrame(AssetManager& assetManager, std::string textureId)
 	{
 		sf::Texture& texture = assetManager.GetAsset<sf::Texture>(textureId);
-		auto frame = std::make_pair(textureId, &texture);
-		mFrames.emplace_back(frame);
+		mFrames.emplace_back(textureId, &texture);
 	}
 
 private:
-	std::vector<std::pair<std::string, sf::Texture*>> mFrames;
+	std::vector<TextureAnimationSequenceFrame> mFrames;
 };
