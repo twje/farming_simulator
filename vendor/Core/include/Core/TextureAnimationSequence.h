@@ -9,8 +9,8 @@
 class TextureAnimationSequence : public AnimationSequence
 {
 public:
-	TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
-		: AnimationSequence(sequenceId, framesPerSecond)
+	TextureAnimationSequence(uint16_t sequenceIndex, std::string sequenceId, uint16_t framesPerSecond)
+		: AnimationSequence(sequenceIndex, sequenceId, framesPerSecond)
 	{
 	}
 
