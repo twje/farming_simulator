@@ -56,6 +56,7 @@ public:
 	// IO
 	void SaveToFile(const std::string& filePath);
 	void LoadFromFile(const std::string& filePath, AssetManager& assetManager);
+	void ExportSpritesheet(const fs::path& filePath, uint16_t margin = 0, uint16_t spacing = 0);
 
 	// ISerialize interface
 	void Serialize(YAML::Emitter& emitter) override;
@@ -66,6 +67,7 @@ private:
 	TextureRegion& GetFrame();
 	void Animation::SetOriginAnchor(TextureRegion& frame);
 	void SortSequencesByIndex(std::vector<SequencePair>& outSortedSequences);
+	void SaveSpritesheetToFile(const fs::path& filePath, uint32_t width, uint32_t height, const std::vector<sf::Sprite> sprites);
 
 private:
 	// sequence memebers
