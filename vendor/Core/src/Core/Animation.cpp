@@ -109,18 +109,12 @@ void Animation::LoadFromFile(const std::string& filePath, AssetManager& assetMan
 // ----------------------------------------------------------
 void Animation::Serialize(YAML::Emitter& emitter)
 {
-	// Sort by sequence index - ASC
-	std::vector<std::pair<std::string, std::shared_ptr<AnimationSequence>>> sequences(
-		mSequences.begin(), mSequences.end()
-	);
-
-	std::sort(sequences.begin(), sequences.end(), [](const auto& a, const auto& b) {
-		return a.second->GetSequenceIndex() < b.second->GetSequenceIndex();
-	});
+	std::vector<SequencePair> sortedSequences;
+	SortSequencesByIndex(sortedSequences);
 
 	// Serialize
 	emitter << YAML::BeginSeq;
-	for (const auto& sequence : sequences)
+	for (const auto& sequence : sortedSequences)
 	{
 		emitter << YAML::BeginMap;
 		emitter << YAML::Key << "sequenceId" << YAML::Value << sequence.first;
@@ -214,4 +208,13 @@ void Animation::SetOriginAnchor(TextureRegion& frame)
 	float originX = mOriginAnchor.x * frame.GetTexture()->getSize().x;
 	float originY = mOriginAnchor.y * frame.GetTexture()->getSize().y;
 	mSprite->setOrigin(sf::Vector2f(originX, originY));
+}
+
+// ----------------------------------------------------------
+void Animation::SortSequencesByIndex(std::vector<SequencePair>& outSortedSequences)
+{
+	outSortedSequences.assign(mSequences.begin(), mSequences.end());
+	std::sort(outSortedSequences.begin(), outSortedSequences.end(), [](const auto& a, const auto& b) {
+		return a.second->GetSequenceIndex() < b.second->GetSequenceIndex();
+	});
 }

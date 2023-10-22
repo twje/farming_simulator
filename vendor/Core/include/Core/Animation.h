@@ -35,6 +35,9 @@ private:
 
 class Animation : public ISerializable
 {
+	using SequenceMap = std::unordered_map<std::string, std::shared_ptr<AnimationSequence>>;
+	using SequencePair = std::pair<std::string, std::shared_ptr<AnimationSequence>>;
+
 public:
 	Animation() = default;
 	Animation(const Animation& other);
@@ -62,10 +65,11 @@ private:
 	void RefreshFrame();
 	TextureRegion& GetFrame();
 	void Animation::SetOriginAnchor(TextureRegion& frame);
+	void SortSequencesByIndex(std::vector<SequencePair>& outSortedSequences);
 
 private:
 	// sequence memebers
-	std::unordered_map<std::string, std::shared_ptr<AnimationSequence>> mSequences;
+	SequenceMap mSequences;
 	AnimationSequence* mCurrentSequence{ nullptr };
 	TextureRegion mOutSequenceFrame;
 
