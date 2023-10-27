@@ -4,8 +4,10 @@
 #include <initializer_list>
 #include <cassert>
 
+#include "Core/AnimationFactory.h"
 #include "Core/Animation.h"
 #include "Core/AssetManager.h"
+#include "Core/ISerializable.h"
 
 // --------------------------------------------------------------------------------
 class TextureAnimationSequenceFrame
@@ -30,8 +32,7 @@ class TextureAnimationSequence : public AnimationSequence
 public:
 	TextureAnimationSequence(uint16_t sequenceIndex, std::string sequenceId, uint16_t framesPerSecond)
 		: AnimationSequence(sequenceIndex, sequenceId, framesPerSecond)
-	{
-	}
+	{ }
 
 	void AddFrames(AssetManager& assetManager, std::initializer_list<std::string> frames)
 	{
@@ -81,4 +82,22 @@ private:
 
 private:
 	std::vector<TextureAnimationSequenceFrame> mFrames;
+};
+
+// ------------------------------------------------------------------------
+class TextureAnimationSequenceFactory : public AnimationSequenceFactory
+{
+public:
+	TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond,
+		                            std::initializer_list<std::string_view> frames);
+
+	// AnimationSequenceFactory interface
+	std::unique_ptr<Animation> CreateAnimationSequence() override;
+
+	// ISerializable interface
+	void Serialize(YAML::Emitter& emitter) override;
+	void Deserialize(const YAML::Node& node, AssetManager& assetManager) override;
+
+private:
+	std::vector<std::string> mFrames;
 };
