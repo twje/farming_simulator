@@ -44,20 +44,17 @@ public:
 	// Getters
 	sf::Sprite& GetSprite() const;
 	sf::FloatRect GetGlobalBounds() const;
+	const SequenceMap& GetAnimationSequences() const { return mSequences; }
 
 	// Setters
 	void SetOriginAnchor(sf::Vector2f originAnchor);
 	void AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence);
 	void SetAnimationSequence(const std::string& sequenceId);
 
-	// Utility
-	void ExportSpritesheet(const fs::path& filePath, uint16_t margin = 0, uint16_t spacing = 0);
-
 private:
 	void RefreshFrame();
 	TextureRegion& GetFrame();
 	void Animation::SetOriginAnchor(TextureRegion& frame);
-	void SaveSpritesheetToFile(const fs::path& filePath, uint32_t width, uint32_t height, const std::vector<sf::Sprite> sprites);
 
 private:
 	// sequence memebers
