@@ -30,8 +30,8 @@ private:
 class TextureAnimationSequence : public AnimationSequence
 {
 public:
-	TextureAnimationSequence(uint16_t sequenceIndex, std::string sequenceId, uint16_t framesPerSecond)
-		: AnimationSequence(sequenceIndex, sequenceId, framesPerSecond)
+	TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
+		: AnimationSequence(sequenceId, framesPerSecond)
 	{ }
 
 	void AddFrames(AssetManager& assetManager, const std::vector<std::string>& frames)

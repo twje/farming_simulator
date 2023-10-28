@@ -7,7 +7,7 @@ class SpritesheetAnimationSequence : public AnimationSequence
 {
 public:
 	SpritesheetAnimationSequence(uint16_t sequenceIndex, std::string sequenceId, uint16_t framesPerSecond)
-		: AnimationSequence(sequenceIndex, sequenceId, framesPerSecond)
+		: AnimationSequence(sequenceId, framesPerSecond)
 	{
 	}
 

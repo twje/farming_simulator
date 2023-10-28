@@ -13,10 +13,9 @@ namespace fs = std::filesystem;
 class AnimationSequence
 {
 public:
-	AnimationSequence(uint32_t sequenceIndex, std::string sequenceId, uint16_t framesPerSecond);
+	AnimationSequence(std::string sequenceId, uint16_t framesPerSecond);
 
 	// Getters
-	uint32_t GetSequenceIndex() const { return mSequenceIndex; }
 	const std::string& GetSequenceId() { return mSequenceId; }
 	sf::Time GetDuration() { return mDuration; }
 	uint16_t GetFramesPerSecond() const { return mFramesPerSecond; }
@@ -26,7 +25,6 @@ public:
 	virtual uint16_t GetFrameCount() = 0;
 
 private:
-	uint32_t mSequenceIndex;
 	std::string mSequenceId;
 	sf::Time mDuration;
 	uint16_t mFramesPerSecond;
@@ -59,7 +57,6 @@ private:
 	void RefreshFrame();
 	TextureRegion& GetFrame();
 	void Animation::SetOriginAnchor(TextureRegion& frame);
-	void SortSequencesByIndex(std::vector<SequencePair>& outSortedSequences);
 	void SaveSpritesheetToFile(const fs::path& filePath, uint32_t width, uint32_t height, const std::vector<sf::Sprite> sprites);
 
 private:

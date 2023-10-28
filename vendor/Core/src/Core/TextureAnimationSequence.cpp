@@ -14,7 +14,7 @@ void TextureAnimationSequenceFactory::AddFrames(const std::vector<std::string_vi
 // ------------------------------------------------------------------------
 /*virtual*/ std::unique_ptr<AnimationSequence> TextureAnimationSequenceFactory::CreateAnimationSequence(AssetManager& assetManager)
 {
-	auto sequence = std::make_unique<TextureAnimationSequence>(0, GetSequenceId(), GetFramesPerSecond());
+	auto sequence = std::make_unique<TextureAnimationSequence>(GetSequenceId(), GetFramesPerSecond());
 	sequence->AddFrames(assetManager, mFrames);
 	return sequence;
 }

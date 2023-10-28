@@ -8,9 +8,8 @@
 #include "Core/ResourceLocator.h"
 
 // ----------------------------------------------------------
-AnimationSequence::AnimationSequence(uint32_t sequenceIndex, std::string sequenceId, uint16_t framesPerSecond)
-	: mSequenceIndex(sequenceIndex),
-	  mSequenceId(sequenceId),
+AnimationSequence::AnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
+	: mSequenceId(sequenceId),
 	  mFramesPerSecond(framesPerSecond),
 	  mDuration(sf::seconds(1.0f / framesPerSecond))
 { }
@@ -97,12 +96,10 @@ void Animation::ExportSpritesheet(const fs::path& filePath, uint16_t margin, uin
 	TextureRegion textureRegion;
 	std::vector<sf::Sprite> sprites;
 
-	std::vector<SequencePair> sortedSequences;
-	SortSequencesByIndex(sortedSequences);
-
 	uint32_t textureWidth = 0, textureHeight = 0;
 
-	for (const auto& sequencePair : sortedSequences) {
+	for (const auto& sequencePair : mSequences)
+	{
 		AnimationSequence& sequence = *sequencePair.second;
 		uint32_t sequenceWidth = 0, sequenceHeight = 0;
 
@@ -154,15 +151,6 @@ void Animation::SetOriginAnchor(TextureRegion& frame)
 	float originX = mOriginAnchor.x * frame.GetTexture()->getSize().x;
 	float originY = mOriginAnchor.y * frame.GetTexture()->getSize().y;
 	mSprite->setOrigin(sf::Vector2f(originX, originY));
-}
-
-// ----------------------------------------------------------
-void Animation::SortSequencesByIndex(std::vector<SequencePair>& outSortedSequences)
-{
-	outSortedSequences.assign(mSequences.begin(), mSequences.end());
-	std::sort(outSortedSequences.begin(), outSortedSequences.end(), [](const auto& a, const auto& b) {
-		return a.second->GetSequenceIndex() < b.second->GetSequenceIndex();
-	});
 }
 
 // ----------------------------------------------------------
