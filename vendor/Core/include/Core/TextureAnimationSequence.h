@@ -34,7 +34,7 @@ public:
 		: AnimationSequence(sequenceIndex, sequenceId, framesPerSecond)
 	{ }
 
-	void AddFrames(AssetManager& assetManager, std::initializer_list<std::string> frames)
+	void AddFrames(AssetManager& assetManager, const std::vector<std::string>& frames)
 	{
 		for (const std::string& textureId : frames)
 		{
@@ -88,15 +88,16 @@ private:
 class TextureAnimationSequenceFactory : public AnimationSequenceFactory
 {
 public:
-	TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond,
-		                            std::initializer_list<std::string_view> frames);
+	TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond);
+
+	void AddFrames(const std::vector<std::string_view>& frames);
 
 	// AnimationSequenceFactory interface
-	std::unique_ptr<Animation> CreateAnimationSequence() override;
+	std::unique_ptr<AnimationSequence> CreateAnimationSequence(AssetManager& assetManager) override;
 
 	// ISerializable interface
 	void Serialize(YAML::Emitter& emitter) override;
-	void Deserialize(const YAML::Node& node, AssetManager& assetManager) override;
+	void Deserialize(const YAML::Node& node) override;
 
 private:
 	std::vector<std::string> mFrames;

@@ -23,7 +23,7 @@ public:
     uint16_t GetFramesPerSecond() const { return mFramesPerSecond; }
 
     // Hooks
-    virtual std::unique_ptr<Animation> CreateAnimationSequence() = 0;
+    virtual std::unique_ptr<AnimationSequence> CreateAnimationSequence(AssetManager& assetManager) = 0;
 
 public:
     std::string mSequenceId;
@@ -47,7 +47,7 @@ public:
 
     // ISerialize interface
     void Serialize(YAML::Emitter& emitter) override;
-    void Deserialize(const YAML::Node& node, AssetManager& assetManager) override;
+    void Deserialize(const YAML::Node& node) override;
 
 private:
     std::vector<std::unique_ptr<AnimationSequenceFactory>> mSequenceFactories;

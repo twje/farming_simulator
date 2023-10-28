@@ -9,5 +9,7 @@ class ISerializable
 {
 public:
     virtual void Serialize(YAML::Emitter& emitter) = 0;
-    virtual void Deserialize(const YAML::Node& node, AssetManager& assetManager) = 0;
+    // Remove when all resource factories are implemented
+    virtual void Deserialize(const YAML::Node& node, AssetManager& assetManager) { };
+    virtual void Deserialize(const YAML::Node& node) { };
 };

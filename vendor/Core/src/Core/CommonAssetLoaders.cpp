@@ -3,6 +3,7 @@
 #include "Core/CommonAssetLoaders.h"
 #include "Core/Animation.h"
 #include "Core/Spritesheet.h"
+#include "Core/AnimationFactory.h"
 
 // --------------------------------------------------------------------------------
 std::unique_ptr<AssetBase> TextureLoader::Load(const std::string& fileName, AssetManager& assetManager)
@@ -18,8 +19,9 @@ std::unique_ptr<AssetBase> TextureLoader::Load(const std::string& fileName, Asse
 // --------------------------------------------------------------------------------
 std::unique_ptr<AssetBase> AnimationLoader::Load(const std::string& filePath, AssetManager& assetManager)
 {
-	auto animation = std::make_unique<Animation>();
-	animation->LoadFromFile(filePath, assetManager);
+	AnimationFactory factory;
+	factory.LoadFromFile(filePath);
+	auto animation = factory.CreateAnimation(assetManager);
 	return std::make_unique<Asset<Animation>>(std::move(animation));
 }
 
