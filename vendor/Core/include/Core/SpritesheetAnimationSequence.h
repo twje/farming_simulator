@@ -16,10 +16,6 @@ public:
 
 	uint16_t GetFrameCount() override { return mFrames.size(); }
 
-	// ISerializable interface
-	void Serialize(YAML::Emitter& emitter) override;
-	void Deserialize(const YAML::Node& node, AssetManager& assetManager) override;
-
 private:
 	std::vector<uint32_t> mFrames;
 };

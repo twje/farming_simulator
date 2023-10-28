@@ -54,25 +54,6 @@ public:
 
 	virtual uint16_t GetFrameCount() { return mFrames.size(); }
 
-	// ISerializable interface
-	void Serialize(YAML::Emitter& emitter) override
-	{
-		emitter << YAML::BeginMap;
-		emitter << YAML::Key << "TextureAnimationSequence" << YAML::Value;
-		emitter << YAML::BeginMap;
-		emitter << YAML::Key << "textures" << YAML::Value;
-		emitter << YAML::BeginSeq;
-		for (const auto& frame : mFrames)
-		{
-			emitter << frame.GetTextureId();
-		}
-		emitter << YAML::EndSeq;
-		emitter << YAML::EndMap;
-		emitter << YAML::EndMap;
-	}
-
-	void Deserialize(const YAML::Node& node, AssetManager& assetManager) override;
-
 private:
 	void TextureAnimationSequence::AddFrame(AssetManager& assetManager, std::string textureId)
 	{

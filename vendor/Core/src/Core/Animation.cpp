@@ -91,22 +91,6 @@ void Animation::SetAnimationSequence(const std::string& sequenceId)
 }
 
 // ----------------------------------------------------------
-void Animation::SaveToFile(const std::string& filePath)
-{
-	YAML::Emitter emitter;
-	Serialize(emitter);
-	std::ofstream file(filePath);
-	file << emitter.c_str();
-}
-
-// ----------------------------------------------------------
-void Animation::LoadFromFile(const std::string& filePath, AssetManager& assetManager)
-{
-	YAML::Node node = YAML::LoadFile(filePath);
-	Deserialize(node, assetManager);
-}
-
-// ----------------------------------------------------------
 void Animation::ExportSpritesheet(const fs::path& filePath, uint16_t margin, uint16_t spacing)
 {
 	// TODO: implement logic to support margin and spacing
@@ -138,78 +122,6 @@ void Animation::ExportSpritesheet(const fs::path& filePath, uint16_t margin, uin
 		textureHeight += sequenceHeight;
 	}
 	SaveSpritesheetToFile(filePath, textureWidth, textureHeight, sprites);
-}
-
-// ----------------------------------------------------------
-void Animation::Serialize(YAML::Emitter& emitter)
-{
-	std::vector<SequencePair> sortedSequences;
-	SortSequencesByIndex(sortedSequences);
-
-	// Serialize
-	emitter << YAML::BeginSeq;
-	for (const auto& sequence : sortedSequences)
-	{
-		emitter << YAML::BeginMap;
-		emitter << YAML::Key << "sequenceId" << YAML::Value << sequence.first;
-		emitter << YAML::Key << "framesPerSecond" << YAML::Value << sequence.second->GetFramesPerSecond();
-		emitter << YAML::Key << "frames" << YAML::Value;
-		sequence.second->Serialize(emitter);
-		emitter << YAML::EndMap;
-	}
-	emitter << YAML::EndSeq;
-}
-
-// ----------------------------------------------------------
-void Animation::Deserialize(const YAML::Node& node, AssetManager& assetManager)
-{
-	// Define a type alias for AnimationSequence factory functions
-	using AnimationSequenceFactory = std::shared_ptr<AnimationSequence>(*)(
-		const YAML::Node&,
-		uint16_t,
-		std::string,
-		uint16_t,
-		AssetManager&
-	);
-
-	// Factory function for TextureAnimationSequence
-	AnimationSequenceFactory textureAnimationSequence = [](
-		const YAML::Node& node,
-		uint16_t sequenceIndex,
-		std::string sequenceId,
-		uint16_t framesPerSecond,
-		AssetManager& locator
-		) -> std::shared_ptr<AnimationSequence>
-		{
-			auto sequence = std::make_unique<TextureAnimationSequence>(sequenceIndex, sequenceId, framesPerSecond);
-			sequence->Deserialize(node, locator);
-			return sequence;
-		};
-
-	// Map of sequence type names to their factory functions
-	std::map<std::string, AnimationSequenceFactory> animationSequenceFactories {
-		{"TextureAnimationSequence", textureAnimationSequence}
-	};
-
-	// Iterate over nodes in the input YAML
-	uint16_t sequenceIndex = 0;
-	for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
-	{
-		std::string sequenceId = (*it)["sequenceId"].as<std::string>();
-		uint16_t framesPerSecond = (*it)["framesPerSecond"].as<uint16_t>();
-		for (const auto& frames : (*it)["frames"])
-		{
-			std::string sequenceType = frames.first.as<std::string>();
-			std::shared_ptr<AnimationSequence> sequence = animationSequenceFactories[sequenceType](
-				frames.second,
-				sequenceIndex++,
-				sequenceId,
-				framesPerSecond,
-				assetManager
-			);
-			AddAnimationSequence(sequence);
-		}
-	}
 }
 
 // ----------------------------------------------------------

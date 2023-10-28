@@ -2,15 +2,6 @@
 #include "Core/ResourceLocator.h"
 
 // ------------------------------------------------------------------------
-void TextureAnimationSequence::Deserialize(const YAML::Node& node, AssetManager& assetManager)
-{
-	for (const auto& textureId : node["textures"])
-	{
-		AddFrame(assetManager, textureId.as<std::string>());
-	}
-}
-
-// ------------------------------------------------------------------------
 TextureAnimationSequenceFactory::TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond)
 	: AnimationSequenceFactory(sequenceId, framesPerSecond)
 { }
