@@ -9,11 +9,11 @@
 #include "Core/AssetManager.h"
 
 // ----------------------------------------------------------
-Animation::Animation(const std::vector<std::shared_ptr<AnimationSequence>>& sequences)
+Animation::Animation(std::vector<std::unique_ptr<AnimationSequence>>& sequences)
 {
-	for (const auto& sequence : sequences)
+	for (auto& sequence : sequences)
 	{
-		AddAnimationSequence(sequence);
+		AddAnimationSequence(std::move(sequence));
 	}
 }
 
@@ -26,7 +26,7 @@ const AnimationSequence& Animation::GetSequence(const std::string& sequenceId) c
 }
 
 // ----------------------------------------------------------
-void Animation::AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence)
+void Animation::AddAnimationSequence(std::unique_ptr<AnimationSequence> sequence)
 {
 	const auto& sequenceId = sequence->GetSequenceId();
 	assert(mSequences.find(sequenceId) == mSequences.end());
@@ -35,7 +35,7 @@ void Animation::AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence
 	{
 		mStartSequenceId = sequenceId;
 	}
-	mSequences[sequenceId] = sequence;
+	mSequences[sequenceId] = std::move(sequence);
 }
 
 // ----------------------------------------------------------
@@ -47,7 +47,7 @@ void AnimationFactory::AddAnimationSequenceFactory(std::unique_ptr<AnimationSequ
 // ------------------------------------------------------------------------
 std::unique_ptr<Animation> AnimationFactory::CreateAnimation(AssetManager& assetManager)
 {
-	std::vector<std::shared_ptr<AnimationSequence>> sequences;
+	std::vector<std::unique_ptr<AnimationSequence>> sequences;
 
 	for (const auto& factory : mSequenceFactories)
 	{

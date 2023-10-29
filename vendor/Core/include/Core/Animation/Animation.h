@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <filesystem>
 #include <vector>
+#include <memory>
 
 #include <SFML/Graphics.hpp>
 
@@ -18,11 +19,11 @@ class AnimationSequenceFactory;
 // --------------------------------------------------------------------------------
 class Animation : private NonCopyableNonMovableMarker
 {
-	using SequenceMap = std::unordered_map<std::string, std::shared_ptr<AnimationSequence>>;
-	using SequencePair = std::pair<std::string, std::shared_ptr<AnimationSequence>>;
+	using SequenceMap = std::unordered_map<std::string, std::unique_ptr<AnimationSequence>>;
+	using SequencePair = std::pair<std::string, std::unique_ptr<AnimationSequence>>;
 
 public:
-	Animation(const std::vector<std::shared_ptr<AnimationSequence>>& sequences);
+	Animation(std::vector<std::unique_ptr<AnimationSequence>>& sequences);
 
 	// Getters
 	const std::string& GetStartSequenceId() const { return mStartSequenceId; }
@@ -30,7 +31,7 @@ public:
 	const SequenceMap& GetSequences() const { return mSequences; }
 
 private:
-	void AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence);
+	void AddAnimationSequence(std::unique_ptr<AnimationSequence> sequence);
 
 private:
 	std::string mStartSequenceId;
