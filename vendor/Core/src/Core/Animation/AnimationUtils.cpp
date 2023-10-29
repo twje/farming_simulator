@@ -1,6 +1,7 @@
 #include "Core/Animation/AnimationUtils.h"
 #include "Core/Animation/Animation.h"
 #include "Core/Animation/AnimationSequence.h"
+#include "Core/TextureRegion.h"
 
 void ExportSpritesheet(const Animation& animation, const fs::path& filePath, uint16_t margin, uint16_t spacing)
 {
@@ -10,7 +11,7 @@ void ExportSpritesheet(const Animation& animation, const fs::path& filePath, uin
 
 	uint32_t textureWidth = 0, textureHeight = 0;
 
-	for (const auto& sequencePair : animation.GetAnimationSequences())
+	for (const auto& sequencePair : animation.GetSequences())
 	{
 		AnimationSequence& sequence = *sequencePair.second;
 		uint32_t sequenceWidth = 0, sequenceHeight = 0;

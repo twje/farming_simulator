@@ -15,13 +15,13 @@ public:
 	AnimationSequence(std::string sequenceId, uint16_t framesPerSecond);
 
 	// Getters
-	const std::string& GetSequenceId() { return mSequenceId; }
-	sf::Time GetDuration() { return mDuration; }
+	const std::string& GetSequenceId() const { return mSequenceId; }
+	sf::Time GetDuration() const { return mDuration; }
 	uint16_t GetFramesPerSecond() const { return mFramesPerSecond; }
 
 	// Hooks
-	virtual void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) = 0;
-	virtual uint16_t GetFrameCount() = 0;
+	virtual void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) const = 0;
+	virtual uint16_t GetFrameCount() const = 0;
 
 private:
 	std::string mSequenceId;

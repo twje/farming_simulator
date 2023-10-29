@@ -10,7 +10,7 @@ TextureAnimationSequence::TextureAnimationSequence(std::string sequenceId, uint1
 { }
 
 // ------------------------------------------------------------------------
-void TextureAnimationSequence::GetFrame(TextureRegion& outFrame, uint16_t frameIndex)
+void TextureAnimationSequence::GetFrame(TextureRegion& outFrame, uint16_t frameIndex) const
 {
 	sf::Texture* texture = mFrames[frameIndex];
 	if (texture != outFrame.GetTexture())

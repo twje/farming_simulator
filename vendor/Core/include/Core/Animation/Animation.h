@@ -7,8 +7,6 @@
 #include <SFML/Graphics.hpp>
 
 #include "Core/ISerializable.h"
-#include "Core/Timer.h"
-#include "Core/TextureRegion.h"
 
 namespace fs = std::filesystem;
 
@@ -24,38 +22,18 @@ class Animation
 
 public:
 	Animation(const std::vector<std::shared_ptr<AnimationSequence>>& sequences);
-	Animation(const Animation& other);
-
-	void Upate(const sf::Time& timestamp);
 
 	// Getters
-	sf::Sprite& GetSprite() const;
-	sf::FloatRect GetGlobalBounds() const;
-	const SequenceMap& GetAnimationSequences() const { return mSequences; }
-
-	// Setters
-	void SetOriginAnchor(sf::Vector2f originAnchor);
-	void SetAnimationSequence(const std::string& sequenceId);
+	const std::string& GetStartSequenceId() const { return mStartSequenceId; }
+	const AnimationSequence& GetSequence(const std::string& sequenceId) const;
+	const SequenceMap& GetSequences() const { return mSequences; }
 
 private:
 	void AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence);
-	void RefreshFrame();
-	TextureRegion& GetFrame();
-	void Animation::SetOriginAnchor(TextureRegion& frame);
 
 private:
-	// sequence memebers
+	std::string mStartSequenceId;
 	SequenceMap mSequences;
-	AnimationSequence* mCurrentSequence{ nullptr };
-	TextureRegion mOutSequenceFrame;
-
-	// animation members
-	uint16_t mFrameIndex{ 0 };
-	Timer mTimer;
-
-	// graphics members
-	sf::Vector2f mOriginAnchor;
-	std::unique_ptr<sf::Sprite> mSprite;
 };
 
 // --------------------------------------------------------------------------------

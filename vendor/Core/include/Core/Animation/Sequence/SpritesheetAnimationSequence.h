@@ -9,9 +9,9 @@ public:
 	SpritesheetAnimationSequence(uint16_t sequenceIndex, std::string sequenceId, uint16_t framesPerSecond);
 
 	// AnimationSequence interface
-	void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) override  { }
+	void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) const override  { }
 
-	uint16_t GetFrameCount() override { return mFrames.size(); }
+	uint16_t GetFrameCount() const override { return mFrames.size(); }
 
 private:
 	std::vector<uint32_t> mFrames;

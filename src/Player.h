@@ -10,6 +10,7 @@
 #include "Core/Support.h"
 #include "Core/ItemPicker.h"
 #include "Core/AssetManager.h">
+#include "Core/Animation/AnimationPlayer.h"
 
 #include "Settings.h"
 
@@ -61,14 +62,14 @@ class Player : public Sprite, public PlayerSubject
 {
 public:
 	Player(AssetManager& assetManager, const sf::Vector2f& position)
-		: mAnimation(assetManager.GetAsset<Animation>("character")),
+		: mAnimationPlayer(assetManager.GetAsset<Animation>("character")),
 		  mSpeed(200),
 		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),
 		  mSeedPicker({ "corn", "tomato" })
 	{
-		mAnimation.SetOriginAnchor(sf::Vector2f(0.5f, 0.5f));
-		mAnimation.SetAnimationSequence(mStatus);
+		mAnimationPlayer.SetOriginAnchor(sf::Vector2f(0.5f, 0.5f));
+		mAnimationPlayer.SetAnimationSequence(mStatus);
 		SetPosition(position);
 
 		mTimers.emplace(TimerId::TOOL_USE, Timer(sf::milliseconds(350), std::bind(&Player::UseTool, this)));
@@ -91,7 +92,7 @@ public:
 		std::cout << mSeedPicker.GetItem() << std::endl;
 	}
 
-	sf::FloatRect GetLocalBounds() const override { return mAnimation.GetGlobalBounds(); }
+	sf::FloatRect GetLocalBounds() const override { return mAnimationPlayer.GetGlobalBounds(); }
 
 	void Input()
 	{
@@ -199,8 +200,8 @@ public:
 
 	void Animate(const sf::Time& timestamp)
 	{
-		mAnimation.SetAnimationSequence(mStatus);
-		mAnimation.Upate(timestamp);
+		mAnimationPlayer.SetAnimationSequence(mStatus);
+		mAnimationPlayer.Upate(timestamp);
 	}
 
 	void Update(const sf::Time& timestamp) override
@@ -214,14 +215,14 @@ public:
 
 	void Draw(sf::RenderTarget& target, const sf::RenderStates& states) const override
 	{
-		target.draw(mAnimation.GetSprite(), states);
+		target.draw(mAnimationPlayer.GetSprite(), states);
 	}
 
 private:
 	sf::Vector2f mDirection;
 	float mSpeed;
 	std::string mStatus;
-	Animation mAnimation;
+	AnimationPlayer mAnimationPlayer;
 	std::unordered_map<TimerId, Timer> mTimers;
 	std::string mSelectedTool;
 	ItemPicker<std::string> mToolPicker;

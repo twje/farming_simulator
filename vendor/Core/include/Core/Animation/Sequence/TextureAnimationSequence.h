@@ -16,8 +16,8 @@ class TextureAnimationSequence : public AnimationSequence
 public:
 	TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond, const std::vector<sf::Texture*>& frames);
 
-	void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) override;
-	virtual uint16_t GetFrameCount() { return mFrames.size(); }
+	void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) const override;
+	uint16_t GetFrameCount() const override { return mFrames.size(); }
 
 private:
 	std::vector<sf::Texture*> mFrames;
