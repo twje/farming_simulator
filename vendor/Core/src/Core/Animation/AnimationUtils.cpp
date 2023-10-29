@@ -1,5 +1,5 @@
-#include "Core/AnimationUtils.h"
-#include "Core/Animation.h"
+#include "Core/Animation/AnimationUtils.h"
+#include "Core/Animation/Animation.h"
 
 void ExportSpritesheet(const Animation& animation, const fs::path& filePath, uint16_t margin, uint16_t spacing)
 {

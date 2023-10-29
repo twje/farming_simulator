@@ -4,8 +4,8 @@
 #include <initializer_list>
 #include <cassert>
 
-#include "Core/AnimationFactory.h"
-#include "Core/Animation.h"
+#include "Core/Animation/Factory/AnimationFactory.h"
+#include "Core/Animation/Animation.h"
 #include "Core/AssetManager.h"
 #include "Core/ISerializable.h"
 

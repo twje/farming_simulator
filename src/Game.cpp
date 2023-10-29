@@ -2,6 +2,9 @@
 
 #include "Core/IApplicationListener.h"
 #include "Core/AssetManager.h"
+#include "Core/Animation/Factory/AnimationFactory.h"
+#include "Core/Animation/Sequence/TextureAnimationSequence.h"
+#include "Core/Animation/AnimationUtils.h"
 #include "Level.h"
 
 class Game : public IApplicationListener

@@ -1,6 +1,6 @@
-#include "Core/AnimationFactory.h"
-#include "Core/Animation.h"
-#include "Core/TextureAnimationSequence.h"
+#include "Core/Animation/Factory/AnimationFactory.h"
+#include "Core/Animation/Animation.h"
+#include "Core/Animation/Sequence/TextureAnimationSequence.h"
 
 // ------------------------------------------------------------------------
 std::unique_ptr<Animation> AnimationFactory::CreateAnimation(AssetManager& assetManager)

@@ -6,7 +6,7 @@
 
 #include "Core/GameObject.h"
 #include "Core/ResourceLocator.h"
-#include "Core/Animation.h"
+#include "Core/Animation/Animation.h"
 #include "Core/Support.h"
 #include "Core/ItemPicker.h"
 #include "Core/AssetManager.h">

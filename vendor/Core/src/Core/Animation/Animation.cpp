@@ -1,10 +1,10 @@
-#include "Core/Animation.h"
+#include "Core/Animation/Animation.h"
 
 #include <cassert>
 #include <iostream>
 #include <fstream>
 
-#include "Core/TextureAnimationSequence.h"
+#include "Core/Animation/Sequence/TextureAnimationSequence.h"
 #include "Core/ResourceLocator.h"
 
 // ----------------------------------------------------------

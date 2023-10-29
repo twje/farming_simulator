@@ -2,7 +2,7 @@
 
 #include "Core/AssetManager.h"
 #include "Core/CommonAssetLoaders.h"
-#include "Core/Animation.h"
+#include "Core/Animation/Animation.h"
 #include "Core/Spritesheet.h"
 
 AssetManager::AssetManager()

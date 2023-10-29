@@ -1,4 +1,4 @@
-#include "Core/TextureAnimationSequence.h"
+#include "Core/Animation/Sequence/TextureAnimationSequence.h"
 #include "Core/ResourceLocator.h"
 
 // ------------------------------------------------------------------------

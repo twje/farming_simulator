@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Animation.h"
+#include "Core/Animation/Animation.h"
 #include "Core/Spritesheet.h"
 
 class SpritesheetAnimationSequence : public AnimationSequence
