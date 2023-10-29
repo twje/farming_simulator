@@ -10,6 +10,15 @@
 
 
 // ----------------------------------------------------------
+Animation::Animation(const std::vector<std::shared_ptr<AnimationSequence>>& sequences)
+{
+	for (const auto& sequence : sequences)
+	{
+		AddAnimationSequence(sequence);
+	}
+}
+
+// ----------------------------------------------------------
 Animation::Animation(const Animation& other)
 {
 	for (const auto& sequencePair : other.mSequences)
@@ -54,19 +63,6 @@ void Animation::SetOriginAnchor(sf::Vector2f originAnchor)
 }
 
 // ----------------------------------------------------------
-void Animation::AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence)
-{
-	const auto& sequenceId = sequence->GetSequenceId();
-	assert(mSequences.find(sequenceId) == mSequences.end());
-
-	mSequences[sequenceId] = sequence;
-	if (mCurrentSequence == nullptr)
-	{
-		SetAnimationSequence(sequenceId);
-	}
-}
-
-// ----------------------------------------------------------
 void Animation::SetAnimationSequence(const std::string& sequenceId)
 {
 	if (mCurrentSequence != nullptr && mCurrentSequence->GetSequenceId() == sequenceId)
@@ -82,6 +78,19 @@ void Animation::SetAnimationSequence(const std::string& sequenceId)
 	mTimer.Start();
 	mFrameIndex = 0;
 	RefreshFrame();
+}
+
+// ----------------------------------------------------------
+void Animation::AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence)
+{
+	const auto& sequenceId = sequence->GetSequenceId();
+	assert(mSequences.find(sequenceId) == mSequences.end());
+
+	mSequences[sequenceId] = sequence;
+	if (mCurrentSequence == nullptr)
+	{
+		SetAnimationSequence(sequenceId);
+	}
 }
 
 // ----------------------------------------------------------
@@ -125,12 +134,14 @@ void AnimationFactory::AddAnimationSequenceFactory(std::unique_ptr<AnimationSequ
 // ------------------------------------------------------------------------
 std::unique_ptr<Animation> AnimationFactory::CreateAnimation(AssetManager& assetManager)
 {
-	auto animation = std::make_unique<Animation>();
+	std::vector<std::shared_ptr<AnimationSequence>> sequences;
+
 	for (const auto& factory : mSequenceFactories)
 	{
-		animation->AddAnimationSequence(std::move(factory->CreateAnimationSequence(assetManager)));
+		sequences.emplace_back(std::move(factory->CreateAnimationSequence(assetManager)));
 	}
-	return animation;
+
+	return std::make_unique<Animation>(sequences);
 }
 
 // ------------------------------------------------------------------------

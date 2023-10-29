@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <filesystem>
+#include <vector>
 
 #include <SFML/Graphics.hpp>
 
@@ -22,7 +23,7 @@ class Animation
 	using SequencePair = std::pair<std::string, std::shared_ptr<AnimationSequence>>;
 
 public:
-	Animation() = default;
+	Animation(const std::vector<std::shared_ptr<AnimationSequence>>& sequences);
 	Animation(const Animation& other);
 
 	void Upate(const sf::Time& timestamp);
@@ -34,10 +35,10 @@ public:
 
 	// Setters
 	void SetOriginAnchor(sf::Vector2f originAnchor);
-	void AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence);
 	void SetAnimationSequence(const std::string& sequenceId);
 
 private:
+	void AddAnimationSequence(std::shared_ptr<AnimationSequence> sequence);
 	void RefreshFrame();
 	TextureRegion& GetFrame();
 	void Animation::SetOriginAnchor(TextureRegion& frame);
