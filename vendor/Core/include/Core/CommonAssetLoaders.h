@@ -12,13 +12,6 @@ public:
 };
 
 // --------------------------------------------------------------------------------
-class AnimationLoader : public AssetLoader
-{
-public:
-	virtual std::unique_ptr<AssetBase> Load(const std::string& filePath, AssetManager& assetManager) override;
-};
-
-// --------------------------------------------------------------------------------
 class SpritesheetLoader : public AssetLoader
 {
 public:

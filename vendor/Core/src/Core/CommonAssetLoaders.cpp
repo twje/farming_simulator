@@ -17,15 +17,6 @@ std::unique_ptr<AssetBase> TextureLoader::Load(const std::string& fileName, Asse
 }
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<AssetBase> AnimationLoader::Load(const std::string& filePath, AssetManager& assetManager)
-{
-	AnimationFactory factory;
-	factory.LoadFromFile(filePath);
-	auto animation = factory.CreateAnimation(assetManager);
-	return std::make_unique<Asset<Animation>>(std::move(animation));
-}
-
-// --------------------------------------------------------------------------------
 std::unique_ptr<AssetBase> SpritesheetLoader::Load(const std::string& filePath, AssetManager& assetManager)
 {
 	auto spritesheet = std::make_unique<Spritesheet>();
