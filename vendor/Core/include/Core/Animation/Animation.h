@@ -7,6 +7,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "Core/ISerializable.h"
+#include "Core/Utils.h"
 
 namespace fs = std::filesystem;
 
@@ -15,7 +16,7 @@ class AnimationSequence;
 class AnimationSequenceFactory;
 
 // --------------------------------------------------------------------------------
-class Animation
+class Animation : private NonCopyableNonMovableMarker
 {
 	using SequenceMap = std::unordered_map<std::string, std::shared_ptr<AnimationSequence>>;
 	using SequencePair = std::pair<std::string, std::shared_ptr<AnimationSequence>>;
