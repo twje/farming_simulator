@@ -5,7 +5,7 @@
 #include <cassert>
 
 #include "Core/Animation/Factory/AnimationFactory.h"
-#include "Core/Animation/Animation.h"
+#include "Core/Animation/AnimationSequence.h"
 #include "Core/AssetManager.h"
 #include "Core/ISerializable.h"
 
