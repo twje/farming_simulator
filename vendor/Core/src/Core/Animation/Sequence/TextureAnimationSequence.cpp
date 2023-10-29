@@ -4,18 +4,10 @@
 #include "Core/AssetManager.h"
 
 // ------------------------------------------------------------------------
-TextureAnimationSequence::TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
-	: AnimationSequence(sequenceId, framesPerSecond)
+TextureAnimationSequence::TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond, const std::vector<sf::Texture*>& frames)
+	: AnimationSequence(sequenceId, framesPerSecond),
+	  mFrames(frames)
 { }
-
-// ------------------------------------------------------------------------
-void TextureAnimationSequence::AddFrames(AssetManager& assetManager, const std::vector<std::string>& frames)
-{
-	for (const std::string& textureId : frames)
-	{
-		AddFrame(assetManager, textureId);
-	}
-}
 
 // ------------------------------------------------------------------------
 void TextureAnimationSequence::GetFrame(TextureRegion& outFrame, uint16_t frameIndex)
@@ -26,13 +18,6 @@ void TextureAnimationSequence::GetFrame(TextureRegion& outFrame, uint16_t frameI
 		outFrame.SetTexture(texture);
 		outFrame.SetRegion(sf::IntRect(sf::Vector2i(), sf::Vector2i(texture->getSize())));
 	}
-}
-
-// ------------------------------------------------------------------------
-void TextureAnimationSequence::TextureAnimationSequence::AddFrame(AssetManager& assetManager, std::string textureId)
-{
-	sf::Texture& texture = assetManager.GetAsset<sf::Texture>(textureId);
-	mFrames.emplace_back(&texture);
 }
 
 // ------------------------------------------------------------------------
@@ -48,9 +33,14 @@ void TextureAnimationSequenceFactory::AddFrames(const std::vector<std::string_vi
 // ------------------------------------------------------------------------
 /*virtual*/ std::unique_ptr<AnimationSequence> TextureAnimationSequenceFactory::CreateAnimationSequence(AssetManager& assetManager)
 {
-	auto sequence = std::make_unique<TextureAnimationSequence>(GetSequenceId(), GetFramesPerSecond());
-	sequence->AddFrames(assetManager, mFrames);
-	return sequence;
+	std::vector<sf::Texture*> textureFrames;
+
+	for (const std::string& textureId : mFrames)
+	{
+		textureFrames.emplace_back(&assetManager.GetAsset<sf::Texture>(textureId));
+	}
+
+	return std::make_unique<TextureAnimationSequence>(GetSequenceId(), GetFramesPerSecond(), textureFrames);
 }
 
 // ------------------------------------------------------------------------

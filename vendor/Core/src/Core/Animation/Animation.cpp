@@ -5,8 +5,9 @@
 #include <fstream>
 
 #include "Core/Animation/Sequence/TextureAnimationSequence.h"
-#include "Core/ResourceLocator.h"
 #include "Core/Animation/AnimationSequence.h"
+#include "Core/AssetManager.h"
+
 
 // ----------------------------------------------------------
 Animation::Animation(const Animation& other)

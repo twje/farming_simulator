@@ -2,25 +2,22 @@
 
 #include <string>
 
+#include <SFML/Graphics.hpp>
+
 #include "Core/Animation/AnimationSequence.h"
 #include "Core/ISerializable.h"
 
 // Forward declarations
-class AssetManager;
 class TextureRegion;
 
 // --------------------------------------------------------------------------------
 class TextureAnimationSequence : public AnimationSequence
 {
 public:
-	TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond);
+	TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond, const std::vector<sf::Texture*>& frames);
 
-	void AddFrames(AssetManager& assetManager, const std::vector<std::string>& frames);
 	void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) override;
 	virtual uint16_t GetFrameCount() { return mFrames.size(); }
-
-private:
-	void TextureAnimationSequence::AddFrame(AssetManager& assetManager, std::string textureId);
 
 private:
 	std::vector<sf::Texture*> mFrames;
