@@ -2,10 +2,13 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "Core/TextureRegion.h"
+#include "Core/ISerializable.h"
 
-namespace fs = std::filesystem;
+// Forwardd declarations
+class AssetManager;
+class TextureRegion;
 
+// --------------------------------------------------------------------------------
 class AnimationSequence
 {
 public:
@@ -23,5 +26,26 @@ public:
 private:
 	std::string mSequenceId;
 	sf::Time mDuration;
+	uint16_t mFramesPerSecond;
+};
+
+// --------------------------------------------------------------------------------
+class AnimationSequenceFactory : public ISerializable
+{
+public:
+	AnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond)
+		: mSequenceId(sequenceId),
+		mFramesPerSecond(framesPerSecond)
+	{ }
+
+	// Getters
+	const std::string& GetSequenceId() const { return mSequenceId; }
+	uint16_t GetFramesPerSecond() const { return mFramesPerSecond; }
+
+	// Hooks
+	virtual std::unique_ptr<AnimationSequence> CreateAnimationSequence(AssetManager& assetManager) = 0;
+
+public:
+	std::string mSequenceId;
 	uint16_t mFramesPerSecond;
 };

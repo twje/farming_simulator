@@ -2,8 +2,8 @@
 
 #include "Core/CommonAssetLoaders.h"
 #include "Core/Animation/Animation.h"
+#include "Core/Animation/AnimationSequence.h"
 #include "Core/Spritesheet.h"
-#include "Core/Animation/Factory/AnimationFactory.h"
 
 // --------------------------------------------------------------------------------
 std::unique_ptr<AssetBase> TextureLoader::Load(const std::string& fileName, AssetManager& assetManager)

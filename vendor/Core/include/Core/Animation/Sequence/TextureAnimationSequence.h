@@ -4,10 +4,10 @@
 #include <initializer_list>
 #include <cassert>
 
-#include "Core/Animation/Factory/AnimationFactory.h"
 #include "Core/Animation/AnimationSequence.h"
 #include "Core/AssetManager.h"
 #include "Core/ISerializable.h"
+#include "Core/TextureRegion.h"
 
 // --------------------------------------------------------------------------------
 class TextureAnimationSequenceFrame
