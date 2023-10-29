@@ -1,5 +1,39 @@
 #include "Core/Animation/Sequence/TextureAnimationSequence.h"
 #include "Core/ResourceLocator.h"
+#include "Core/TextureRegion.h"
+#include "Core/AssetManager.h"
+
+// ------------------------------------------------------------------------
+TextureAnimationSequence::TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond)
+	: AnimationSequence(sequenceId, framesPerSecond)
+{ }
+
+// ------------------------------------------------------------------------
+void TextureAnimationSequence::AddFrames(AssetManager& assetManager, const std::vector<std::string>& frames)
+{
+	for (const std::string& textureId : frames)
+	{
+		AddFrame(assetManager, textureId);
+	}
+}
+
+// ------------------------------------------------------------------------
+void TextureAnimationSequence::GetFrame(TextureRegion& outFrame, uint16_t frameIndex)
+{
+	sf::Texture* texture = mFrames[frameIndex];
+	if (texture != outFrame.GetTexture())
+	{
+		outFrame.SetTexture(texture);
+		outFrame.SetRegion(sf::IntRect(sf::Vector2i(), sf::Vector2i(texture->getSize())));
+	}
+}
+
+// ------------------------------------------------------------------------
+void TextureAnimationSequence::TextureAnimationSequence::AddFrame(AssetManager& assetManager, std::string textureId)
+{
+	sf::Texture& texture = assetManager.GetAsset<sf::Texture>(textureId);
+	mFrames.emplace_back(&texture);
+}
 
 // ------------------------------------------------------------------------
 TextureAnimationSequenceFactory::TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond)
