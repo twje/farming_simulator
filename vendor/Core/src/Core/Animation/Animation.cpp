@@ -20,22 +20,23 @@ Animation::Animation(std::vector<std::unique_ptr<AnimationSequence>>& sequences)
 // ----------------------------------------------------------
 const AnimationSequence& Animation::GetSequence(const std::string& sequenceId) const
 {
-	auto iter = mSequences.find(sequenceId);
-	assert(iter != mSequences.end());
-	return *iter->second;
+	auto iter = mSequenceLookup.find(sequenceId);
+	assert(iter != mSequenceLookup.end());
+	return *mSequences[iter->second];
 }
 
 // ----------------------------------------------------------
 void Animation::AddAnimationSequence(std::unique_ptr<AnimationSequence> sequence)
 {
 	const auto& sequenceId = sequence->GetSequenceId();
-	assert(mSequences.find(sequenceId) == mSequences.end());
+	assert(mSequenceLookup.find(sequenceId) == mSequenceLookup.end());
 
 	if (mSequences.size() == 0)
 	{
 		mStartSequenceId = sequenceId;
 	}
-	mSequences[sequenceId] = std::move(sequence);
+	mSequenceLookup[sequenceId] = mSequences.size();
+	mSequences.emplace_back(std::move(sequence));
 }
 
 // ----------------------------------------------------------

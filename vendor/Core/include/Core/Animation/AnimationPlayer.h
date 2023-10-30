@@ -14,9 +14,6 @@ class AnimationSequence;
 
 class AnimationPlayer
 {
-	using SequenceMap = std::unordered_map<std::string, std::shared_ptr<AnimationSequence>>;
-	using SequencePair = std::pair<std::string, std::shared_ptr<AnimationSequence>>;
-
 public:
 	AnimationPlayer(const Animation& animation);
 

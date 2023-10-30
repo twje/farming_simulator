@@ -28,14 +28,15 @@ public:
 	// Getters
 	const std::string& GetStartSequenceId() const { return mStartSequenceId; }
 	const AnimationSequence& GetSequence(const std::string& sequenceId) const;
-	const SequenceMap& GetSequences() const { return mSequences; }
+	const std::vector<std::unique_ptr<AnimationSequence>>& GetSequences() const { return mSequences; }
 
 private:
 	void AddAnimationSequence(std::unique_ptr<AnimationSequence> sequence);
 
 private:
 	std::string mStartSequenceId;
-	SequenceMap mSequences;
+	std::vector<std::unique_ptr<AnimationSequence>> mSequences;
+	std::map<std::string, int> mSequenceLookup;
 };
 
 // --------------------------------------------------------------------------------
