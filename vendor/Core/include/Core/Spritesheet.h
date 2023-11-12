@@ -11,7 +11,7 @@
 class Spritesheet : public Asset
 {
 public:    
-    Spritesheet(AssetManager& assetManager, const std::string& textureId, uint16_t rows, uint16_t cols);
+    Spritesheet(const std::string& textureId, uint16_t rows, uint16_t cols);
 
     // Asset interface
     void ResolveAssetDepsImpl(AssetManager& assetManager) override;
@@ -21,11 +21,11 @@ public:
 
     // IO
     void SaveToFile(const std::string& filePath);
-    static std::unique_ptr<Spritesheet> LoadFromFile(const std::string& filePath, AssetManager& assetManager);
+    static std::unique_ptr<Spritesheet> LoadFromFile(const std::string& filePath);
 
     // ISerialize interface
     void Serialize(YAML::Emitter& emitter);
-    static std::unique_ptr<Spritesheet> Deserialize(const YAML::Node& node, AssetManager& assetManager);
+    static std::unique_ptr<Spritesheet> Deserialize(const YAML::Node& node);
 
 private:
     void ComputeTextureRegions(AssetManager& assetManager);

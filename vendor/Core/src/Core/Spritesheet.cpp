@@ -2,18 +2,16 @@
 #include "Core/Texture.h"
 
 // ----------------------------------------------------------
-Spritesheet::Spritesheet(AssetManager& assetManager, const std::string& textureId, uint16_t rows, uint16_t cols)
+Spritesheet::Spritesheet(const std::string& textureId, uint16_t rows, uint16_t cols)
     : mTextureId(textureId),
       mRows(rows),
       mCols(cols)
-{
-    ComputeTextureRegions(assetManager);
-}
+{ }
 
 // ----------------------------------------------------------
 /*virtual*/ void Spritesheet::ResolveAssetDepsImpl(AssetManager& assetManager)
 {
-    // TODO: implement
+    ComputeTextureRegions(assetManager);    
 }
 
 // ----------------------------------------------------------
@@ -50,10 +48,10 @@ void Spritesheet::SaveToFile(const std::string& filePath)
 }
 
 // ----------------------------------------------------------
-std::unique_ptr<Spritesheet> Spritesheet::LoadFromFile(const std::string& filePath, AssetManager& assetManager)
+std::unique_ptr<Spritesheet> Spritesheet::LoadFromFile(const std::string& filePath)
 {
     YAML::Node node = YAML::LoadFile(filePath);
-    return Deserialize(node, assetManager);
+    return Deserialize(node);
 }
 
 // ----------------------------------------------------------
@@ -67,11 +65,11 @@ void Spritesheet::Serialize(YAML::Emitter& emitter)
 }
 
 // ----------------------------------------------------------
-std::unique_ptr<Spritesheet> Spritesheet::Deserialize(const YAML::Node& node, AssetManager& assetManager)
+std::unique_ptr<Spritesheet> Spritesheet::Deserialize(const YAML::Node& node)
 {
     const std::string& textureId = node["textureId"].as<std::string>();
     uint16_t rows = node["rows"].as<uint16_t>();
     uint16_t cols = node["cols"].as<uint16_t>();
     
-    return std::make_unique<Spritesheet>(assetManager, textureId, rows, cols);
+    return std::make_unique<Spritesheet>(textureId, rows, cols);
 }
