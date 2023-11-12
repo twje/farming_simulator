@@ -33,6 +33,7 @@ private:
 class AnimationSequenceFactory : public ISerializable
 {
 public:
+	AnimationSequenceFactory() = default;
 	AnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond)
 		: mSequenceId(sequenceId),
 		mFramesPerSecond(framesPerSecond)

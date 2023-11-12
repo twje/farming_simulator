@@ -48,8 +48,11 @@ void TextureAnimationSequenceFactory::AddFrames(const std::vector<std::string_vi
 /*virtual*/ void TextureAnimationSequenceFactory::Serialize(YAML::Emitter& emitter)
 {
 	emitter << YAML::BeginMap;
-	emitter << YAML::Key << "TextureAnimationSequence" << YAML::Value;
+	emitter << YAML::Key << "class" << YAML::Value << "TextureAnimationSequence";	
+	emitter << YAML::Key << "state" << YAML::Value;	
 	emitter << YAML::BeginMap;
+	emitter << YAML::Key << "sequenceId" << mSequenceId;
+	emitter << YAML::Key << "framesPerSecond" << mFramesPerSecond;
 	emitter << YAML::Key << "textures" << YAML::Value;
 	emitter << YAML::BeginSeq;
 	for (const auto& frame : mFrames)
@@ -57,17 +60,20 @@ void TextureAnimationSequenceFactory::AddFrames(const std::vector<std::string_vi
 		emitter << frame;
 	}
 	emitter << YAML::EndSeq;
-	emitter << YAML::EndMap;
-	emitter << YAML::EndMap;
+	emitter << YAML::EndMap;	
+	emitter << YAML::EndMap;	
 }
 
 // ------------------------------------------------------------------------
 /*virtual*/ void TextureAnimationSequenceFactory::Deserialize(const YAML::Node& node)
 {
+	const std::string& sequenceId = node["sequenceId"].as<std::string>();
+	uint16_t framesPerSecond = node["framesPerSecond"].as<uint16_t>();
+
 	std::vector<std::string_view> frames;
 	for (const auto& textureId : node["textures"])
 	{
 		frames.emplace_back(textureId.as<std::string_view>());
 	}
-	AddFrames(frames);
+	PostInit(sequenceId, framesPerSecond, frames);
 }

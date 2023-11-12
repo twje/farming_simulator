@@ -81,12 +81,7 @@ void AnimationFactory::Serialize(YAML::Emitter& emitter)
 	emitter << YAML::BeginSeq;
 	for (const auto& sequence : mSequenceFactories)
 	{
-		emitter << YAML::BeginMap;
-		emitter << YAML::Key << "sequenceId" << YAML::Value << sequence->GetSequenceId();
-		emitter << YAML::Key << "framesPerSecond" << YAML::Value << sequence->GetFramesPerSecond();
-		emitter << YAML::Key << "frames" << YAML::Value;
-		sequence->Serialize(emitter);
-		emitter << YAML::EndMap;
+		sequence->Serialize(emitter);	
 	}
 	emitter << YAML::EndSeq;
 }
@@ -94,24 +89,17 @@ void AnimationFactory::Serialize(YAML::Emitter& emitter)
 // ------------------------------------------------------------------------
 void AnimationFactory::Deserialize(const YAML::Node& node)
 {
-	// AnimationSequence loader type alias
-	using AnimationSequenceFactoryLoader = std::unique_ptr<AnimationSequenceFactory>(*)(
-		const YAML::Node&,
-		std::string,
-		uint16_t
-		);
+	using AnimationSequenceFactoryLoader = std::unique_ptr<AnimationSequenceFactory>(*)(const YAML::Node&);
 
 	// AnimationSequence loaders
 	AnimationSequenceFactoryLoader textureAnimationSequenceLoader = [](
-		const YAML::Node& node,
-		std::string sequenceId,
-		uint16_t framesPerSecond
+		const YAML::Node& node		
 		) -> std::unique_ptr<AnimationSequenceFactory>
-		{
-			auto sequence = std::make_unique<TextureAnimationSequenceFactory>(sequenceId, framesPerSecond);
-			sequence->Deserialize(node);
-			return sequence;
-		};
+	{
+		auto sequence = std::make_unique<TextureAnimationSequenceFactory>();
+		sequence->Deserialize(node);
+		return sequence;
+	};
 
 	// AnimationSequence loader lookup
 	std::unordered_map<std::string, AnimationSequenceFactoryLoader> animationSequenceLoaders{
@@ -121,17 +109,10 @@ void AnimationFactory::Deserialize(const YAML::Node& node)
 	// Load all sequence factories
 	for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
 	{
-		std::string sequenceId = (*it)["sequenceId"].as<std::string>();
-		uint16_t framesPerSecond = (*it)["framesPerSecond"].as<uint16_t>();
-		for (const auto& frames : (*it)["frames"])
-		{
-			std::string sequenceType = frames.first.as<std::string>();
-			std::unique_ptr<AnimationSequenceFactory> factory = animationSequenceLoaders[sequenceType](
-				frames.second,
-				sequenceId,
-				framesPerSecond
-				);
-			AddAnimationSequenceFactory(std::move(factory));
-		}
+		std::string clazz = (*it)["class"].as<std::string>();
+		const YAML::Node& state = (*it)["state"];
+
+		auto sequence = animationSequenceLoaders[clazz](state);
+		AddAnimationSequenceFactory(std::move(sequence));
 	}
 }

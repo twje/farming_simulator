@@ -27,7 +27,15 @@ private:
 class TextureAnimationSequenceFactory : public AnimationSequenceFactory
 {
 public:
-	TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond);
+	TextureAnimationSequenceFactory() = default;
+	TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond); // remove
+
+	void PostInit(std::string_view sequenceId, uint16_t framesPerSecond, const std::vector<std::string_view>& frames)
+	{
+		mSequenceId = sequenceId;
+		mFramesPerSecond = framesPerSecond;
+		mFrames.assign(frames.begin(), frames.end());
+	}
 
 	void AddFrames(const std::vector<std::string_view>& frames);
 
