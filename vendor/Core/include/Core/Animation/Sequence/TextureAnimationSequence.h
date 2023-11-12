@@ -14,29 +14,16 @@ class TextureRegion;
 class TextureAnimationSequence : public AnimationSequence
 {
 public:
-	TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond, const std::vector<sf::Texture*>& frames);
+	TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond, const std::vector<std::string_view>& frames);
 
+	void ResolveAssetDepsImpl(AssetManager& assetManager) override;
 	void GetFrame(TextureRegion& outFrame, uint16_t frameIndex) const override;
 	uint16_t GetFrameCount() const override { return mFrames.size(); }
 
-private:
-	std::vector<sf::Texture*> mFrames;
-};
-
-// ------------------------------------------------------------------------
-class TextureAnimationSequenceFactory : public AnimationSequenceFactory
-{
-public:	
-	TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond, 
-									const std::vector<std::string_view>& frames);	
-
-	// AnimationSequenceFactory interface
-	std::unique_ptr<AnimationSequence> CreateAnimationSequence(AssetManager& assetManager) override;
-
 	// Serializable methods
 	void Serialize(YAML::Emitter& emitter) override;
-	static std::unique_ptr<TextureAnimationSequenceFactory> Deserialize(const YAML::Node& node);
+	static std::unique_ptr<TextureAnimationSequence> Deserialize(const YAML::Node& node);
 
 private:
-	std::vector<std::string> mFrames;
+	std::vector<std::pair<std::string, sf::Texture*>> mFrames;
 };

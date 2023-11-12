@@ -5,5 +5,8 @@
 // --------------------------------------------------------------------------------
 std::unique_ptr<Asset> AnimationLoader::Load(const std::string& filePath, AssetManager& assetManager)
 {
-	return AnimationFactory::LoadFromFile(filePath)->CreateAnimation(assetManager);
+	auto animation = Animation::LoadFromFile(filePath);
+	animation->ResolveAssetDeps(assetManager);
+	
+	return animation;
 }

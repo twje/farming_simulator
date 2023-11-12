@@ -5,15 +5,28 @@
 #include "Core/AssetManager.h"
 
 // ------------------------------------------------------------------------
-TextureAnimationSequence::TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond, const std::vector<sf::Texture*>& frames)
-	: AnimationSequence(sequenceId, framesPerSecond),
-	  mFrames(frames)
-{ }
+TextureAnimationSequence::TextureAnimationSequence(std::string sequenceId, uint16_t framesPerSecond, const std::vector<std::string_view>& frames)
+	: AnimationSequence(sequenceId, framesPerSecond)	 
+{ 
+	for (std::string_view textureId : frames)
+	{
+		mFrames.push_back(std::make_pair(std::string(textureId), nullptr));
+	}
+}
+
+// ------------------------------------------------------------------------
+/*virtual*/ void TextureAnimationSequence::ResolveAssetDepsImpl(AssetManager& assetManager)
+{
+	for (auto& frame : mFrames)
+	{
+		frame.second = &assetManager.GetAsset<Texture>(frame.first).GetRawTexture();
+	}
+}
 
 // ------------------------------------------------------------------------
 void TextureAnimationSequence::GetFrame(TextureRegion& outFrame, uint16_t frameIndex) const
 {
-	sf::Texture* texture = mFrames[frameIndex];
+	sf::Texture* texture = mFrames[frameIndex].second;
 	if (texture != outFrame.GetTexture())
 	{
 		outFrame.SetTexture(texture);
@@ -22,47 +35,27 @@ void TextureAnimationSequence::GetFrame(TextureRegion& outFrame, uint16_t frameI
 }
 
 // ------------------------------------------------------------------------
-TextureAnimationSequenceFactory::TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond,
-																 const std::vector<std::string_view>& frames)
-	: AnimationSequenceFactory(sequenceId, framesPerSecond),
-	  mFrames{ frames.begin(), frames.end() }
-{ }
-
-// ------------------------------------------------------------------------
-/*virtual*/ std::unique_ptr<AnimationSequence> TextureAnimationSequenceFactory::CreateAnimationSequence(AssetManager& assetManager)
-{
-	std::vector<sf::Texture*> textureFrames;
-
-	for (const std::string& textureId : mFrames)
-	{
-		textureFrames.emplace_back(&assetManager.GetAsset<Texture>(textureId).GetRawTexture());
-	}
-
-	return std::make_unique<TextureAnimationSequence>(GetSequenceId(), GetFramesPerSecond(), textureFrames);
-}
-
-// ------------------------------------------------------------------------
-/*virtual*/ void TextureAnimationSequenceFactory::Serialize(YAML::Emitter& emitter)
+/*virtual*/ void TextureAnimationSequence::Serialize(YAML::Emitter& emitter)
 {
 	emitter << YAML::BeginMap;
-	emitter << YAML::Key << "class" << YAML::Value << "TextureAnimationSequence";	
-	emitter << YAML::Key << "state" << YAML::Value;	
+	emitter << YAML::Key << "class" << YAML::Value << "TextureAnimationSequence";
+	emitter << YAML::Key << "state" << YAML::Value;
 	emitter << YAML::BeginMap;
-	emitter << YAML::Key << "sequenceId" << mSequenceId;
-	emitter << YAML::Key << "framesPerSecond" << mFramesPerSecond;
+	emitter << YAML::Key << "sequenceId" << GetSequenceId();
+	emitter << YAML::Key << "framesPerSecond" << GetFramesPerSecond();
 	emitter << YAML::Key << "textures" << YAML::Value;
 	emitter << YAML::BeginSeq;
 	for (const auto& frame : mFrames)
 	{
-		emitter << frame;
+		emitter << frame.first;
 	}
 	emitter << YAML::EndSeq;
-	emitter << YAML::EndMap;	
-	emitter << YAML::EndMap;	
+	emitter << YAML::EndMap;
+	emitter << YAML::EndMap;
 }
 
 // ------------------------------------------------------------------------
-std::unique_ptr<TextureAnimationSequenceFactory> TextureAnimationSequenceFactory::Deserialize(const YAML::Node& node)
+std::unique_ptr<TextureAnimationSequence> TextureAnimationSequence::Deserialize(const YAML::Node& node)
 {
 	const std::string& sequenceId = node["sequenceId"].as<std::string>();
 	uint16_t framesPerSecond = node["framesPerSecond"].as<uint16_t>();
@@ -73,5 +66,5 @@ std::unique_ptr<TextureAnimationSequenceFactory> TextureAnimationSequenceFactory
 		frames.emplace_back(textureId.as<std::string_view>());
 	}
 
-	return std::make_unique<TextureAnimationSequenceFactory>(sequenceId, framesPerSecond, frames);
+	return std::make_unique<TextureAnimationSequence>(sequenceId, framesPerSecond, frames);
 }
