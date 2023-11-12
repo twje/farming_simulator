@@ -16,25 +16,22 @@
 class AssetManager;
 
 // ----------------------------------------------------------------
-class AssetBase
+class Asset
 {
 public:
-	virtual ~AssetBase() = default;
-};
+	virtual ~Asset() = default;
+	
+	virtual void ResolveAssetDeps(AssetManager& assetManager)
+	{
+		ResolveAssetDepsImpl(assetManager);
+		isAssetDepsResolved = true;
+	}
 
-// ----------------------------------------------------------------
-template<typename T>
-class Asset : public AssetBase
-{
-public:
-	Asset(std::unique_ptr<T> instance)
-		: mInstance(std::move(instance))
-	{ }
-
-	T& GetInstance() { return *mInstance.get(); }
+private:	
+	virtual void ResolveAssetDepsImpl(AssetManager& assetManager) = 0;
 
 private:
-	std::unique_ptr<T> mInstance;
+	bool isAssetDepsResolved{ false };
 };
 
 // ----------------------------------------------------------------
@@ -42,7 +39,7 @@ class AssetLoader
 {
 public:
 	virtual ~AssetLoader() = default;
-	virtual std::unique_ptr<AssetBase> Load(const std::string& filePath, AssetManager& assetManager) = 0;
+	virtual std::unique_ptr<Asset> Load(const std::string& filePath, AssetManager& assetManager) = 0;
 };
 
 // ----------------------------------------------------------------
@@ -100,16 +97,15 @@ public:
 	}
 
 	template<typename T>
-	T& GetAsset(const std::string assetId) const
+	T& GetAsset(const std::string& assetId) const
 	{
 		assert(mAssets.find(assetId) != mAssets.end() && "Asset not loaded");
-		AssetBase* assetBase = mAssets.at(assetId).get();
-		Asset<T>* asset = static_cast<Asset<T>*>(assetBase);
-		return asset->GetInstance();
+		Asset* asset = mAssets.at(assetId).get();
+		return *static_cast<T*>(asset);
 	}
 
 private:
-	std::unordered_map<std::string, std::unique_ptr<AssetBase>> mAssets;
+	std::unordered_map<std::string, std::unique_ptr<Asset>> mAssets;
 	std::unique_ptr<AssetLoader> mLoader;
 };
 

@@ -7,6 +7,7 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "Core/AssetManager.h"
 #include "Core/ISerializable.h"
 #include "Core/Utils.h"
 
@@ -17,13 +18,19 @@ class AnimationSequence;
 class AnimationSequenceFactory;
 
 // --------------------------------------------------------------------------------
-class Animation : private NonCopyableNonMovableMarker
+class Animation : public Asset, private NonCopyableNonMovableMarker
 {
 	using SequenceMap = std::unordered_map<std::string, std::unique_ptr<AnimationSequence>>;
 	using SequencePair = std::pair<std::string, std::unique_ptr<AnimationSequence>>;
 
 public:
 	Animation(std::vector<std::unique_ptr<AnimationSequence>>& sequences);
+
+	// Asset interface
+	virtual void ResolveAssetDepsImpl(AssetManager& assetManager) 
+	{
+		// TODO: implement
+	}
 
 	// Getters
 	const std::string& GetStartSequenceId() const { return mStartSequenceId; }

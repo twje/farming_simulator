@@ -3,10 +3,9 @@
 #include "Core/Animation/AnimationSequence.h"
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<AssetBase> AnimationLoader::Load(const std::string& filePath, AssetManager& assetManager)
+std::unique_ptr<Asset> AnimationLoader::Load(const std::string& filePath, AssetManager& assetManager)
 {
 	AnimationFactory factory;
 	factory.LoadFromFile(filePath);
-	auto animation = factory.CreateAnimation(assetManager);
-	return std::make_unique<Asset<Animation>>(std::move(animation));
+	return factory.CreateAnimation(assetManager);	 
 }

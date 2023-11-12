@@ -7,5 +7,5 @@
 class AnimationLoader : public AssetLoader
 {
 public:
-	virtual std::unique_ptr<AssetBase> Load(const std::string& filePath, AssetManager& assetManager) override;
+	virtual std::unique_ptr<Asset> Load(const std::string& filePath, AssetManager& assetManager) override;
 };

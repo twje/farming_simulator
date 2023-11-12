@@ -9,7 +9,7 @@
 #include "Core/Animation/Animation.h"
 #include "Core/Support.h"
 #include "Core/ItemPicker.h"
-#include "Core/AssetManager.h">
+#include "Core/AssetManager.h"
 #include "Core/Animation/AnimationPlayer.h"
 
 #include "Settings.h"

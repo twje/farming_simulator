@@ -8,11 +8,17 @@
 #include "Core/TextureRegion.h"
 #include "Core/ISerializable.h"
 
-class Spritesheet : public ISerializable
+class Spritesheet : public Asset, public ISerializable
 {
 public:
     Spritesheet() = default;
     Spritesheet(AssetManager& assetManager, const std::string& textureId, uint16_t rows, uint16_t cols);
+
+    // Asset interface
+    virtual void ResolveAssetDepsImpl(AssetManager& assetManager)
+    {
+        // TODO: implement
+    }
 
     const TextureRegion& GetTextureRegion(uint16_t row, uint16_t col) const;
     const TextureRegion& GetTextureRegion(uint16_t index) const;

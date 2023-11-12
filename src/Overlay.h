@@ -4,6 +4,7 @@
 
 #include "Core/AssetManager.h"
 #include "Core/RectUtils.h"
+#include "Core/Texture.h"
 
 #include "Player.h"
 #include "Settings.h"
@@ -14,8 +15,8 @@ public:
 	Overlay(AssetManager& assetManager, Player& player)
 		: mAssetManager(assetManager),
 		  mPlayer(player),
-		  mToolSprite(assetManager.GetAsset<sf::Texture>(player.GetActiveTool())),
-		  mSeedSprite(assetManager.GetAsset<sf::Texture>(player.GetActiveSeed()))
+		  mToolSprite(assetManager.GetAsset<Texture>(player.GetActiveTool()).GetRawTexture()),
+		  mSeedSprite(assetManager.GetAsset<Texture>(player.GetActiveSeed()).GetRawTexture())
 	{
 		SetOverlayTexture(player.GetActiveTool(), "tool", mToolSprite);
 		SetOverlayTexture(player.GetActiveSeed(), "seed", mSeedSprite);
@@ -41,7 +42,7 @@ private:
 
 	void SetOverlayTexture(const std::string& textureId, const std::string& overlayId, sf::Sprite& sprite)
 	{
-		sf::Texture& texture = mAssetManager.GetAsset<sf::Texture>(textureId);
+		const sf::Texture& texture = mAssetManager.GetAsset<Texture>(textureId).GetRawTexture();
 		sprite.setTexture(texture, true);
 		sprite.setOrigin(GetRectMidBottom(sprite.getLocalBounds()));
 		sprite.setPosition(OVERLAY_POSITIONS.at(overlayId));

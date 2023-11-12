@@ -1,5 +1,6 @@
 #include "Core/Animation/Sequence/TextureAnimationSequence.h"
 #include "Core/ResourceLocator.h"
+#include "Core/Texture.h"
 #include "Core/TextureRegion.h"
 #include "Core/AssetManager.h"
 
@@ -37,7 +38,7 @@ void TextureAnimationSequenceFactory::AddFrames(const std::vector<std::string_vi
 
 	for (const std::string& textureId : mFrames)
 	{
-		textureFrames.emplace_back(&assetManager.GetAsset<sf::Texture>(textureId));
+		textureFrames.emplace_back(&assetManager.GetAsset<Texture>(textureId).GetRawTexture());
 	}
 
 	return std::make_unique<TextureAnimationSequence>(GetSequenceId(), GetFramesPerSecond(), textureFrames);

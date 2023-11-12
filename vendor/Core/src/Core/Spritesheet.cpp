@@ -1,4 +1,5 @@
 #include "Core/Spritesheet.h"
+#include "Core/Texture.h"
 
 // ----------------------------------------------------------
 Spritesheet::Spritesheet(AssetManager& assetManager, const std::string& textureId, uint16_t rows, uint16_t cols)
@@ -19,7 +20,7 @@ const TextureRegion& Spritesheet::GetTextureRegion(uint16_t row, uint16_t col) c
 // ----------------------------------------------------------
 void Spritesheet::ComputeTextureRegions(AssetManager& assetManager)
 {
-    sf::Texture& texture = assetManager.GetAsset<sf::Texture>(mTextureId);
+    sf::Texture& texture = assetManager.GetAsset<Texture>(mTextureId).GetRawTexture();
     sf::Vector2u tileSize(texture.getSize().x / mCols, texture.getSize().y / mRows);
     for (uint16_t row = 0; row < mRows; ++row)
     {

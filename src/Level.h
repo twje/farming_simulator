@@ -27,7 +27,7 @@ public:
 		mHUDView.setCenter(windowSize * 0.5f);
 
 		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(640, 360));
-		mGround = CreateGameObject<Generic>(assetManager.GetAsset<sf::Texture>("ground"), sf::Vector2f(0, 0), LAYERS.at("ground"));
+		mGround = CreateGameObject<Generic>(assetManager.GetAsset<Texture>("ground").GetRawTexture(), sf::Vector2f(0, 0), LAYERS.at("ground"));
 
 		mAllSprites.Add(mPlayer);
 		mAllSprites.Add(mGround);

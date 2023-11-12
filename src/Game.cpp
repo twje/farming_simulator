@@ -2,7 +2,8 @@
 
 #include "Core/IApplicationListener.h"
 #include "Core/AssetManager.h"
-#include "Core/Animation/Factory/AnimationFactory.h"
+#include "Core/Texture.h"
+#include "Core/Animation/Animation.h"
 #include "Core/Animation/Sequence/TextureAnimationSequence.h"
 #include "Core/Animation/AnimationUtils.h"
 #include "Level.h"
@@ -14,7 +15,7 @@ public:
 	{
 		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
 
-		assetManager.LoadAssetsFromManifest<sf::Texture>("../../config/textures.cfg");
+		assetManager.LoadAssetsFromManifest<Texture>("../../config/textures.cfg");
 		assetManager.LoadAssetsFromManifest<Animation>("../../config/animations.cfg");
 		assetManager.ProcessAssetQueue();
 
