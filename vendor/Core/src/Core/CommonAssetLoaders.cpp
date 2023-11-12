@@ -20,7 +20,5 @@ std::unique_ptr<Asset> TextureLoader::Load(const std::string& fileName, AssetMan
 // --------------------------------------------------------------------------------
 std::unique_ptr<Asset> SpritesheetLoader::Load(const std::string& filePath, AssetManager& assetManager)
 {
-	auto spritesheet = Spritesheet::LoadFromFile(filePath);
-	spritesheet->ResolveAssetDeps(assetManager);
-	return spritesheet;
+	return Spritesheet::LoadFromFile(filePath);		
 }

@@ -89,11 +89,13 @@ public:
 		: mLoader(std::move(loader))
 	{ }
 
-	void LoadAsset(AssetManager& manager, const std::string assetId, const std::string filePath)
+	Asset& LoadAsset(AssetManager& manager, const std::string assetId, const std::string filePath)
 	{
 		assert(mAssets.find(assetId) == mAssets.end() && "Asset already loaded");
 		auto asset = mLoader->Load(filePath, manager);
 		mAssets.emplace(assetId, std::move(asset));
+
+		return *mAssets[assetId].get();
 	}
 
 	template<typename T>
@@ -164,7 +166,10 @@ public:
 			mQueue.pop();
 
 			AssetRegistry& registry = GetAssetRegistry(desc->GetTypeId());
-			registry.LoadAsset(*this, desc->GetId(), desc->GetFilePath());
+			Asset& asset = registry.LoadAsset(*this, desc->GetId(), desc->GetFilePath());
+			
+			// TODO: validate dependencies
+			asset.ResolveAssetDeps(*this);
 		}
 	}
 
