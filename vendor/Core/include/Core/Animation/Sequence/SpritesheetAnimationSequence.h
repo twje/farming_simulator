@@ -34,7 +34,7 @@ public:
 		return nullptr;
 	}
 
-	// ISerializable interface
+	// Serializable methods
 	void Serialize(YAML::Emitter& emitter) override
 	{
 		emitter << YAML::BeginMap;
@@ -52,7 +52,7 @@ public:
 		emitter << YAML::EndMap;
 	}
 
-	void Deserialize(const YAML::Node& node) override { }
+	std::unique_ptr<SpritesheetAnimationSequenceFactory> Deserialize(const YAML::Node& node) { return nullptr; }
 
 private:
 	std::string mSpritesheetId;

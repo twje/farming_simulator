@@ -27,15 +27,12 @@ public:
 	Animation(std::vector<std::unique_ptr<AnimationSequence>>& sequences);
 
 	// Asset interface
-	virtual void ResolveAssetDepsImpl(AssetManager& assetManager) 
-	{
-		// TODO: implement
-	}
+	void ResolveAssetDepsImpl(AssetManager& assetManager) override;
 
 	// Getters
-	const std::string& GetStartSequenceId() const { return mStartSequenceId; }
+	const std::string& GetStartSequenceId() const;
 	const AnimationSequence& GetSequence(const std::string& sequenceId) const;
-	const std::vector<std::unique_ptr<AnimationSequence>>& GetSequences() const { return mSequences; }
+	const std::vector<std::unique_ptr<AnimationSequence>>& GetSequences() const;
 
 private:
 	void AddAnimationSequence(std::unique_ptr<AnimationSequence> sequence);
@@ -47,21 +44,23 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class AnimationFactory : public ISerializable
+class AnimationFactory
 {
 public:
-	std::unique_ptr<Animation> CreateAnimation(AssetManager& assetManager);
+	using SequenceFactoryList = std::vector<std::unique_ptr<AnimationSequenceFactory>>;
 
-	void AddAnimationSequenceFactory(std::unique_ptr<AnimationSequenceFactory> factory);
+	AnimationFactory(SequenceFactoryList&& sequenceFactories);
+
+	std::unique_ptr<Animation> CreateAnimation(AssetManager& assetManager);	
 
 	// IO
 	void SaveToFile(const std::string& filePath);
-	void LoadFromFile(const std::string& filePath);
+	static std::unique_ptr<AnimationFactory> LoadFromFile(const std::string& filePath);
 
-	// ISerialize interface
-	void Serialize(YAML::Emitter& emitter) override;
-	void Deserialize(const YAML::Node& node) override;
+	// Serializable methods
+	void Serialize(YAML::Emitter& emitter);
+	static std::unique_ptr<AnimationFactory> Deserialize(const YAML::Node& node);
 
 private:
-	std::vector<std::unique_ptr<AnimationSequenceFactory>> mSequenceFactories;
+	SequenceFactoryList mSequenceFactories;
 };

@@ -8,28 +8,24 @@
 #include "Core/TextureRegion.h"
 #include "Core/ISerializable.h"
 
-class Spritesheet : public Asset, public ISerializable
+class Spritesheet : public Asset
 {
-public:
-    Spritesheet() = default;
+public:    
     Spritesheet(AssetManager& assetManager, const std::string& textureId, uint16_t rows, uint16_t cols);
 
     // Asset interface
-    virtual void ResolveAssetDepsImpl(AssetManager& assetManager)
-    {
-        // TODO: implement
-    }
+    void ResolveAssetDepsImpl(AssetManager& assetManager) override;
 
     const TextureRegion& GetTextureRegion(uint16_t row, uint16_t col) const;
     const TextureRegion& GetTextureRegion(uint16_t index) const;
 
     // IO
     void SaveToFile(const std::string& filePath);
-    void LoadFromFile(const std::string& filePath, AssetManager& assetManager);
+    static std::unique_ptr<Spritesheet> LoadFromFile(const std::string& filePath, AssetManager& assetManager);
 
     // ISerialize interface
-    void Serialize(YAML::Emitter& emitter) override;
-    void Deserialize(const YAML::Node& node, AssetManager& assetManager) override;
+    void Serialize(YAML::Emitter& emitter);
+    static std::unique_ptr<Spritesheet> Deserialize(const YAML::Node& node, AssetManager& assetManager);
 
 private:
     void ComputeTextureRegions(AssetManager& assetManager);

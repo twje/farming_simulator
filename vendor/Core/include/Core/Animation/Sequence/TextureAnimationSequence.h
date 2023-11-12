@@ -26,25 +26,16 @@ private:
 // ------------------------------------------------------------------------
 class TextureAnimationSequenceFactory : public AnimationSequenceFactory
 {
-public:
-	TextureAnimationSequenceFactory() = default;
-	TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond); // remove
-
-	void PostInit(std::string_view sequenceId, uint16_t framesPerSecond, const std::vector<std::string_view>& frames)
-	{
-		mSequenceId = sequenceId;
-		mFramesPerSecond = framesPerSecond;
-		mFrames.assign(frames.begin(), frames.end());
-	}
-
-	void AddFrames(const std::vector<std::string_view>& frames);
+public:	
+	TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond, 
+									const std::vector<std::string_view>& frames);	
 
 	// AnimationSequenceFactory interface
 	std::unique_ptr<AnimationSequence> CreateAnimationSequence(AssetManager& assetManager) override;
 
-	// ISerializable interface
+	// Serializable methods
 	void Serialize(YAML::Emitter& emitter) override;
-	void Deserialize(const YAML::Node& node) override;
+	static std::unique_ptr<TextureAnimationSequenceFactory> Deserialize(const YAML::Node& node);
 
 private:
 	std::vector<std::string> mFrames;

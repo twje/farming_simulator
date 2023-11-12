@@ -22,14 +22,11 @@ void TextureAnimationSequence::GetFrame(TextureRegion& outFrame, uint16_t frameI
 }
 
 // ------------------------------------------------------------------------
-TextureAnimationSequenceFactory::TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond)
-	: AnimationSequenceFactory(sequenceId, framesPerSecond)
+TextureAnimationSequenceFactory::TextureAnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond,
+																 const std::vector<std::string_view>& frames)
+	: AnimationSequenceFactory(sequenceId, framesPerSecond),
+	  mFrames{ frames.begin(), frames.end() }
 { }
-
-void TextureAnimationSequenceFactory::AddFrames(const std::vector<std::string_view>& frames)
-{
-	mFrames.assign(frames.begin(), frames.end());
-}
 
 // ------------------------------------------------------------------------
 /*virtual*/ std::unique_ptr<AnimationSequence> TextureAnimationSequenceFactory::CreateAnimationSequence(AssetManager& assetManager)
@@ -65,7 +62,7 @@ void TextureAnimationSequenceFactory::AddFrames(const std::vector<std::string_vi
 }
 
 // ------------------------------------------------------------------------
-/*virtual*/ void TextureAnimationSequenceFactory::Deserialize(const YAML::Node& node)
+std::unique_ptr<TextureAnimationSequenceFactory> TextureAnimationSequenceFactory::Deserialize(const YAML::Node& node)
 {
 	const std::string& sequenceId = node["sequenceId"].as<std::string>();
 	uint16_t framesPerSecond = node["framesPerSecond"].as<uint16_t>();
@@ -75,5 +72,6 @@ void TextureAnimationSequenceFactory::AddFrames(const std::vector<std::string_vi
 	{
 		frames.emplace_back(textureId.as<std::string_view>());
 	}
-	PostInit(sequenceId, framesPerSecond, frames);
+
+	return std::make_unique<TextureAnimationSequenceFactory>(sequenceId, framesPerSecond, frames);
 }

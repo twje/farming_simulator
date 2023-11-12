@@ -11,6 +11,12 @@ Spritesheet::Spritesheet(AssetManager& assetManager, const std::string& textureI
 }
 
 // ----------------------------------------------------------
+/*virtual*/ void Spritesheet::ResolveAssetDepsImpl(AssetManager& assetManager)
+{
+    // TODO: implement
+}
+
+// ----------------------------------------------------------
 const TextureRegion& Spritesheet::GetTextureRegion(uint16_t row, uint16_t col) const
 {
     uint16_t index = row * mCols + col;
@@ -44,14 +50,14 @@ void Spritesheet::SaveToFile(const std::string& filePath)
 }
 
 // ----------------------------------------------------------
-void Spritesheet::LoadFromFile(const std::string& filePath, AssetManager& assetManager)
+std::unique_ptr<Spritesheet> Spritesheet::LoadFromFile(const std::string& filePath, AssetManager& assetManager)
 {
     YAML::Node node = YAML::LoadFile(filePath);
-    Deserialize(node, assetManager);
+    return Deserialize(node, assetManager);
 }
 
 // ----------------------------------------------------------
-/*virtual*/ void Spritesheet::Serialize(YAML::Emitter& emitter)
+void Spritesheet::Serialize(YAML::Emitter& emitter)
 {
     emitter << YAML::BeginMap;
     emitter << YAML::Key << "textureId" << YAML::Value << mTextureId;
@@ -61,10 +67,11 @@ void Spritesheet::LoadFromFile(const std::string& filePath, AssetManager& assetM
 }
 
 // ----------------------------------------------------------
-/*virtual*/ void Spritesheet::Deserialize(const YAML::Node& node, AssetManager& assetManager)
+std::unique_ptr<Spritesheet> Spritesheet::Deserialize(const YAML::Node& node, AssetManager& assetManager)
 {
-    mTextureId = node["textureId"].as<std::string>();
-    mRows = node["rows"].as<uint16_t>();
-    mCols = node["cols"].as<uint16_t>();
-    ComputeTextureRegions(assetManager);
+    const std::string& textureId = node["textureId"].as<std::string>();
+    uint16_t rows = node["rows"].as<uint16_t>();
+    uint16_t cols = node["cols"].as<uint16_t>();
+    
+    return std::make_unique<Spritesheet>(assetManager, textureId, rows, cols);
 }

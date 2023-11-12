@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include "Core/Animation/Sequence/TextureAnimationSequence.h"
-#include "Core/Animation/AnimationSequence.h"
 #include "Core/AssetManager.h"
 
 // ----------------------------------------------------------
@@ -18,11 +17,29 @@ Animation::Animation(std::vector<std::unique_ptr<AnimationSequence>>& sequences)
 }
 
 // ----------------------------------------------------------
+/*virtual*/ void Animation::ResolveAssetDepsImpl(AssetManager& assetManager)
+{
+	// TODO: implement
+}
+
+// ----------------------------------------------------------
+const std::string& Animation::GetStartSequenceId() const 
+{ 
+	return mStartSequenceId; 
+}
+
+// ----------------------------------------------------------
 const AnimationSequence& Animation::GetSequence(const std::string& sequenceId) const
 {
 	auto iter = mSequenceLookup.find(sequenceId);
 	assert(iter != mSequenceLookup.end());
 	return *mSequences[iter->second];
+}
+
+// ----------------------------------------------------------
+const std::vector<std::unique_ptr<AnimationSequence>>& Animation::GetSequences() const
+{ 
+	return mSequences; 
 }
 
 // ----------------------------------------------------------
@@ -39,11 +56,10 @@ void Animation::AddAnimationSequence(std::unique_ptr<AnimationSequence> sequence
 	mSequences.emplace_back(std::move(sequence));
 }
 
-// ----------------------------------------------------------
-void AnimationFactory::AddAnimationSequenceFactory(std::unique_ptr<AnimationSequenceFactory> factory)
-{
-	mSequenceFactories.emplace_back(std::move(factory));
-}
+// ------------------------------------------------------------------------
+AnimationFactory::AnimationFactory(SequenceFactoryList&& sequenceFactories)
+	: mSequenceFactories(std::move(sequenceFactories))
+{ }
 
 // ------------------------------------------------------------------------
 std::unique_ptr<Animation> AnimationFactory::CreateAnimation(AssetManager& assetManager)
@@ -68,10 +84,10 @@ void AnimationFactory::SaveToFile(const std::string& filePath)
 }
 
 // ------------------------------------------------------------------------
-void AnimationFactory::LoadFromFile(const std::string& filePath)
+std::unique_ptr<AnimationFactory> AnimationFactory::LoadFromFile(const std::string& filePath)
 {
 	YAML::Node node = YAML::LoadFile(filePath);
-	Deserialize(node);
+	return Deserialize(node);
 }
 
 // ------------------------------------------------------------------------
@@ -87,18 +103,16 @@ void AnimationFactory::Serialize(YAML::Emitter& emitter)
 }
 
 // ------------------------------------------------------------------------
-void AnimationFactory::Deserialize(const YAML::Node& node)
+std::unique_ptr<AnimationFactory> AnimationFactory::Deserialize(const YAML::Node& node)
 {
 	using AnimationSequenceFactoryLoader = std::unique_ptr<AnimationSequenceFactory>(*)(const YAML::Node&);
-
+	
 	// AnimationSequence loaders
 	AnimationSequenceFactoryLoader textureAnimationSequenceLoader = [](
 		const YAML::Node& node		
 		) -> std::unique_ptr<AnimationSequenceFactory>
 	{
-		auto sequence = std::make_unique<TextureAnimationSequenceFactory>();
-		sequence->Deserialize(node);
-		return sequence;
+		return TextureAnimationSequenceFactory::Deserialize(node);
 	};
 
 	// AnimationSequence loader lookup
@@ -107,12 +121,15 @@ void AnimationFactory::Deserialize(const YAML::Node& node)
 	};
 
 	// Load all sequence factories
+	SequenceFactoryList sequences;
 	for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
 	{
 		std::string clazz = (*it)["class"].as<std::string>();
 		const YAML::Node& state = (*it)["state"];
 
 		auto sequence = animationSequenceLoaders[clazz](state);
-		AddAnimationSequenceFactory(std::move(sequence));
+		sequences.push_back(std::move(sequence));		
 	}
+	
+	return std::make_unique<AnimationFactory>(std::move(sequences));
 }

@@ -30,13 +30,12 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class AnimationSequenceFactory : public ISerializable
+class AnimationSequenceFactory
 {
-public:
-	AnimationSequenceFactory() = default;
+public:	
 	AnimationSequenceFactory(std::string_view sequenceId, uint16_t framesPerSecond)
 		: mSequenceId(sequenceId),
-		mFramesPerSecond(framesPerSecond)
+		  mFramesPerSecond(framesPerSecond)
 	{ }
 
 	// Getters
@@ -45,6 +44,7 @@ public:
 
 	// Hooks
 	virtual std::unique_ptr<AnimationSequence> CreateAnimationSequence(AssetManager& assetManager) = 0;
+	virtual void Serialize(YAML::Emitter& emitter) = 0;
 
 public:
 	std::string mSequenceId;
