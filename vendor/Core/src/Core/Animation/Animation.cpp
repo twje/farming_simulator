@@ -90,8 +90,15 @@ std::unique_ptr<Animation> Animation::Deserialize(const YAML::Node& node)
 		const YAML::Node& state = (*it)["state"];
 
 		auto factory = animationSequenceFactories.find(clazz);
-		auto sequence = factory->second(state);		
-		sequences.push_back(std::move(sequence));
+		if (factory != animationSequenceFactories.end())
+		{
+			auto sequence = factory->second(state);
+			sequences.push_back(std::move(sequence));
+		}
+		else
+		{
+			throw std::logic_error("Animation sequence type not supported.");
+		}
 	}
 
 	return std::make_unique<Animation>(std::move(sequences));
