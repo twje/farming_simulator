@@ -39,7 +39,7 @@ class AssetLoader
 {
 public:
 	virtual ~AssetLoader() = default;
-	virtual std::unique_ptr<Asset> Load(const std::string& filePath, AssetManager& assetManager) = 0;
+	virtual std::unique_ptr<Asset> Load(const std::string& filePath) = 0;
 };
 
 // ----------------------------------------------------------------
@@ -92,7 +92,7 @@ public:
 	Asset& LoadAsset(AssetManager& manager, const std::string assetId, const std::string filePath)
 	{
 		assert(mAssets.find(assetId) == mAssets.end() && "Asset already loaded");
-		auto asset = mLoader->Load(filePath, manager);
+		auto asset = mLoader->Load(filePath);
 		mAssets.emplace(assetId, std::move(asset));
 
 		return *mAssets[assetId].get();

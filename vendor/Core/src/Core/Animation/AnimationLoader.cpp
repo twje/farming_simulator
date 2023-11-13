@@ -3,7 +3,7 @@
 #include "Core/Animation/AnimationSequence.h"
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<Asset> AnimationLoader::Load(const std::string& filePath, AssetManager& assetManager)
+std::unique_ptr<Asset> AnimationLoader::Load(const std::string& filePath)
 {
 	return Animation::LoadFromFile(filePath);
 }

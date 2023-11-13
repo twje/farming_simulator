@@ -7,7 +7,7 @@
 #include "Core/Spritesheet.h"
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<Asset> TextureLoader::Load(const std::string& fileName, AssetManager& assetManager)
+std::unique_ptr<Asset> TextureLoader::Load(const std::string& fileName)
 {
 	sf::Texture texture;
 	if (!texture.loadFromFile(fileName))
@@ -18,7 +18,7 @@ std::unique_ptr<Asset> TextureLoader::Load(const std::string& fileName, AssetMan
 }
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<Asset> SpritesheetLoader::Load(const std::string& filePath, AssetManager& assetManager)
+std::unique_ptr<Asset> SpritesheetLoader::Load(const std::string& filePath)
 {
 	return Spritesheet::LoadFromFile(filePath);		
 }
