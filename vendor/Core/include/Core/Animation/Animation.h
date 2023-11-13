@@ -42,6 +42,12 @@ public:
 private:
 	void AddAnimationSequence(std::unique_ptr<AnimationSequence> sequence);
 
+	template <typename SequenceType>
+	static std::unique_ptr<AnimationSequence> CreateAnimationSequenceFactory(const YAML::Node& node) 
+	{
+		return SequenceType::Deserialize(node);
+	}
+
 private:
 	std::string mStartSequenceId;
 	std::vector<std::unique_ptr<AnimationSequence>> mSequences;

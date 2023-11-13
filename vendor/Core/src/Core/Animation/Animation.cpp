@@ -77,28 +77,20 @@ void Animation::Serialize(YAML::Emitter& emitter)
 std::unique_ptr<Animation> Animation::Deserialize(const YAML::Node& node)
 {
 	using AnimationSequenceFactory = std::unique_ptr<AnimationSequence>(*)(const YAML::Node&);
-
-	// AnimationSequence loaders
-	AnimationSequenceFactory textureAnimationSequenceLoader = [](
-		const YAML::Node& node
-		) -> std::unique_ptr<AnimationSequence>
+	
+	std::unordered_map<std::string, AnimationSequenceFactory> animationSequenceFactories
 	{
-		return TextureAnimationSequence::Deserialize(node);
+		{"TextureAnimationSequence", CreateAnimationSequenceFactory<TextureAnimationSequence>}
 	};
-
-	// AnimationSequence loader lookup
-	std::unordered_map<std::string, AnimationSequenceFactory> animationSequenceLoaders{
-		{"TextureAnimationSequence", textureAnimationSequenceLoader}
-	};
-
-	// Load all sequence factories
+	
 	std::vector<std::unique_ptr<AnimationSequence>> sequences;
 	for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
 	{
 		std::string clazz = (*it)["class"].as<std::string>();
 		const YAML::Node& state = (*it)["state"];
 
-		auto sequence = animationSequenceLoaders[clazz](state);
+		auto factory = animationSequenceFactories.find(clazz);
+		auto sequence = factory->second(state);		
 		sequences.push_back(std::move(sequence));
 	}
 
