@@ -82,6 +82,29 @@ private:
 };
 
 // ----------------------------------------------------------------
+class AssetDescriptorQueue
+{
+public:	
+	template<typename T>
+	void Push(std::unique_ptr<AssetDescriptorBase> descriptor)
+	{		
+		mQueue.push(std::move(descriptor));
+	}	
+
+	std::unique_ptr<AssetDescriptorBase> Pop()
+	{
+		std::unique_ptr<AssetDescriptorBase> descriptor = std::move(mQueue.front());
+		mQueue.pop();
+		return descriptor;
+	}
+
+	bool IsEmpty() { return mQueue.empty(); }\
+
+private:
+	std::queue<std::unique_ptr<AssetDescriptorBase>> mQueue;
+};
+
+// ----------------------------------------------------------------
 class AssetRegistry
 {
 public:
@@ -153,18 +176,17 @@ public:
 					throw std::runtime_error("Resouce " + assetfilePath + " does not exist");
 				}
 
-				QueueAssetDescriptor<T>(assetId, assetfilePath);
+				auto descriptor = std::make_unique<AssetDescriptor<T>>(assetId, assetfilePath);
+				mQueue.Push<T>(std::move(descriptor));		
 			}
 		}
 	}
 
 	void ProcessAssetQueue()
 	{
-		while (!mQueue.empty())
+		while (!mQueue.IsEmpty())
 		{
-			std::unique_ptr<AssetDescriptorBase> desc = std::move(mQueue.front());
-			mQueue.pop();
-
+			std::unique_ptr<AssetDescriptorBase> desc = mQueue.Pop();			
 			AssetRegistry& registry = GetAssetRegistry(desc->GetTypeId());
 			Asset& asset = registry.LoadAsset(*this, desc->GetId(), desc->GetFilePath());
 			
@@ -181,13 +203,6 @@ public:
 	}
 
 private:
-	template<typename T>
-	void QueueAssetDescriptor(const std::string& assetId, const std::string& filePath)
-	{
-		auto descriptor = std::make_unique<AssetDescriptor<T>>(assetId, filePath);
-		mQueue.push(std::move(descriptor));
-	}
-
 	const AssetRegistry& GetAssetRegistry(uint32_t assetTypeId) const
 	{
 		auto it = mAssetRegistries.find(assetTypeId);
@@ -202,5 +217,5 @@ private:
 
 private:
 	std::unordered_map<uint32_t, AssetRegistry> mAssetRegistries;
-	std::queue<std::unique_ptr<AssetDescriptorBase>> mQueue;
+	AssetDescriptorQueue mQueue;
 };
