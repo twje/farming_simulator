@@ -4,7 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 
-class GameObject: public sf::Drawable
+class GameObject : public sf::Drawable
 {
 	friend class Scene;
 	friend class Group;
@@ -28,33 +28,35 @@ private:
 	std::vector<Group*> mGroups;
 };
 
-class Sprite : public GameObject, private sf::Transformable
+class Sprite : public GameObject
 {
 public:
-	// Hooks
-	virtual sf::FloatRect GetLocalBounds() const { return sf::FloatRect(); }
-	virtual void Draw(sf::RenderTarget& target, const sf::RenderStates& states) const { }
-
 	// Getters
-	sf::Vector2f GetCenter() const { return getPosition() + 0.5f * GetGlobalBounds().getSize(); }
-	sf::FloatRect GetGlobalBounds() const { return GetTransform().transformRect(GetLocalBounds()); }
-	const sf::Transform& GetTransform() const { return getTransform(); }
-	const sf::Vector2f& GetPosition() const { return getPosition(); }
+	sf::FloatRect GetGlobalBounds() const;
+	sf::FloatRect GetLocalBounds() const;
+	sf::Vector2f GetCenter() const;
+	const sf::Vector2f& GetPosition() const { return mPosition; }
 
 	// Setters
-	void SetPosition(const sf::Vector2f& position) { setPosition(position); }
-	void SetOrigin(const sf::Vector2f& origin) { setOrigin(origin); }
-	void SetRotation(float value) { setRotation(sf::degrees(value)); }
+	void SetPosition(const sf::Vector2f& position) { mPosition = position; }
+	void SetOrigin(const sf::Vector2f& origin) { mOrigin = origin; }	
 
-	void Move(const sf::Vector2f& offset) { move(offset); }
-	void MoveX(float value) { move(sf::Vector2f(value, 0)); }
-	void MoveY(float value) { move(sf::Vector2f(0, value)); }
+	void Move(const sf::Vector2f& offset);
+	void MoveX(float value) { Move(sf::Vector2f(value, 0)); }
+	void MoveY(float value) { Move(sf::Vector2f(0, value)); }
+
+protected:
+	// Hooks
+	virtual sf::FloatRect GetLocalBoundsInternal() const = 0;
+	virtual sf::FloatRect GetGlobalBoundsInternal() const = 0;
+	virtual const sf::Drawable& GetDrawable() const = 0;
 
 private:
-	void draw(sf::RenderTarget& target, const sf::RenderStates& states) const override final
-	{
-		sf::RenderStates statesCopy(states);
-		statesCopy.transform *= getTransform();
-		Draw(target, statesCopy);
-	}
+	void draw(sf::RenderTarget& target, const sf::RenderStates& states) const override final;
+	const sf::Transform& GetTransform() const;
+
+private:
+	sf::Vector2f mPosition;		
+	sf::Vector2f mOrigin;
+	mutable sf::Transform mTransform;
 };

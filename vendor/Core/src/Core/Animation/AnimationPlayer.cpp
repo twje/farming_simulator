@@ -44,13 +44,6 @@ sf::FloatRect AnimationPlayer::GetGlobalBounds() const
 }
 
 // ----------------------------------------------------------
-void AnimationPlayer::SetOriginAnchor(sf::Vector2f originAnchor)
-{
-	mOriginAnchor = originAnchor;
-	SetOriginAnchor(GetFrame());
-}
-
-// ----------------------------------------------------------
 void AnimationPlayer::SetAnimationSequence(const std::string& sequenceId)
 {
 	if (mCurrentSequence != nullptr && mCurrentSequence->GetSequenceId() == sequenceId)
@@ -86,14 +79,5 @@ void AnimationPlayer::RefreshFrame()
 	{
 		mSprite->setTexture(*frame.GetTexture());
 	}
-	mSprite->setTextureRect(frame.GetRegion());
-	SetOriginAnchor(frame);
-}
-
-// ----------------------------------------------------------
-void AnimationPlayer::SetOriginAnchor(TextureRegion& frame)
-{
-	float originX = mOriginAnchor.x * frame.GetRegion().width;
-	float originY = mOriginAnchor.y * frame.GetRegion().height;
-	mSprite->setOrigin(sf::Vector2f(originX, originY));
+	mSprite->setTextureRect(frame.GetRegion());	
 }

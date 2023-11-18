@@ -14,13 +14,11 @@ public:
 		SetPosition(position);
 	}
 
-	sf::FloatRect GetLocalBounds() const override { return mSprite.getGlobalBounds(); }
+	virtual sf::FloatRect GetLocalBoundsInternal() const override { return mSprite.getLocalBounds(); }
+	virtual sf::FloatRect GetGlobalBoundsInternal() const override { return mSprite.getGlobalBounds(); }
+	virtual const sf::Drawable& GetDrawable() const override { return mSprite; }
+	
 	virtual uint16_t GetDepth() const { return mDepth; }
-
-	void Draw(sf::RenderTarget& target, const sf::RenderStates& states) const override
-	{
-		target.draw(mSprite, states);
-	}
 
 private:
 	sf::Sprite mSprite;

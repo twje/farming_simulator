@@ -67,15 +67,30 @@ public:
 		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),
 		  mSeedPicker({ "corn", "tomato" })
-	{
-		mAnimationPlayer.SetOriginAnchor(sf::Vector2f(0.5f, 0.5f));
+	{		
 		mAnimationPlayer.SetAnimationSequence(mStatus);
 		SetPosition(position);
+		SetOrigin(sf::Vector2f(0.5f, 0.5f));
 
 		mTimers.emplace(TimerId::TOOL_USE, Timer(sf::milliseconds(350), std::bind(&Player::UseTool, this)));
 		mTimers.emplace(TimerId::TOOL_SWITCH, Timer(sf::milliseconds(200)));
 		mTimers.emplace(TimerId::SEED_USE, Timer(sf::milliseconds(350), std::bind(&Player::UseSeed, this)));
 		mTimers.emplace(TimerId::SEED_SWITCH, Timer(sf::milliseconds(200)));
+	}
+
+	virtual sf::FloatRect GetLocalBoundsInternal() const override
+	{
+		return mAnimationPlayer.GetSprite().getLocalBounds();
+	}
+
+	virtual sf::FloatRect GetGlobalBoundsInternal() const override
+	{
+		return mAnimationPlayer.GetSprite().getGlobalBounds();
+	}
+
+	virtual const sf::Drawable& GetDrawable() const override
+	{
+		return mAnimationPlayer.GetSprite();
 	}
 
 	uint16_t GetDepth() const override { return LAYERS.at("main"); }
@@ -91,8 +106,6 @@ public:
 	{
 		std::cout << mSeedPicker.GetItem() << std::endl;
 	}
-
-	sf::FloatRect GetLocalBounds() const override { return mAnimationPlayer.GetGlobalBounds(); }
 
 	void Input()
 	{
@@ -212,11 +225,6 @@ public:
 		Move(timestamp);
 		Animate(timestamp);
 	};
-
-	void Draw(sf::RenderTarget& target, const sf::RenderStates& states) const override
-	{
-		target.draw(mAnimationPlayer.GetSprite(), states);
-	}
 
 private:
 	sf::Vector2f mDirection;

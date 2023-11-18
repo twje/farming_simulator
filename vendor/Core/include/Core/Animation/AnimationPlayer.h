@@ -23,14 +23,12 @@ public:
 	sf::Sprite& GetSprite() const;
 	sf::FloatRect GetGlobalBounds() const;
 
-	// Setters
-	void SetOriginAnchor(sf::Vector2f originAnchor);
+	// Setters	
 	void SetAnimationSequence(const std::string& sequenceId);
 
 private:
 	TextureRegion& GetFrame();
-	void RefreshFrame();
-	void SetOriginAnchor(TextureRegion& frame);
+	void RefreshFrame();	
 
 private:
 	const Animation& mAnimation;
@@ -43,7 +41,6 @@ private:
 	uint16_t mFrameIndex{ 0 };
 	Timer mTimer;
 
-	// graphics members
-	sf::Vector2f mOriginAnchor;
+	// graphics members	
 	std::unique_ptr<sf::Sprite> mSprite;
 };
