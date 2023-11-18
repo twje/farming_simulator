@@ -43,12 +43,15 @@ const sf::Transform& Sprite::GetTransform() const
 	mTransform = sf::Transform::Identity;
 	mTransform.translate(mPosition);
 
-	sf::FloatRect localBounds = GetLocalBoundsInternal();
-	sf::Vector2f spriteOrigin = sf::Vector2f(
-		mOrigin.x * localBounds.width,
-		mOrigin.y * localBounds.height
-	);
-	mTransform.translate(-spriteOrigin);
+	if (mOrigin.x != 0 || mOrigin.y != 0)
+	{
+		sf::FloatRect localBounds = GetLocalBoundsInternal();
+		sf::Vector2f spriteOrigin = sf::Vector2f(
+			mOrigin.x * localBounds.width,
+			mOrigin.y * localBounds.height
+		);
+		mTransform.translate(-spriteOrigin);
+	}
 
 	return mTransform;
 }
