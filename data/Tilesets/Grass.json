@@ -1,0 +1,14 @@
+{ "columns":10,
+ "image":"..\/..\/graphics\/environment\/Grass.png",
+ "imageheight":512,
+ "imagewidth":640,
+ "margin":0,
+ "name":"Grass",
+ "spacing":0,
+ "tilecount":80,
+ "tiledversion":"1.10.2",
+ "tileheight":64,
+ "tilewidth":64,
+ "type":"tileset",
+ "version":"1.10"
+}

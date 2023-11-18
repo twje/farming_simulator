@@ -1,0 +1,14 @@
+{ "columns":4,
+ "image":"..\/..\/graphics\/environment\/Paths.png",
+ "imageheight":256,
+ "imagewidth":256,
+ "margin":0,
+ "name":"Paths",
+ "spacing":0,
+ "tilecount":16,
+ "tiledversion":"1.10.2",
+ "tileheight":64,
+ "tilewidth":64,
+ "type":"tileset",
+ "version":"1.10"
+}

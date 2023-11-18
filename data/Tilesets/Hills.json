@@ -1,0 +1,14 @@
+{ "columns":6,
+ "image":"..\/..\/graphics\/environment\/Hills.png",
+ "imageheight":384,
+ "imagewidth":384,
+ "margin":0,
+ "name":"Hills",
+ "spacing":0,
+ "tilecount":36,
+ "tiledversion":"1.10.2",
+ "tileheight":64,
+ "tilewidth":64,
+ "type":"tileset",
+ "version":"1.10"
+}

@@ -1,0 +1,14 @@
+{ "columns":5,
+ "image":"..\/..\/graphics\/environment\/Plant Decoration.png",
+ "imageheight":128,
+ "imagewidth":320,
+ "margin":0,
+ "name":"Plant Decoration",
+ "spacing":0,
+ "tilecount":10,
+ "tiledversion":"1.10.2",
+ "tileheight":64,
+ "tilewidth":64,
+ "type":"tileset",
+ "version":"1.10"
+}
