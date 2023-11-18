@@ -1,12 +1,18 @@
 #pragma once
 
+// Includes
+//------------------------------------------------------------------------------
+// System
 #include <vector>
 
+// Third party
 #include <SFML/Graphics.hpp>
 
+// Project
 #include "Core/AssetManager.h"
-#include "Core/TextureRegion.h"
 #include "Core/ISerializable.h"
+
+class TextureRegion;
 
 class Spritesheet : public Asset
 {

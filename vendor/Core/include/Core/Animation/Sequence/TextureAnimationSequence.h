@@ -1,16 +1,22 @@
 #pragma once
 
+// Includes
+//------------------------------------------------------------------------------
+// System
 #include <string>
 
+// Third party
 #include <SFML/Graphics.hpp>
 
+// Project
 #include "Core/Animation/AnimationSequence.h"
 #include "Core/ISerializable.h"
 
-// Forward declarations
+// Forward Declarations
+//--------------------------------------------------------------------------------
 class TextureRegion;
 
-// --------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 class TextureAnimationSequence : public AnimationSequence
 {
 public:

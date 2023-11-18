@@ -93,7 +93,7 @@ void AnimationPlayer::RefreshFrame()
 // ----------------------------------------------------------
 void AnimationPlayer::SetOriginAnchor(TextureRegion& frame)
 {
-	float originX = mOriginAnchor.x * frame.GetTexture()->getSize().x;
-	float originY = mOriginAnchor.y * frame.GetTexture()->getSize().y;
+	float originX = mOriginAnchor.x * frame.GetRegion().width;
+	float originY = mOriginAnchor.y * frame.GetRegion().height;
 	mSprite->setOrigin(sf::Vector2f(originX, originY));
 }

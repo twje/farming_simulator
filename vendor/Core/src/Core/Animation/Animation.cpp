@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "Core/Animation/Sequence/TextureAnimationSequence.h"
+#include "Core/Animation/Sequence/SpritesheetAnimationSequence.h"
 #include "Core/AssetManager.h"
 
 // ----------------------------------------------------------
@@ -80,7 +81,8 @@ std::unique_ptr<Animation> Animation::Deserialize(const YAML::Node& node)
 	
 	std::unordered_map<std::string, AnimationSequenceFactory> animationSequenceFactories
 	{
-		{"TextureAnimationSequence", CreateAnimationSequenceFactory<TextureAnimationSequence>}
+		{"TextureAnimationSequence", CreateAnimationSequenceFactory<TextureAnimationSequence>},
+		{"SpritesheetAnimationSequence", CreateAnimationSequenceFactory<SpritesheetAnimationSequence>}
 	};
 	
 	std::vector<std::unique_ptr<AnimationSequence>> sequences;

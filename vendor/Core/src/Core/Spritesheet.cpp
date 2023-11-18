@@ -1,5 +1,10 @@
 #include "Core/Spritesheet.h"
+
+// Includes
+//------------------------------------------------------------------------------
+// Project
 #include "Core/Texture.h"
+#include "Core/TextureRegion.h"
 
 // ----------------------------------------------------------
 Spritesheet::Spritesheet(const std::string& textureId, uint16_t rows, uint16_t cols)
@@ -22,17 +27,22 @@ const TextureRegion& Spritesheet::GetTextureRegion(uint16_t row, uint16_t col) c
 }
 
 // ----------------------------------------------------------
+const TextureRegion& Spritesheet::GetTextureRegion(uint16_t index) const
+{
+    return textureRegions[index];
+}
+
+// ----------------------------------------------------------
 void Spritesheet::ComputeTextureRegions(AssetManager& assetManager)
 {
     sf::Texture& texture = assetManager.GetAsset<Texture>(mTextureId).GetRawTexture();
-    sf::Vector2u tileSize(texture.getSize().x / mCols, texture.getSize().y / mRows);
+    sf::Vector2i tileSize(texture.getSize().x / mCols, texture.getSize().y / mRows);
     for (uint16_t row = 0; row < mRows; ++row)
     {
         for (uint16_t col = 0; col < mCols; ++col)
         {
-            sf::Vector2i position(col * tileSize.x, row * tileSize.y);
-            sf::Vector2i size(texture.getSize());
-            TextureRegion textureRegion(&texture, sf::IntRect(position, size));
+            sf::Vector2i position(col * tileSize.x, row * tileSize.y);            
+            TextureRegion textureRegion(&texture, sf::IntRect(position, tileSize));
             textureRegions.emplace_back(textureRegion);
         }
     }

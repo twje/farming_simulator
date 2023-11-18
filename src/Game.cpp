@@ -4,6 +4,7 @@
 #include "Core/AssetManager.h"
 #include "Core/Texture.h"
 #include "Core/Animation/Animation.h"
+#include "Core/Spritesheet.h"
 #include "Core/Animation/Sequence/TextureAnimationSequence.h"
 #include "Core/Animation/AnimationUtils.h"
 #include "Level.h"
@@ -16,8 +17,9 @@ public:
 		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
 
 		assetManager.LoadAssetsFromManifest<Texture>("../../config/textures.cfg");
-		assetManager.LoadAssetsFromManifest<Animation>("../../config/animations.cfg");
-		assetManager.ProcessAssetQueue();
+		assetManager.LoadAssetsFromManifest<Spritesheet>("../../config/spritesheet.cfg");
+		assetManager.LoadAssetsFromManifest<Animation>("../../config/animations.cfg");		
+		assetManager.ProcessAssetQueue();		
 
 		PushLayer(std::make_unique<Level>());
 	}
