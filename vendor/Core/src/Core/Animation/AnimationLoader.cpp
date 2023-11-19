@@ -3,7 +3,7 @@
 #include "Core/Animation/AnimationSequence.h"
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<Asset> AnimationLoader::Load(const std::string& filePath)
+/*virtual*/ std::unique_ptr<Asset> AnimationLoader::Load(AssetDescriptor<Animation> descriptor)
 {
-	return Animation::LoadFromFile(filePath);
+	return Animation::LoadFromFile(descriptor.GetFilePath());
 }

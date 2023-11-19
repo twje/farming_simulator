@@ -4,16 +4,21 @@
 
 #include "Core/AssetManager.h"
 
+// Forward Declarations
 // --------------------------------------------------------------------------------
-class TextureLoader : public AssetLoader
+class Texture;
+class Spritesheet;
+
+// --------------------------------------------------------------------------------
+class TextureLoader : public AssetLoader<Texture>
 {
 public:
-	virtual std::unique_ptr<Asset> Load(const std::string& fileName) override;
+	virtual std::unique_ptr<Asset> Load(AssetDescriptor<Texture> descriptor) override;
 };
 
 // --------------------------------------------------------------------------------
-class SpritesheetLoader : public AssetLoader
+class SpritesheetLoader : public AssetLoader<Spritesheet>
 {
 public:
-	virtual std::unique_ptr<Asset> Load(const std::string& filePath) override;
+	virtual std::unique_ptr<Asset> Load(AssetDescriptor<Spritesheet> descriptor) override;
 };

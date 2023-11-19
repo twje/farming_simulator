@@ -13,6 +13,9 @@
 #include "Core/TypeUtils.h"
 
 // Forward declarations
+// ----------------------------------------------------------------
+template <typename ASSET_TYPE>
+class AssetDescriptor;
 class AssetManager;
 
 // ----------------------------------------------------------------
@@ -35,11 +38,21 @@ private:
 };
 
 // ----------------------------------------------------------------
-class AssetLoader
+class BaseAssetLoader
 {
 public:
-	virtual ~AssetLoader() = default;
-	virtual std::unique_ptr<Asset> Load(const std::string& filePath) = 0;
+	virtual ~BaseAssetLoader() = default;
+};
+
+// ----------------------------------------------------------------
+template<typename ASSET_TYPE>
+class AssetLoader : public BaseAssetLoader
+{
+public:	
+	virtual std::unique_ptr<Asset> Load(AssetDescriptor<ASSET_TYPE> descriptor)
+	{
+		throw std::logic_error("Loader method for type AssetDescriptor not implemented");
+	}
 };
 
 // ----------------------------------------------------------------
@@ -52,6 +65,8 @@ public:
 	{ }
 
 	virtual ~BaseAssetDescriptor() = default;
+
+	virtual std::unique_ptr<Asset> LoadAsset(BaseAssetLoader& loader) const = 0;
 
 	// Getters
 	const std::string& GetFilePath() const { return mfilePath; }
@@ -75,6 +90,11 @@ public:
 		  mTypeId(TypeId<ASSET_TYPE>::Get())
 	{ }
 
+	virtual std::unique_ptr<Asset> LoadAsset(BaseAssetLoader& loader) const override
+	{
+		return static_cast<AssetLoader<ASSET_TYPE>&>(loader).Load(*this);
+	}
+
 	uint32_t GetAssetTypeId() const override { return mTypeId; }
 
 private:
@@ -97,7 +117,7 @@ public:
 		return descriptor;
 	}
 
-	bool IsEmpty() { return mQueue.empty(); }\
+	bool IsEmpty() { return mQueue.empty(); }
 
 private:
 	std::queue<std::unique_ptr<BaseAssetDescriptor>> mQueue;
@@ -107,15 +127,14 @@ private:
 class AssetRegistry
 {
 public:
-	AssetRegistry(std::unique_ptr<AssetLoader> loader)
+	AssetRegistry(std::unique_ptr<BaseAssetLoader> loader)
 		: mLoader(std::move(loader))
 	{ }
-
-	//Asset& LoadAsset(const std::string assetId, const std::string filePath)
+	
 	Asset& LoadAsset(BaseAssetDescriptor& descriptor)
 	{
 		assert(mAssets.find(descriptor.GetId()) == mAssets.end() && "Asset already loaded");
-		auto asset = mLoader->Load(descriptor.GetFilePath());
+		auto asset = descriptor.LoadAsset(*mLoader);		
 		mAssets.emplace(descriptor.GetId(), std::move(asset));
 
 		return *mAssets[descriptor.GetId()].get();
@@ -131,7 +150,7 @@ public:
 
 private:
 	std::unordered_map<std::string, std::unique_ptr<Asset>> mAssets;
-	std::unique_ptr<AssetLoader> mLoader;
+	std::unique_ptr<BaseAssetLoader> mLoader;
 };
 
 // ----------------------------------------------------------------
@@ -141,7 +160,7 @@ public:
 	AssetManager();
 
 	template<typename ASSET_TYPE>
-	void RegisterLoader(std::unique_ptr<AssetLoader> loader)
+	void RegisterLoader(std::unique_ptr<BaseAssetLoader> loader)
 	{
 		auto result = mAssetRegistries.emplace(TypeId<ASSET_TYPE>::Get(), std::move(loader));
 		assert(result.second && "Loader already registered");
@@ -190,8 +209,8 @@ public:
 			std::unique_ptr<BaseAssetDescriptor> descriptor = mQueue.Pop();			
 			
 			AssetRegistry& registry = GetAssetRegistry(descriptor->GetAssetTypeId());
-			Asset& asset = registry.LoadAsset(*descriptor);
-			loadedAssets.push_back(&asset);			
+			Asset* asset = &registry.LoadAsset(*descriptor);
+			loadedAssets.push_back(asset);			
 		}
 
 		for (Asset* asset : loadedAssets)

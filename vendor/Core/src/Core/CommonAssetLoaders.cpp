@@ -1,24 +1,23 @@
+#include "Core/CommonAssetLoaders.h"
+
 #include <SFML/Graphics.hpp>
 
-#include "Core/CommonAssetLoaders.h"
 #include "Core/Texture.h"
-#include "Core/Animation/Animation.h"
-#include "Core/Animation/AnimationSequence.h"
 #include "Core/Spritesheet.h"
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<Asset> TextureLoader::Load(const std::string& fileName)
+std::unique_ptr<Asset> TextureLoader::Load(AssetDescriptor<Texture> descriptor)
 {
 	sf::Texture texture;
-	if (!texture.loadFromFile(fileName))
+	if (!texture.loadFromFile(descriptor.GetFilePath()))
 	{
-		throw std::runtime_error("Failed to load texture: " + fileName);
+		throw std::runtime_error("Failed to load texture: " + descriptor.GetFilePath());
 	}
 	return std::make_unique<Texture>(std::move(texture));
 }
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<Asset> SpritesheetLoader::Load(const std::string& filePath)
+std::unique_ptr<Asset> SpritesheetLoader::Load(AssetDescriptor<Spritesheet> descriptor)
 {
-	return Spritesheet::LoadFromFile(filePath);		
+	return Spritesheet::LoadFromFile(descriptor.GetFilePath());
 }

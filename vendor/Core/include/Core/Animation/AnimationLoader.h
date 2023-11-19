@@ -4,8 +4,10 @@
 
 #include <memory>
 
-class AnimationLoader : public AssetLoader
+class Animation;
+
+class AnimationLoader : public AssetLoader<Animation>
 {
 public:
-	virtual std::unique_ptr<Asset> Load(const std::string& filePath) override;
+	virtual std::unique_ptr<Asset> Load(AssetDescriptor<Animation> descriptor) override;
 };
