@@ -40,7 +40,7 @@ class AssetLoader : public BaseAssetLoader
 public:	
 	virtual std::unique_ptr<Asset> Load(AssetFileDescriptor<ASSET_TYPE> descriptor)
 	{
-		throw std::logic_error("Loader method for type AssetDescriptor not implemented");
+		assert(false && "Loader method for type AssetDescriptor not implemented");
 	}
 };
 
