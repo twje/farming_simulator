@@ -43,22 +43,22 @@ public:
 };
 
 // ----------------------------------------------------------------
-class AssetDescriptorBase
+class BaseAssetDescriptor
 {
 public:
-	AssetDescriptorBase(const std::string& id, const std::string& filePath)
+	BaseAssetDescriptor(const std::string& id, const std::string& filePath)
 		: mfilePath(filePath),
 		  mId(id)
 	{ }
 
-	virtual ~AssetDescriptorBase() = default;
+	virtual ~BaseAssetDescriptor() = default;
 
 	// Getters
 	const std::string& GetFilePath() const { return mfilePath; }
 	const std::string& GetId() const { return mId; }
 
 	// Hook
-	virtual uint32_t GetTypeId() const = 0;
+	virtual uint32_t GetAssetTypeId() const = 0;
 
 private:
 	std::string mfilePath;
@@ -66,16 +66,16 @@ private:
 };
 
 // ----------------------------------------------------------------
-template <typename T>
-class AssetDescriptor : public AssetDescriptorBase
+template <typename ASSET_TYPE>
+class AssetDescriptor : public BaseAssetDescriptor
 {
 public:
 	AssetDescriptor(const std::string& assetId, const std::string& filePath)
-		: AssetDescriptorBase(assetId, filePath),
-		  mTypeId(TypeId<T>::Get())
+		: BaseAssetDescriptor(assetId, filePath),
+		  mTypeId(TypeId<ASSET_TYPE>::Get())
 	{ }
 
-	uint32_t GetTypeId() const override { return mTypeId; }
+	uint32_t GetAssetTypeId() const override { return mTypeId; }
 
 private:
 	uint32_t mTypeId;
@@ -84,16 +84,15 @@ private:
 // ----------------------------------------------------------------
 class AssetDescriptorQueue
 {
-public:	
-	template<typename T>
-	void Push(std::unique_ptr<AssetDescriptorBase> descriptor)
+public:		
+	void Push(std::unique_ptr<BaseAssetDescriptor> descriptor)
 	{		
 		mQueue.push(std::move(descriptor));
-	}	
+	}
 
-	std::unique_ptr<AssetDescriptorBase> Pop()
+	std::unique_ptr<BaseAssetDescriptor> Pop()
 	{
-		std::unique_ptr<AssetDescriptorBase> descriptor = std::move(mQueue.front());
+		std::unique_ptr<BaseAssetDescriptor> descriptor = std::move(mQueue.front());
 		mQueue.pop();
 		return descriptor;
 	}
@@ -101,7 +100,7 @@ public:
 	bool IsEmpty() { return mQueue.empty(); }\
 
 private:
-	std::queue<std::unique_ptr<AssetDescriptorBase>> mQueue;
+	std::queue<std::unique_ptr<BaseAssetDescriptor>> mQueue;
 };
 
 // ----------------------------------------------------------------
@@ -121,12 +120,12 @@ public:
 		return *mAssets[assetId].get();
 	}
 
-	template<typename T>
-	T& GetAsset(const std::string& assetId) const
+	template<typename ASSET_TYPE>
+	ASSET_TYPE& GetAsset(const std::string& assetId) const
 	{
 		assert(mAssets.find(assetId) != mAssets.end() && "Asset not loaded");
 		Asset* asset = mAssets.at(assetId).get();
-		return *static_cast<T*>(asset);
+		return *static_cast<ASSET_TYPE*>(asset);
 	}
 
 private:
@@ -140,14 +139,14 @@ class AssetManager
 public:
 	AssetManager();
 
-	template<typename T>
+	template<typename ASSET_TYPE>
 	void RegisterLoader(std::unique_ptr<AssetLoader> loader)
 	{
-		auto result = mAssetRegistries.emplace(TypeId<T>::Get(), std::move(loader));
+		auto result = mAssetRegistries.emplace(TypeId<ASSET_TYPE>::Get(), std::move(loader));
 		assert(result.second && "Loader already registered");
 	}
 
-	template<typename T>
+	template<typename ASSET_TYPE>
 	void LoadAssetsFromManifest(std::string filePath)
 	{
 		namespace fs = std::filesystem;
@@ -176,8 +175,8 @@ public:
 					throw std::runtime_error("Resouce " + assetfilePath + " does not exist");
 				}
 
-				auto descriptor = std::make_unique<AssetDescriptor<T>>(assetId, assetfilePath);
-				mQueue.Push<T>(std::move(descriptor));		
+				auto descriptor = std::make_unique<AssetDescriptor<ASSET_TYPE>>(assetId, assetfilePath);
+				mQueue.Push(std::move(descriptor));
 			}
 		}
 	}
@@ -186,8 +185,8 @@ public:
 	{
 		while (!mQueue.IsEmpty())
 		{
-			std::unique_ptr<AssetDescriptorBase> desc = mQueue.Pop();			
-			AssetRegistry& registry = GetAssetRegistry(desc->GetTypeId());
+			std::unique_ptr<BaseAssetDescriptor> desc = mQueue.Pop();			
+			AssetRegistry& registry = GetAssetRegistry(desc->GetAssetTypeId());
 			Asset& asset = registry.LoadAsset(*this, desc->GetId(), desc->GetFilePath());
 			
 			// TODO: validate dependencies
