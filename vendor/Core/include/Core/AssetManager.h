@@ -70,7 +70,7 @@ public:
 
 	// Getters
 	const std::string& GetFilePath() const { return mfilePath; }
-	const std::string& GetId() const { return mAssetId; }
+	const std::string& GetAssetId() const { return mAssetId; }
 
 	// Hook
 	virtual uint32_t GetAssetTypeId() const = 0;
@@ -133,11 +133,11 @@ public:
 	
 	Asset& LoadAsset(BaseAssetDescriptor& descriptor)
 	{
-		assert(mAssets.find(descriptor.GetId()) == mAssets.end() && "Asset already loaded");
+		assert(mAssets.find(descriptor.GetAssetId()) == mAssets.end() && "Asset already loaded");
 		auto asset = descriptor.LoadAsset(*mLoader);		
-		mAssets.emplace(descriptor.GetId(), std::move(asset));
+		mAssets.emplace(descriptor.GetAssetId(), std::move(asset));
 
-		return *mAssets[descriptor.GetId()].get();
+		return *mAssets[descriptor.GetAssetId()].get();
 	}
 
 	template<typename ASSET_TYPE>
