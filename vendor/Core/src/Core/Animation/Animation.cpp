@@ -18,7 +18,7 @@ Animation::Animation(std::vector<std::unique_ptr<AnimationSequence>>&& sequences
 }
 
 // ----------------------------------------------------------
-/*virtual*/ void Animation::ResolveAssetDepsImpl(AssetManager& assetManager)
+/*virtual*/ void Animation::ResolveAssetDeps(AssetManager& assetManager)
 {
 	for (const auto& sequence : mSequences)
 	{

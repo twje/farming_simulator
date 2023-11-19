@@ -20,7 +20,7 @@ public:
     Spritesheet(const std::string& textureId, uint16_t rows, uint16_t cols);
 
     // Asset interface
-    void ResolveAssetDepsImpl(AssetManager& assetManager) override;
+    void ResolveAssetDeps(AssetManager& assetManager) override;
 
     const TextureRegion& GetTextureRegion(uint16_t row, uint16_t col) const;
     const TextureRegion& GetTextureRegion(uint16_t index) const;

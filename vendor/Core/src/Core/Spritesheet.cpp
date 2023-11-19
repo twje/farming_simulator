@@ -14,7 +14,7 @@ Spritesheet::Spritesheet(const std::string& textureId, uint16_t rows, uint16_t c
 { }
 
 // ----------------------------------------------------------
-/*virtual*/ void Spritesheet::ResolveAssetDepsImpl(AssetManager& assetManager)
+/*virtual*/ void Spritesheet::ResolveAssetDeps(AssetManager& assetManager)
 {
     ComputeTextureRegions(assetManager);    
 }

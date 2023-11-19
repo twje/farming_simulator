@@ -14,9 +14,6 @@ public:
     const sf::Texture& GetRawTexture() const { return mTexture; }
     sf::Texture& GetRawTexture() { return mTexture; }
 
-    // Asset interface
-    virtual void ResolveAssetDepsImpl(AssetManager& assetManager) { /* Nothing to do */ }
-
 private:
     sf::Texture mTexture;
 };

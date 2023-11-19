@@ -15,7 +15,7 @@
 // Forward declarations
 // ----------------------------------------------------------------
 template <typename ASSET_TYPE>
-class AssetDescriptor;
+class AssetFileDescriptor;
 class AssetManager;
 
 // ----------------------------------------------------------------
@@ -23,18 +23,7 @@ class Asset
 {
 public:
 	virtual ~Asset() = default;
-	
-	virtual void ResolveAssetDeps(AssetManager& assetManager)
-	{
-		ResolveAssetDepsImpl(assetManager);
-		isAssetDepsResolved = true;
-	}
-
-private:	
-	virtual void ResolveAssetDepsImpl(AssetManager& assetManager) = 0;
-
-private:
-	bool isAssetDepsResolved{ false };
+	virtual void ResolveAssetDeps(AssetManager& assetManager) { };
 };
 
 // ----------------------------------------------------------------
@@ -49,7 +38,7 @@ template<typename ASSET_TYPE>
 class AssetLoader : public BaseAssetLoader
 {
 public:	
-	virtual std::unique_ptr<Asset> Load(AssetDescriptor<ASSET_TYPE> descriptor)
+	virtual std::unique_ptr<Asset> Load(AssetFileDescriptor<ASSET_TYPE> descriptor)
 	{
 		throw std::logic_error("Loader method for type AssetDescriptor not implemented");
 	}
@@ -78,10 +67,10 @@ private:
 
 // ----------------------------------------------------------------
 template <typename ASSET_TYPE>
-class AssetDescriptor : public BaseAssetDescriptor
+class AssetFileDescriptor : public BaseAssetDescriptor
 {
 public:
-	AssetDescriptor(const std::string& assetId, const std::string& filePath)
+	AssetFileDescriptor(const std::string& assetId, const std::string& filePath)
 		: BaseAssetDescriptor(assetId)		  
 		, mfilePath(filePath)
 	{ }
@@ -195,7 +184,7 @@ public:
 					throw std::runtime_error("Resouce " + assetfilePath + " does not exist");
 				}
 
-				auto descriptor = std::make_unique<AssetDescriptor<ASSET_TYPE>>(assetId, assetfilePath);
+				auto descriptor = std::make_unique<AssetFileDescriptor<ASSET_TYPE>>(assetId, assetfilePath);
 				mQueue.Push(std::move(descriptor));
 			}
 		}
@@ -219,11 +208,11 @@ public:
 		}
 	}
 
-	template<typename T>
-	T& GetAsset(const std::string& assetId) const
+	template<typename ASSET_TYPE>
+	ASSET_TYPE& GetAsset(const std::string& assetId) const
 	{
-		const AssetRegistry& registry = GetAssetRegistry(TypeId<T>::Get());
-		return registry.GetAsset<T>(assetId);
+		const AssetRegistry& registry = GetAssetRegistry(TypeId<ASSET_TYPE>::Get());
+		return registry.GetAsset<ASSET_TYPE>(assetId);
 	}
 
 private:

@@ -24,7 +24,7 @@ public:
 	Animation(std::vector<std::unique_ptr<AnimationSequence>>&& sequences);
 
 	// Asset interface
-	void ResolveAssetDepsImpl(AssetManager& assetManager) override;
+	void ResolveAssetDeps(AssetManager& assetManager) override;
 
 	// Getters
 	const std::string& GetStartSequenceId() const;

@@ -6,7 +6,7 @@
 #include "Core/Spritesheet.h"
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<Asset> TextureLoader::Load(AssetDescriptor<Texture> descriptor)
+std::unique_ptr<Asset> TextureLoader::Load(AssetFileDescriptor<Texture> descriptor)
 {
 	sf::Texture texture;
 	if (!texture.loadFromFile(descriptor.GetFilePath()))
@@ -17,7 +17,7 @@ std::unique_ptr<Asset> TextureLoader::Load(AssetDescriptor<Texture> descriptor)
 }
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<Asset> SpritesheetLoader::Load(AssetDescriptor<Spritesheet> descriptor)
+std::unique_ptr<Asset> SpritesheetLoader::Load(AssetFileDescriptor<Spritesheet> descriptor)
 {
 	return Spritesheet::LoadFromFile(descriptor.GetFilePath());
 }
