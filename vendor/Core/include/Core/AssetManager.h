@@ -59,24 +59,20 @@ public:
 class BaseAssetDescriptor
 {
 public:
-	BaseAssetDescriptor(const std::string& assetId, const std::string& filePath)
-		: mfilePath(filePath),
-		  mAssetId(assetId)
+	BaseAssetDescriptor(const std::string& assetId)		
+		: mAssetId(assetId)
 	{ }
 
 	virtual ~BaseAssetDescriptor() = default;
 
+	// Hooks
 	virtual std::unique_ptr<Asset> LoadAsset(BaseAssetLoader& loader) const = 0;
-
-	// Getters
-	const std::string& GetFilePath() const { return mfilePath; }
-	const std::string& GetAssetId() const { return mAssetId; }
-
-	// Hook
 	virtual uint32_t GetAssetTypeId() const = 0;
 
+	// Getter
+	const std::string& GetAssetId() const { return mAssetId; }
+
 private:
-	std::string mfilePath;
 	std::string mAssetId;
 };
 
@@ -86,19 +82,23 @@ class AssetDescriptor : public BaseAssetDescriptor
 {
 public:
 	AssetDescriptor(const std::string& assetId, const std::string& filePath)
-		: BaseAssetDescriptor(assetId, filePath),
-		  mTypeId(TypeId<ASSET_TYPE>::Get())
+		: BaseAssetDescriptor(assetId)		  
+		, mfilePath(filePath)
 	{ }
 
+	// BaseAssetDescriptor interface
 	virtual std::unique_ptr<Asset> LoadAsset(BaseAssetLoader& loader) const override
-	{
+	{		
 		return static_cast<AssetLoader<ASSET_TYPE>&>(loader).Load(*this);
 	}
+	
+	uint32_t GetAssetTypeId() const override { return TypeId<ASSET_TYPE>::Get(); }
 
-	uint32_t GetAssetTypeId() const override { return mTypeId; }
+	// Getters
+	const std::string& GetFilePath() const { return mfilePath; }
 
 private:
-	uint32_t mTypeId;
+	std::string mfilePath;	
 };
 
 // ----------------------------------------------------------------
