@@ -8,6 +8,16 @@
  "tilecount":16,
  "tiledversion":"1.10.2",
  "tileheight":64,
+ "tiles":[
+        {
+         "id":12,
+         "properties":[
+                {
+                 "name":"foo",
+                 "type":"string",
+                 "value":"asd"
+                }]
+        }],
  "tilewidth":64,
  "type":"tileset",
  "version":"1.10",
