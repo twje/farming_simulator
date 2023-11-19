@@ -46,23 +46,23 @@ public:
 class BaseAssetDescriptor
 {
 public:
-	BaseAssetDescriptor(const std::string& id, const std::string& filePath)
+	BaseAssetDescriptor(const std::string& assetId, const std::string& filePath)
 		: mfilePath(filePath),
-		  mId(id)
+		  mAssetId(assetId)
 	{ }
 
 	virtual ~BaseAssetDescriptor() = default;
 
 	// Getters
 	const std::string& GetFilePath() const { return mfilePath; }
-	const std::string& GetId() const { return mId; }
+	const std::string& GetId() const { return mAssetId; }
 
 	// Hook
 	virtual uint32_t GetAssetTypeId() const = 0;
 
 private:
 	std::string mfilePath;
-	std::string mId;
+	std::string mAssetId;
 };
 
 // ----------------------------------------------------------------
@@ -111,13 +111,14 @@ public:
 		: mLoader(std::move(loader))
 	{ }
 
-	Asset& LoadAsset(AssetManager& manager, const std::string assetId, const std::string filePath)
+	//Asset& LoadAsset(const std::string assetId, const std::string filePath)
+	Asset& LoadAsset(BaseAssetDescriptor& descriptor)
 	{
-		assert(mAssets.find(assetId) == mAssets.end() && "Asset already loaded");
-		auto asset = mLoader->Load(filePath);
-		mAssets.emplace(assetId, std::move(asset));
+		assert(mAssets.find(descriptor.GetId()) == mAssets.end() && "Asset already loaded");
+		auto asset = mLoader->Load(descriptor.GetFilePath());
+		mAssets.emplace(descriptor.GetId(), std::move(asset));
 
-		return *mAssets[assetId].get();
+		return *mAssets[descriptor.GetId()].get();
 	}
 
 	template<typename ASSET_TYPE>
@@ -183,14 +184,19 @@ public:
 
 	void ProcessAssetQueue()
 	{
+		std::vector<Asset*> loadedAssets;
 		while (!mQueue.IsEmpty())
 		{
-			std::unique_ptr<BaseAssetDescriptor> desc = mQueue.Pop();			
-			AssetRegistry& registry = GetAssetRegistry(desc->GetAssetTypeId());
-			Asset& asset = registry.LoadAsset(*this, desc->GetId(), desc->GetFilePath());
+			std::unique_ptr<BaseAssetDescriptor> descriptor = mQueue.Pop();			
 			
-			// TODO: validate dependencies
-			asset.ResolveAssetDeps(*this);
+			AssetRegistry& registry = GetAssetRegistry(descriptor->GetAssetTypeId());
+			Asset& asset = registry.LoadAsset(*descriptor);
+			loadedAssets.push_back(&asset);			
+		}
+
+		for (Asset* asset : loadedAssets)
+		{
+			asset->ResolveAssetDeps(*this);
 		}
 	}
 
