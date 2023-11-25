@@ -41,6 +41,7 @@ public:
 	virtual std::unique_ptr<Asset> Load(AssetFileDescriptor<ASSET_TYPE> descriptor)
 	{
 		assert(false && "Loader method for type AssetDescriptor not implemented");
+		return nullptr;
 	}
 };
 
