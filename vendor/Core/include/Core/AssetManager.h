@@ -16,6 +16,8 @@
 // ----------------------------------------------------------------
 template <typename ASSET_TYPE>
 class AssetFileDescriptor;
+template <typename ASSET_TYPE>
+class AssetMemoryDescriptor;
 class AssetManager;
 class BaseAssetDescriptor;
 
@@ -41,6 +43,12 @@ class AssetLoader : public BaseAssetLoader
 {
 public:	
 	virtual std::unique_ptr<Asset> Load(AssetFileDescriptor<ASSET_TYPE> descriptor)
+	{
+		assert(false && "Loader method for type AssetDescriptor not implemented");
+		return nullptr;
+	}
+
+	virtual std::unique_ptr<Asset> Load(AssetMemoryDescriptor<ASSET_TYPE> descriptor)
 	{
 		assert(false && "Loader method for type AssetDescriptor not implemented");
 		return nullptr;
@@ -92,6 +100,25 @@ public:
 private:
 	std::string mfilePath;	
 };
+
+// ----------------------------------------------------------------
+template <typename ASSET_TYPE>
+class AssetMemoryDescriptor : public BaseAssetDescriptor
+{
+public:
+	AssetMemoryDescriptor(const std::string& assetId)
+		: BaseAssetDescriptor(assetId)
+	{ }
+
+	// BaseAssetDescriptor interface
+	virtual std::unique_ptr<Asset> LoadAsset(BaseAssetLoader& loader) const override
+	{
+		return static_cast<AssetLoader<ASSET_TYPE>&>(loader).Load(*this);
+	}
+
+	uint32_t GetAssetTypeId() const override { return TypeId<ASSET_TYPE>::Get(); }
+};
+
 
 // ----------------------------------------------------------------
 class AssetDescriptorQueue
