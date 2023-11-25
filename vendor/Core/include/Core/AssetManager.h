@@ -1,9 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <stdexcept>
 #include <unordered_map>
-#include <typeindex>
 #include <queue>
 #include <filesystem>
 #include <fstream>
@@ -59,7 +57,7 @@ public:
 class BaseAssetDescriptor
 {
 public:
-	BaseAssetDescriptor(const std::string& assetId)		
+	explicit BaseAssetDescriptor(const std::string& assetId)
 		: mAssetId(assetId)
 	{ }
 
