@@ -17,6 +17,7 @@
 template <typename ASSET_TYPE>
 class AssetFileDescriptor;
 class AssetManager;
+class BaseAssetDescriptor;
 
 // ----------------------------------------------------------------
 class Asset
@@ -24,6 +25,7 @@ class Asset
 public:
 	virtual ~Asset() = default;
 	virtual void ResolveAssetDeps(AssetManager& assetManager) { };
+	virtual std::vector<std::unique_ptr<BaseAssetDescriptor>> GetDependencyDescriptors() { return {}; }
 };
 
 // ----------------------------------------------------------------
@@ -94,7 +96,15 @@ private:
 // ----------------------------------------------------------------
 class AssetDescriptorQueue
 {
-public:		
+public:
+	void Push(std::vector<std::unique_ptr<BaseAssetDescriptor>>&& dependencyDescriptors)
+	{
+		for (auto& descriptor : dependencyDescriptors)
+		{
+			Push(std::move(descriptor));
+		}
+	}
+
 	void Push(std::unique_ptr<BaseAssetDescriptor> descriptor)
 	{		
 		mQueue.push(std::move(descriptor));
@@ -102,12 +112,12 @@ public:
 
 	std::unique_ptr<BaseAssetDescriptor> Pop()
 	{
-		std::unique_ptr<BaseAssetDescriptor> descriptor = std::move(mQueue.front());
+		auto descriptor = std::move(mQueue.front());
 		mQueue.pop();
 		return descriptor;
 	}
 
-	bool IsEmpty() { return mQueue.empty(); }
+	bool IsEmpty() const { return mQueue.empty(); }
 
 private:
 	std::queue<std::unique_ptr<BaseAssetDescriptor>> mQueue;
@@ -200,6 +210,10 @@ public:
 			
 			AssetRegistry& registry = GetAssetRegistry(descriptor->GetAssetTypeId());
 			Asset* asset = &registry.LoadAsset(*descriptor);
+			
+			auto&& dependencyDescriptors = asset->GetDependencyDescriptors();
+			mQueue.Push(std::move(dependencyDescriptors));
+
 			loadedAssets.push_back(asset);			
 		}
 
