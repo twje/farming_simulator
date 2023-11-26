@@ -1,10 +1,10 @@
-#include "Core/TiledMapLoader.h"
+#include "Core/Tiled/TiledMapLoader.h"
 
 #include <fstream>
 #include <iostream>
 #include <cassert>
 
-#include "Core/TiledMap.h"
+#include "Core/Tiled/TiledMap.h"
 
 // --------------------------------------------------------------------------------
 /*static*/ std::unique_ptr<TiledMap> TiledMapLoader::Load(const fs::path& filePath)
