@@ -5,8 +5,7 @@
 #include "Core/Texture.h"
 #include "Core/Animation/Animation.h"
 #include "Core/Spritesheet.h"
-#include "Core/Animation/Sequence/TextureAnimationSequence.h"
-#include "Core/Animation/AnimationUtils.h"
+#include "Core/Tiled/TiledMap.h"
 #include "Level.h"
 
 class Game : public IApplicationListener
@@ -18,7 +17,8 @@ public:
 
 		assetManager.LoadAssetsFromManifest<Texture>("../../config/textures.cfg");
 		assetManager.LoadAssetsFromManifest<Spritesheet>("../../config/spritesheet.cfg");
-		assetManager.LoadAssetsFromManifest<Animation>("../../config/animations.cfg");		
+		assetManager.LoadAssetsFromManifest<Animation>("../../config/animations.cfg");
+		assetManager.LoadAssetsFromManifest<TiledMap>("../../config/maps.cfg");
 		assetManager.ProcessAssetQueue();		
 
 		PushLayer(std::make_unique<Level>());
