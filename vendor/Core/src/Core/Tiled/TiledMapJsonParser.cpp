@@ -1,4 +1,4 @@
-#include "Core/Tiled/TiledMapLoader.h"
+#include "Core/Tiled/TiledMapJsonParser.h"
 
 #include <fstream>
 #include <iostream>
@@ -7,7 +7,7 @@
 #include "Core/Tiled/TiledMap.h"
 
 // --------------------------------------------------------------------------------
-/*static*/ std::unique_ptr<TiledMap> TiledMapLoader::Load(const fs::path& filePath)
+/*static*/ std::unique_ptr<TiledMap> TiledMapJsonParser::Load(const fs::path& filePath)
 {
     assert(HasFileExtension(filePath, ".json"));
 
@@ -22,7 +22,7 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ std::unique_ptr<TiledMap> TiledMapLoader::LoadMapSettings(json& parentNode)
+/*static*/ std::unique_ptr<TiledMap> TiledMapJsonParser::LoadMapSettings(json& parentNode)
 {
     uint32_t width = ExtractUInt32(parentNode, "width");
     uint32_t height = ExtractUInt32(parentNode, "height");
@@ -33,7 +33,7 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ void TiledMapLoader::LoadLayers(TiledMap& tiledMap, json& parentNode)
+/*static*/ void TiledMapJsonParser::LoadLayers(TiledMap& tiledMap, json& parentNode)
 {
     for (const json& layerNode : parentNode["layers"])
     {
@@ -58,7 +58,7 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ void TiledMapLoader::LoadTileSets(const fs::path& directoryPath, TiledMap& tiledMap, json& parentNode)
+/*static*/ void TiledMapJsonParser::LoadTileSets(const fs::path& directoryPath, TiledMap& tiledMap, json& parentNode)
 {
     for (json tilesetNode : parentNode["tilesets"])
     {
@@ -103,7 +103,7 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ void TiledMapLoader::LoadJson(fs::path filePath, json& outJson)
+/*static*/ void TiledMapJsonParser::LoadJson(fs::path filePath, json& outJson)
 {
     std::ifstream ifs(filePath);
     if (!ifs.is_open())
@@ -121,7 +121,7 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ uint32_t TiledMapLoader::ExtractUInt32(const json& parentNode, const std::string& key)
+/*static*/ uint32_t TiledMapJsonParser::ExtractUInt32(const json& parentNode, const std::string& key)
 {
     if (!parentNode.contains(key))
     {
@@ -131,7 +131,7 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ std::string TiledMapLoader::ExtractString(const json& parentNode, const std::string& key)
+/*static*/ std::string TiledMapJsonParser::ExtractString(const json& parentNode, const std::string& key)
 {
     if (!parentNode.contains(key))
     {
@@ -141,7 +141,7 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ bool TiledMapLoader::HasFileExtension(fs::path filePath, const std::string& extension)
+/*static*/ bool TiledMapJsonParser::HasFileExtension(fs::path filePath, const std::string& extension)
 {
     if (filePath.has_extension())
     {

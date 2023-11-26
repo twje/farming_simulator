@@ -13,7 +13,7 @@ class TiledMap;
 
 namespace fs = std::filesystem;
 
-class TiledMapLoader
+class TiledMapJsonParser
 {
 public:
 	static std::unique_ptr<TiledMap> Load(const fs::path& filePath);
