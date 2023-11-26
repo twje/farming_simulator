@@ -1,5 +1,14 @@
 #pragma once
 
+// Includes
+//------------------------------------------------------------------------------
+// Core
+#include "Core/TypeUtils.h"
+
+// Third party
+#include <yaml-cpp/yaml.h>
+
+// System
 #include <memory>
 #include <unordered_map>
 #include <queue>
@@ -7,8 +16,6 @@
 #include <fstream>
 #include <utility>
 #include <cassert>
-
-#include "Core/TypeUtils.h"
 
 // Forward declarations
 // ----------------------------------------------------------------
@@ -104,8 +111,9 @@ template <typename ASSET_TYPE>
 class AssetMemoryDescriptor : public BaseAssetDescriptor
 {
 public:
-	AssetMemoryDescriptor(const std::string& assetId)
+	AssetMemoryDescriptor(const std::string& assetId, const YAML::Node& data)
 		: BaseAssetDescriptor(assetId)
+		, mData(data)
 	{ }
 
 	// BaseAssetDescriptor interface
@@ -115,23 +123,30 @@ public:
 	}
 
 	uint32_t GetAssetTypeId() const override { return TypeId<ASSET_TYPE>::Get(); }
-};
+	const YAML::Node& GetData() const { return mData; }
 
+private:
+	YAML::Node mData;
+};
 
 // ----------------------------------------------------------------
 class AssetDescriptorQueue
 {
 public:
-	void Push(std::vector<std::unique_ptr<BaseAssetDescriptor>>&& dependencyDescriptors)
+	void Push(std::vector<std::unique_ptr<BaseAssetDescriptor>>&& dependencyDescriptors, bool ignoreDuplicate)
 	{
 		for (auto& descriptor : dependencyDescriptors)
-		{
-			Push(std::move(descriptor));
+		{		
+			if (!ignoreDuplicate || mCache.find(descriptor->GetAssetId()) == mCache.end())
+			{
+				Push(std::move(descriptor));
+			}					
 		}
 	}
 
 	void Push(std::unique_ptr<BaseAssetDescriptor> descriptor)
 	{		
+		mCache.insert(descriptor->GetAssetId());
 		mQueue.push(std::move(descriptor));
 	}
 
@@ -139,6 +154,7 @@ public:
 	{
 		auto descriptor = std::move(mQueue.front());
 		mQueue.pop();
+		mCache.erase(descriptor->GetAssetId());
 		return descriptor;
 	}
 
@@ -146,6 +162,7 @@ public:
 
 private:
 	std::queue<std::unique_ptr<BaseAssetDescriptor>> mQueue;
+	std::set<std::string> mCache;
 };
 
 // ----------------------------------------------------------------
@@ -237,7 +254,7 @@ public:
 			Asset* asset = &registry.LoadAsset(*descriptor);
 			
 			auto&& dependencyDescriptors = asset->GetDependencyDescriptors();
-			mQueue.Push(std::move(dependencyDescriptors));
+			mQueue.Push(std::move(dependencyDescriptors), true);
 
 			loadedAssets.push_back(asset);			
 		}
