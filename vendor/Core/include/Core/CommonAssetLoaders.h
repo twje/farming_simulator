@@ -14,6 +14,10 @@ class TextureLoader : public AssetLoader<Texture>
 {
 public:
 	virtual std::unique_ptr<Asset> Load(AssetFileDescriptor<Texture> descriptor) override;
+	virtual std::unique_ptr<Asset> Load(AssetMemoryDescriptor<Texture> descriptor) override;
+
+private:
+	std::unique_ptr<Asset> Load(const std::string& filePath);
 };
 
 // --------------------------------------------------------------------------------

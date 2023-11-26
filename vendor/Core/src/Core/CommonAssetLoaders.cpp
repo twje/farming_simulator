@@ -8,10 +8,24 @@
 // --------------------------------------------------------------------------------
 std::unique_ptr<Asset> TextureLoader::Load(AssetFileDescriptor<Texture> descriptor)
 {
+	return Load(descriptor.GetFilePath());
+}
+
+// --------------------------------------------------------------------------------
+std::unique_ptr<Asset> TextureLoader::Load(AssetMemoryDescriptor<Texture> descriptor)
+{
+	const YAML::Node& data = descriptor.GetData();
+	const std::string& filePath = data["filePath"].as<std::string>();
+	return Load(filePath);
+}
+
+// --------------------------------------------------------------------------------
+std::unique_ptr<Asset> TextureLoader::Load(const std::string& filePath)
+{
 	sf::Texture texture;
-	if (!texture.loadFromFile(descriptor.GetFilePath()))
+	if (!texture.loadFromFile(filePath))
 	{
-		throw std::runtime_error("Failed to load texture: " + descriptor.GetFilePath());
+		throw std::runtime_error("Failed to load texture: " + filePath);
 	}
 	return std::make_unique<Texture>(std::move(texture));
 }
