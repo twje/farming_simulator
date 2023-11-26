@@ -9,19 +9,19 @@
 using json = nlohmann::json;
 
 // Forward declaration
-class TiledMap;
+class TiledMapData;
 
 namespace fs = std::filesystem;
 
 class TiledMapJsonParser
 {
 public:
-	static std::unique_ptr<TiledMap> Load(const fs::path& filePath);
+	static std::unique_ptr<TiledMapData> Load(const fs::path& filePath);
 
 private:
-	static std::unique_ptr<TiledMap> LoadMapSettings(json& node);
-	static void LoadLayers(TiledMap& tiledMap, json& parentNode);
-	static void LoadTileSets(const fs::path& directoryPath, TiledMap& tiledMap, json& parentNode);
+	static std::unique_ptr<TiledMapData> LoadMapSettings(json& node);
+	static void LoadLayers(TiledMapData& tiledMap, json& parentNode);
+	static void LoadTileSets(const fs::path& directoryPath, TiledMapData& tiledMap, json& parentNode);
 
 	// Utility Methods
 	static void LoadJson(fs::path filePath, json& outJson);

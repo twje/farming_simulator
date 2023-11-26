@@ -4,17 +4,17 @@
 #include <iostream>
 #include <cassert>
 
-#include "Core/Tiled/TiledMap.h"
+#include "Core/Tiled/TiledMapData.h"
 
 // --------------------------------------------------------------------------------
-/*static*/ std::unique_ptr<TiledMap> TiledMapJsonParser::Load(const fs::path& filePath)
+/*static*/ std::unique_ptr<TiledMapData> TiledMapJsonParser::Load(const fs::path& filePath)
 {
     assert(HasFileExtension(filePath, ".json"));
 
     json parentNode;
     LoadJson(filePath.string(), parentNode);
 
-    std::unique_ptr<TiledMap> tiledMap = LoadMapSettings(parentNode);
+    std::unique_ptr<TiledMapData> tiledMap = LoadMapSettings(parentNode);
     LoadLayers(*tiledMap.get(), parentNode);
     LoadTileSets(filePath.parent_path(), *tiledMap.get(), parentNode);
 
@@ -22,18 +22,18 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ std::unique_ptr<TiledMap> TiledMapJsonParser::LoadMapSettings(json& parentNode)
+/*static*/ std::unique_ptr<TiledMapData> TiledMapJsonParser::LoadMapSettings(json& parentNode)
 {
     uint32_t width = ExtractUInt32(parentNode, "width");
     uint32_t height = ExtractUInt32(parentNode, "height");
     uint32_t tileWidth = ExtractUInt32(parentNode, "tilewidth");
     uint32_t tileHeight = ExtractUInt32(parentNode, "tileheight");
 
-    return std::make_unique<TiledMap>(width, height, tileWidth, tileHeight);
+    return std::make_unique<TiledMapData>(width, height, tileWidth, tileHeight);
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ void TiledMapJsonParser::LoadLayers(TiledMap& tiledMap, json& parentNode)
+/*static*/ void TiledMapJsonParser::LoadLayers(TiledMapData& tiledMap, json& parentNode)
 {
     for (const json& layerNode : parentNode["layers"])
     {
@@ -58,7 +58,7 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ void TiledMapJsonParser::LoadTileSets(const fs::path& directoryPath, TiledMap& tiledMap, json& parentNode)
+/*static*/ void TiledMapJsonParser::LoadTileSets(const fs::path& directoryPath, TiledMapData& tiledMap, json& parentNode)
 {
     for (json tilesetNode : parentNode["tilesets"])
     {
