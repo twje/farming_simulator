@@ -13,6 +13,7 @@
 #include <optional>
 #include <functional>
 #include <filesystem>
+#include <limits>
 
 namespace fs = std::filesystem;
 
@@ -112,6 +113,8 @@ public:
 
     // Getters
     fs::path GetFilePath() { return mFilePath; }
+    uint32_t GetTileWidth() const { return mWidth; }
+    uint32_t GetTileHeight() const { return mHeight; }
 
     std::vector<std::reference_wrapper<const TiledSet>> GetTiledSets() const
     {
@@ -128,21 +131,25 @@ public:
         return mLayers;
     }
 
-    std::optional<std::reference_wrapper<const TiledSet>> GetTileSet(uint32_t globalId) const
-    {
-        if (globalId == 0)
-        {
-            return std::nullopt;
-        }
+    const TiledSet& GetTileSet(uint32_t globalTileId) const
+    {     
+        assert(globalTileId != 0 && "Invalid tile id");
+        const TiledSet* result = nullptr;
 
+        uint32_t closestValue = std::numeric_limits<uint32_t>::max();
         for (const auto& pair : mTileSets)
-        {
-            if (pair.first >= globalId)
-            {
-                return std::cref(pair.second);
+        {            
+            if (globalTileId >= pair.first)
+            {   
+                uint32_t distance = globalTileId - pair.first;
+                if (distance <= closestValue)
+                {
+                    closestValue = distance;
+                    result = &pair.second;
+                }                
             }
         }
-        return std::nullopt;
+        return *result;
     }
 
 private:
