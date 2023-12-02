@@ -69,22 +69,35 @@ public:
 		return descriptors;
 	}	
 
-	void Draw(sf::RenderWindow& window) 
+	void Draw(sf::RenderWindow& window, const sf::IntRect& region)
 	{
-		for (const TiledLayer& layer : mData->GetTiledLayers()) {
-			DrawLayer(window, layer);
+		for (const TiledLayer& layer : mData->GetTiledLayers())
+		{
+			DrawLayer(window, layer, region);
 		}
 	}
 
 private:
-	void DrawLayer(sf::RenderWindow& window, const TiledLayer& layer) 
+	int32_t Clamp(int32_t minValue, int32_t maxValue, int32_t value)
 	{
+		return std::min(maxValue, std::max(minValue, value));
+	}
+
+	void DrawLayer(sf::RenderWindow& window, const TiledLayer& layer, const sf::IntRect& region)
+	{	
 		uint32_t tileWidth = mData->GetTileWidth();
 		uint32_t tileHeight = mData->GetTileHeight();
-		
-		for (size_t y = 0; y < layer.GetHeight(); y++) 
+		uint32_t mapWidth = mData->GetMapWidth();
+		uint32_t mapHeight = mData->GetMapHeight();
+
+		size_t startX = Clamp(0, mapWidth, region.left) / tileWidth;
+		size_t startY = Clamp(0, mapHeight, region.top) / tileHeight;
+		size_t endX = std::ceil(static_cast<float>(Clamp(0, mapWidth, region.left + region.width)) / tileWidth);
+		size_t endY = std::ceil(static_cast<float>(Clamp(0, mapHeight, region.top + region.height)) / tileHeight);
+
+		for (size_t y = startY; y < endY; y++)
 		{
-			for (size_t x = 0; x < layer.GetWidth(); x++) 
+			for (size_t x = startX; x < endX; x++)
 			{
 				DrawTile(window, layer, x, y, tileWidth, tileHeight);
 			}

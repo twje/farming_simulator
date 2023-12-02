@@ -53,10 +53,21 @@ public:
 		}
 	}
 
+	sf::IntRect GetViewRegion(const sf::View& view)
+	{
+		sf::Vector2f center = view.getCenter();
+		sf::Vector2f size = view.getSize();
+
+		sf::Vector2i topLeft((center.x - size.x / 2), (center.y - size.y / 2));
+		sf::Vector2i bottomRight((center.x + size.x / 2), (center.y + size.y / 2));
+
+		return sf::IntRect(topLeft, bottomRight - topLeft);
+	}
+
 	virtual void Draw(sf::RenderWindow& window)
 	{
 		window.setView(mWorldView);
-		mTiledMap->Draw(window);
+		mTiledMap->Draw(window, GetViewRegion(mWorldView));
 		
 		for (size_t z = 0; z < LAYERS.size(); z++)
 		{

@@ -115,7 +115,9 @@ public:
     fs::path GetFilePath() { return mFilePath; }
     uint32_t GetTileWidth() const { return mTileWidth; }
     uint32_t GetTileHeight() const { return mTileHeight; }
-
+    uint32_t GetMapWidth() const { return mWidth * mTileWidth; }
+    uint32_t GetMapHeight() const { return mHeight * mTileHeight; }
+    
     std::vector<std::reference_wrapper<const TiledSet>> GetTiledSets() const
     {
         std::vector<std::reference_wrapper<const TiledSet>> tileSets;
