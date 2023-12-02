@@ -1,9 +1,13 @@
 #include "Core/CommonAssetLoaders.h"
 
-#include <SFML/Graphics.hpp>
-
+// Includes
+//------------------------------------------------------------------------------
+// Core
 #include "Core/Texture.h"
 #include "Core/Spritesheet.h"
+
+// Third party
+#include <SFML/Graphics.hpp>
 
 // --------------------------------------------------------------------------------
 std::unique_ptr<Asset> TextureLoader::Load(AssetFileDescriptor<Texture> descriptor)
@@ -34,4 +38,10 @@ std::unique_ptr<Asset> TextureLoader::Load(const std::string& filePath)
 std::unique_ptr<Asset> SpritesheetLoader::Load(AssetFileDescriptor<Spritesheet> descriptor)
 {
 	return Spritesheet::LoadFromFile(descriptor.GetFilePath());
+}
+
+// --------------------------------------------------------------------------------
+std::unique_ptr<Asset> SpritesheetLoader::Load(AssetMemoryDescriptor<Spritesheet> descriptor)
+{	
+	return Spritesheet::Deserialize(descriptor.GetData());
 }

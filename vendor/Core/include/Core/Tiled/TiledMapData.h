@@ -1,5 +1,8 @@
 #pragma once
 
+// Includes
+//------------------------------------------------------------------------------
+// System
 #include <algorithm>
 #include <string>
 #include <string_view>
@@ -8,6 +11,10 @@
 #include <memory>
 #include <cassert>
 #include <optional>
+#include <functional>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 // --------------------------------------------------------------------------------
 class TiledLayer
@@ -39,18 +46,20 @@ private:
 class TiledSet
 {
 public:
-    TiledSet(uint32_t firstGid, uint32_t columns, uint32_t imageHeight,
+    TiledSet(const fs::path& imageFilePath, uint32_t firstGid, uint32_t columns, uint32_t imageHeight,
              uint32_t imageWidth, uint32_t tileWidth, uint32_t tileHeight,
              uint32_t margin, uint32_t spacing, uint32_t tileCount,
              const std::string& name)
-        : mFirstGid(firstGid), mColumns(columns), mImageWidth(imageWidth),
+        : mImageFilePath(imageFilePath), mFirstGid(firstGid), mColumns(columns), mImageWidth(imageWidth),
           mImageHeight(imageHeight), mTileWidth(tileWidth), mTileHeight(tileHeight),
           mMargin(margin), mSpacing(spacing), mTileCount(tileCount),
           mName(name)
     { }
 
+    const fs::path& GetImageFilePath() const { return mImageFilePath; }
     uint32_t GetFirstGid() const { return mFirstGid; }
     uint32_t GetColumns() const { return mColumns; }
+    uint32_t GetRows() const { return mTileCount / mColumns; }
     uint32_t GetImageWidth() const { return mImageWidth; }
     uint32_t GetImageHeight() const { return mImageHeight; }
     uint32_t GetTileHeight() const { return mTileWidth; }
@@ -61,6 +70,7 @@ public:
     const std::string& GetName() const { return mName; }
 
 private:
+    fs::path mImageFilePath;
     uint32_t mFirstGid;
     uint32_t mColumns;
     uint32_t mImageWidth;
@@ -77,8 +87,9 @@ private:
 class TiledMapData
 {
 public:
-    TiledMapData(uint32_t width, uint32_t height, uint32_t tileWidth, uint32_t tileHeight)
-        : mWidth(width),
+    TiledMapData(const fs::path& filePath, uint32_t width, uint32_t height, uint32_t tileWidth, uint32_t tileHeight)
+        : mFilePath(filePath),
+          mWidth(width),
           mHeight(height),
           mTileWidth(tileWidth),
           mTileHeight(tileHeight)
@@ -100,7 +111,19 @@ public:
     }
 
     // Getters
-    const std::vector<TiledLayer>& GetTiledLayers()
+    fs::path GetFilePath() { return mFilePath; }
+
+    std::vector<std::reference_wrapper<const TiledSet>> GetTiledSets() const
+    {
+        std::vector<std::reference_wrapper<const TiledSet>> tileSets;
+        for (const auto& pair : mTileSets)
+        {
+            tileSets.push_back(pair.second);
+        }
+        return tileSets;
+    }
+
+    const std::vector<TiledLayer>& GetTiledLayers() const
     {
         return mLayers;
     }
@@ -133,6 +156,7 @@ private:
     }
 
 private:
+    fs::path mFilePath;
     uint32_t mWidth;
     uint32_t mHeight;
     uint32_t mTileWidth;
@@ -140,4 +164,3 @@ private:
     std::vector<TiledLayer> mLayers;
     std::map<uint32_t, TiledSet> mTileSets;
 };
-

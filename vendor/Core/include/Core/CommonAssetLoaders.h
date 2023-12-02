@@ -1,8 +1,12 @@
 #pragma once
 
-#include <memory>
-
+// Includes
+//------------------------------------------------------------------------------
+// Core
 #include "Core/AssetManager.h"
+
+// System
+#include <memory>
 
 // Forward Declarations
 // --------------------------------------------------------------------------------
@@ -25,4 +29,5 @@ class SpritesheetLoader : public AssetLoader<Spritesheet>
 {
 public:
 	virtual std::unique_ptr<Asset> Load(AssetFileDescriptor<Spritesheet> descriptor) override;
+	virtual std::unique_ptr<Asset> Load(AssetMemoryDescriptor<Spritesheet> descriptor) override;
 };

@@ -14,7 +14,7 @@
     json parentNode;
     LoadJson(filePath.string(), parentNode);
 
-    std::unique_ptr<TiledMapData> tiledMap = LoadMapSettings(parentNode);
+    std::unique_ptr<TiledMapData> tiledMap = LoadMapSettings(parentNode, filePath);
     LoadLayers(*tiledMap.get(), parentNode);
     LoadTileSets(filePath.parent_path(), *tiledMap.get(), parentNode);
 
@@ -22,14 +22,14 @@
 }
 
 // --------------------------------------------------------------------------------
-/*static*/ std::unique_ptr<TiledMapData> TiledMapJsonParser::LoadMapSettings(json& parentNode)
+/*static*/ std::unique_ptr<TiledMapData> TiledMapJsonParser::LoadMapSettings(json& parentNode, const fs::path& filePath)
 {
     uint32_t width = ExtractUInt32(parentNode, "width");
     uint32_t height = ExtractUInt32(parentNode, "height");
     uint32_t tileWidth = ExtractUInt32(parentNode, "tilewidth");
     uint32_t tileHeight = ExtractUInt32(parentNode, "tileheight");
 
-    return std::make_unique<TiledMapData>(width, height, tileWidth, tileHeight);
+    return std::make_unique<TiledMapData>(filePath, width, height, tileWidth, tileHeight);
 }
 
 // --------------------------------------------------------------------------------
@@ -64,13 +64,18 @@
     {
         uint32_t firstGid = ExtractUInt32(tilesetNode, "firstgid");
 
+        fs::path relativeTilesetDirectory = directoryPath;
+
         // Parse data
         json tilesetData;
         if (tilesetNode.contains("source"))
         {
             const std::string& sourcefilePath = ExtractString(tilesetNode, "source");
+            assert(HasFileExtension(sourcefilePath, ".json"));            
             fs::path filePath = directoryPath / fs::path(sourcefilePath);
             LoadJson(filePath, tilesetData);
+
+            relativeTilesetDirectory = filePath.parent_path();
         }
         else
         {
@@ -88,8 +93,11 @@
             uint32_t spacing = ExtractUInt32(tilesetData, "spacing");
             uint32_t tileCount = ExtractUInt32(tilesetData, "tilecount");
             const std::string& name = ExtractString(tilesetData, "name");
+            fs::path relativeImageFilePath(ExtractString(tilesetData, "image"));
 
-            TiledSet tiledSet(firstGid, columns, imageHeight, imageWidth,
+            fs::path absoluteImageFilePath = fs::absolute(relativeTilesetDirectory / relativeImageFilePath);
+
+            TiledSet tiledSet(absoluteImageFilePath, firstGid, columns, imageHeight, imageWidth,
                               tileWidth, tileHeight, margin, spacing,
                               tileCount, name);
 

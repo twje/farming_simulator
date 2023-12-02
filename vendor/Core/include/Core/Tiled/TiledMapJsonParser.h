@@ -19,7 +19,7 @@ public:
 	static std::unique_ptr<TiledMapData> Load(const fs::path& filePath);
 
 private:
-	static std::unique_ptr<TiledMapData> LoadMapSettings(json& node);
+	static std::unique_ptr<TiledMapData> LoadMapSettings(json& node, const fs::path& filePath);
 	static void LoadLayers(TiledMapData& tiledMap, json& parentNode);
 	static void LoadTileSets(const fs::path& directoryPath, TiledMapData& tiledMap, json& parentNode);
 
