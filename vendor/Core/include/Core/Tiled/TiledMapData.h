@@ -113,8 +113,8 @@ public:
 
     // Getters
     fs::path GetFilePath() { return mFilePath; }
-    uint32_t GetTileWidth() const { return mWidth; }
-    uint32_t GetTileHeight() const { return mHeight; }
+    uint32_t GetTileWidth() const { return mTileWidth; }
+    uint32_t GetTileHeight() const { return mTileHeight; }
 
     std::vector<std::reference_wrapper<const TiledSet>> GetTiledSets() const
     {
@@ -142,7 +142,7 @@ public:
             if (globalTileId >= pair.first)
             {   
                 uint32_t distance = globalTileId - pair.first;
-                if (distance <= closestValue)
+                if (closestValue >= distance)
                 {
                     closestValue = distance;
                     result = &pair.second;

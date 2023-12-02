@@ -86,11 +86,6 @@ private:
 		{
 			for (size_t x = 0; x < layer.GetWidth(); x++) 
 			{
-				if (layer.GetName() == "Farmable" || layer.GetName() == "Collision")
-				{
-					continue;
-				}
-
 				DrawTile(window, layer, x, y, tileWidth, tileHeight);
 			}
 		}

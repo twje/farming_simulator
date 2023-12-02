@@ -1,12 +1,16 @@
 #pragma once
 
-#include <iostream>
+// Includes
+//------------------------------------------------------------------------------
+// Game
+#include "Player.h"
 
+// Core
 #include "Core/Scene.h"
 #include "Core/Group.h"
 #include "Core/AssetManager.h"
 
-#include "Player.h"
+#include <iostream>
 #include "Overlay.h"
 #include "Sprites.h"
 
@@ -26,13 +30,15 @@ public:
 		mHUDView.setSize(windowSize);
 		mHUDView.setCenter(windowSize * 0.5f);
 
-		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(640, 360));
-		mGround = CreateGameObject<Generic>(assetManager.GetAsset<Texture>("ground").GetRawTexture(), sf::Vector2f(0, 0), LAYERS.at("ground"));
+		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(100, 100));
+		//mGround = CreateGameObject<Generic>(assetManager.GetAsset<Texture>("ground").GetRawTexture(), sf::Vector2f(0, 0), LAYERS.at("ground"));
 
 		mAllSprites.Add(mPlayer);
-		mAllSprites.Add(mGround);
+		//mAllSprites.Add(mGround);
 
 		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
+
+		mTiledMap = &assetManager.GetAsset<TiledMap>("main");
 	}
 
 	void Update(const sf::Time& timestamp) override
@@ -50,6 +56,8 @@ public:
 	virtual void Draw(sf::RenderWindow& window)
 	{
 		window.setView(mWorldView);
+		mTiledMap->Draw(window);
+		
 		for (size_t z = 0; z < LAYERS.size(); z++)
 		{
 			for (GameObject* gameObject : mAllSprites)
@@ -62,7 +70,7 @@ public:
 				}
 			}
 		}
-
+		
 		window.setView(mHUDView);
 		mOverlay->Draw(window);
 	}
@@ -76,6 +84,7 @@ public:
 private:
 	Player* mPlayer;
 	Generic* mGround;
+	TiledMap* mTiledMap;
 
 	Group mAllSprites;
 	std::unique_ptr<Overlay> mOverlay;
