@@ -44,47 +44,69 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-
-
-// --------------------------------------------------------------------------------
-class SpritesheetTiledSet
+class TiledSetData
 {
+    friend class TiledSet;
+
 public:
-    SpritesheetTiledSet(const fs::path& imageFilePath, uint32_t firstGid, uint32_t columns, uint32_t imageHeight,
-             uint32_t imageWidth, uint32_t tileWidth, uint32_t tileHeight,
-             uint32_t margin, uint32_t spacing, uint32_t tileCount,
-             const std::string& name)
-        : mImageFilePath(imageFilePath), mFirstGid(firstGid), mColumns(columns), mImageWidth(imageWidth),
-          mImageHeight(imageHeight), mTileWidth(tileWidth), mTileHeight(tileHeight),
-          mMargin(margin), mSpacing(spacing), mTileCount(tileCount),
-          mName(name)
+    TiledSetData(const std::string& name, uint32_t firstGid, uint32_t tileHeight, uint32_t columns, 
+                 uint32_t margin, uint32_t spacing, uint32_t tileCount)
+        : mName(name), mFirstGid(firstGid), mTileHeight(tileHeight), mColumns(columns), 
+          mMargin(margin), mSpacing(spacing), mTileCount(tileCount)
     { }
 
-    const fs::path& GetImageFilePath() const { return mImageFilePath; }
-    uint32_t GetFirstGid() const { return mFirstGid; }
-    uint32_t GetColumns() const { return mColumns; }
-    uint32_t GetRows() const { return mTileCount / mColumns; }
-    uint32_t GetImageWidth() const { return mImageWidth; }
-    uint32_t GetImageHeight() const { return mImageHeight; }
-    uint32_t GetTileHeight() const { return mTileWidth; }
-    uint32_t GetTileWidth() const { return mTileHeight; }
-    uint32_t GetMargin() const { return mMargin; }
-    uint32_t GetSpacing() const { return mSpacing; }
-    uint32_t GetTileCount() const { return mTileCount; }
-    const std::string& GetName() const { return mName; }
-
 private:
-    fs::path mImageFilePath;
+    std::string mName;
     uint32_t mFirstGid;
-    uint32_t mColumns;
-    uint32_t mImageWidth;
-    uint32_t mImageHeight;
-    uint32_t mTileWidth;
     uint32_t mTileHeight;
+    uint32_t mColumns;
     uint32_t mMargin;
     uint32_t mSpacing;
     uint32_t mTileCount;
-    std::string mName;
+};
+
+// --------------------------------------------------------------------------------
+class TiledSet
+{
+public:
+    TiledSet(TiledSetData&& tiledSetData)
+        : mTiledSetData(std::move(tiledSetData))
+    { }
+
+    const std::string& GetName() const { return mTiledSetData.mName; }
+    uint32_t GetFirstGid() const { return mTiledSetData.mFirstGid; }
+    uint32_t GetColumns() const { return mTiledSetData.mColumns; }
+    uint32_t GetMargin() const { return mTiledSetData.mMargin; }
+    uint32_t GetSpacing() const { return mTiledSetData.mSpacing; }
+    uint32_t GetTileCount() const { return mTiledSetData.mTileCount; }
+    uint32_t GetTileHeight() const { return mTiledSetData.mTileHeight; }
+
+private:
+    TiledSetData mTiledSetData;
+};
+
+// --------------------------------------------------------------------------------
+class SpritesheetTiledSet : public TiledSet
+{
+public:
+    SpritesheetTiledSet(TiledSetData&& tiledSetData, const fs::path& imageFilePath, uint32_t imageHeight, 
+                        uint32_t imageWidth, uint32_t tileWidth)
+        : TiledSet(std::move(tiledSetData)), mImageFilePath(imageFilePath), mImageWidth(imageWidth),
+          mImageHeight(imageHeight), mTileWidth(tileWidth)
+    { }
+
+    // Getters
+    const fs::path& GetImageFilePath() const { return mImageFilePath; }
+    uint32_t GetImageWidth() const { return mImageWidth; }
+    uint32_t GetImageHeight() const { return mImageHeight; }
+    uint32_t GetTileWidth() const { return mTileWidth; }
+    uint32_t GetRows() const { return GetTileCount() / GetColumns(); }
+
+private:
+    fs::path mImageFilePath;    
+    uint32_t mImageWidth;
+    uint32_t mImageHeight;
+    uint32_t mTileWidth;
 };
 
 // --------------------------------------------------------------------------------

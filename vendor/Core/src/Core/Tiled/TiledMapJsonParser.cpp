@@ -62,8 +62,6 @@
 {
     for (json tilesetNode : parentNode["tilesets"])
     {
-        uint32_t firstGid = ExtractUInt32(tilesetNode, "firstgid");
-
         fs::path relativeTilesetDirectory = directoryPath;
 
         // Parse data
@@ -82,30 +80,38 @@
             tilesetData = tilesetNode;
         }
 
-        uint32_t columns = ExtractUInt32(tilesetData, "columns");
+        uint32_t columns = ExtractUInt32(tilesetData, "columns");                
+
+        TiledSetData tiledSetData(
+            ExtractString(tilesetData, "name"),
+            ExtractUInt32(tilesetNode, "firstgid"),     // firstgid is always present in map file
+            ExtractUInt32(tilesetData, "tileheight"),
+            columns,
+            ExtractUInt32(tilesetData, "margin"),
+            ExtractUInt32(tilesetData, "spacing"),
+            ExtractUInt32(tilesetData, "tilecount")
+        );
+        
+        // Spritesheet TiledSet
         if (columns > 0)
         {
-            uint32_t imageWidth = ExtractUInt32(tilesetData, "imagewidth");
-            uint32_t imageHeight = ExtractUInt32(tilesetData, "imageheight");
-            uint32_t tileWidth = ExtractUInt32(tilesetData, "tilewidth");
-            uint32_t tileHeight = ExtractUInt32(tilesetData, "tileheight");
-            uint32_t margin = ExtractUInt32(tilesetData, "margin");
-            uint32_t spacing = ExtractUInt32(tilesetData, "spacing");
-            uint32_t tileCount = ExtractUInt32(tilesetData, "tilecount");
-            const std::string& name = ExtractString(tilesetData, "name");
             fs::path relativeImageFilePath(ExtractString(tilesetData, "image"));
-
             fs::path absoluteImageFilePath = fs::absolute(relativeTilesetDirectory / relativeImageFilePath);
 
-            SpritesheetTiledSet tiledSet(absoluteImageFilePath, firstGid, columns, imageHeight, imageWidth,
-                              tileWidth, tileHeight, margin, spacing,
-                              tileCount, name);
+            SpritesheetTiledSet tiledSet(
+                std::move(tiledSetData),
+                absoluteImageFilePath, 
+                ExtractUInt32(tilesetData, "imageheight"),
+                ExtractUInt32(tilesetData, "imagewidth"),
+                ExtractUInt32(tilesetData, "tilewidth")
+            );
 
             tiledMap.AddSpritesheetTiledSet(std::move(tiledSet));
         }
+        // Image Collection TiledSet
         else
         {
-            // TileSet is a collection of images
+
         }
     }
 }
