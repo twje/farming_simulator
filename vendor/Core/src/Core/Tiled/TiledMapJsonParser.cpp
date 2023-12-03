@@ -97,11 +97,11 @@
 
             fs::path absoluteImageFilePath = fs::absolute(relativeTilesetDirectory / relativeImageFilePath);
 
-            TiledSet tiledSet(absoluteImageFilePath, firstGid, columns, imageHeight, imageWidth,
+            SpritesheetTiledSet tiledSet(absoluteImageFilePath, firstGid, columns, imageHeight, imageWidth,
                               tileWidth, tileHeight, margin, spacing,
                               tileCount, name);
 
-            tiledMap.AddTileset(std::move(tiledSet));
+            tiledMap.AddSpritesheetTiledSet(std::move(tiledSet));
         }
         else
         {

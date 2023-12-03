@@ -44,10 +44,13 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class TiledSet
+
+
+// --------------------------------------------------------------------------------
+class SpritesheetTiledSet
 {
 public:
-    TiledSet(const fs::path& imageFilePath, uint32_t firstGid, uint32_t columns, uint32_t imageHeight,
+    SpritesheetTiledSet(const fs::path& imageFilePath, uint32_t firstGid, uint32_t columns, uint32_t imageHeight,
              uint32_t imageWidth, uint32_t tileWidth, uint32_t tileHeight,
              uint32_t margin, uint32_t spacing, uint32_t tileCount,
              const std::string& name)
@@ -104,9 +107,9 @@ public:
         return mLayers.back();
     }
 
-    TiledSet& AddTileset(TiledSet&& tileSet)
+    SpritesheetTiledSet& AddSpritesheetTiledSet(SpritesheetTiledSet&& tileSet)
     {
-        auto result = mTileSets.emplace(tileSet.GetFirstGid(), std::move(tileSet));
+        auto result = mSpritesheetTiledSet.emplace(tileSet.GetFirstGid(), std::move(tileSet));
         assert(result.second && "Duplicate TileSet");
         return result.first->second;
     }
@@ -118,10 +121,10 @@ public:
     uint32_t GetMapWidth() const { return mWidth * mTileWidth; }
     uint32_t GetMapHeight() const { return mHeight * mTileHeight; }
     
-    std::vector<std::reference_wrapper<const TiledSet>> GetTiledSets() const
+    std::vector<std::reference_wrapper<const SpritesheetTiledSet>> GetSpritesheetTiledSets() const
     {
-        std::vector<std::reference_wrapper<const TiledSet>> tileSets;
-        for (const auto& pair : mTileSets)
+        std::vector<std::reference_wrapper<const SpritesheetTiledSet>> tileSets;
+        for (const auto& pair : mSpritesheetTiledSet)
         {
             tileSets.push_back(pair.second);
         }
@@ -133,13 +136,13 @@ public:
         return mLayers;
     }
 
-    const TiledSet& GetTileSet(uint32_t globalTileId) const
+    const SpritesheetTiledSet& GetmSpritesheetTiledSet(uint32_t globalTileId) const
     {     
         assert(globalTileId != 0 && "Invalid tile id");
-        const TiledSet* result = nullptr;
+        const SpritesheetTiledSet* result = nullptr;
 
         uint32_t closestValue = std::numeric_limits<uint32_t>::max();
-        for (const auto& pair : mTileSets)
+        for (const auto& pair : mSpritesheetTiledSet)
         {            
             if (globalTileId >= pair.first)
             {   
@@ -171,5 +174,5 @@ private:
     uint32_t mTileWidth;
     uint32_t mTileHeight;
     std::vector<TiledLayer> mLayers;
-    std::map<uint32_t, TiledSet> mTileSets;
+    std::map<uint32_t, SpritesheetTiledSet> mSpritesheetTiledSet;
 };

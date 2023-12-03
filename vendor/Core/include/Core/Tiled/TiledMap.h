@@ -61,7 +61,7 @@ public:
 	virtual std::vector<std::unique_ptr<BaseAssetDescriptor>> GetDependencyDescriptors() 
 	{
 		std::vector<std::unique_ptr<BaseAssetDescriptor>> descriptors;
-		for (const TiledSet& tileset : mData->GetTiledSets()) 
+		for (const SpritesheetTiledSet& tileset : mData->GetSpritesheetTiledSets())
 		{
 			AddTextureDescriptor(descriptors, tileset);
 			AddSpritesheetDescriptor(descriptors, tileset);
@@ -112,7 +112,7 @@ private:
 			return;
 		}
 
-		const TiledSet& tiledSet = mData->GetTileSet(globalTileId);
+		const SpritesheetTiledSet& tiledSet = mData->GetmSpritesheetTiledSet(globalTileId);
 		const SpritesheetData& spritesheetData = mSpritesheetDataMap.at(tiledSet.GetFirstGid());
 		const Spritesheet& spritesheet = spritesheetData.GetSpritesheet();
 
@@ -124,7 +124,7 @@ private:
 		window.draw(sprite);
 	}
 
-	void AddTextureDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors, const TiledSet& tileset) 
+	void AddTextureDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors, const SpritesheetTiledSet& tileset)
 	{
 		const std::string texFilePath = tileset.GetImageFilePath().string();
 		std::string texAssetId = GenerateAssetId(texFilePath);
@@ -136,7 +136,7 @@ private:
 		descriptors.emplace_back(std::move(texDescriptor));
 	}
 	
-	void AddSpritesheetDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors, const TiledSet& tileset) 
+	void AddSpritesheetDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors, const SpritesheetTiledSet& tileset) 
 	{
 		const std::string texFilePath = tileset.GetImageFilePath().string();
 		std::string sptAssetId = GenerateAssetId(texFilePath + "_spt");
