@@ -21,35 +21,57 @@ class BaseAssetDescriptor;
 class AssetManager;
 class TextureRegion;
 
-// Type aliases
-// --------------------------------------------------------------------------------
-using AssetDescriptorVector = std::vector<std::unique_ptr<BaseAssetDescriptor>>;
-
 // Namespaces
 // --------------------------------------------------------------------------------
 namespace fs = std::filesystem;
 
 // --------------------------------------------------------------------------------
-class TiledLayer
+class LayerData
 {
-public:
-    TiledLayer(std::uint32_t id, std::string_view name, uint32_t width, uint32_t height, std::vector<uint32_t>&& tiles)
-        : mId(id),
-          mName(name),
-          mWidth(width),
-          mHeight(height),
-          mTiles(std::move(tiles))
-    {}
+    friend class Layer;
 
-    uint32_t GetId() const { return mId; }
-    const std::string_view GetName() const { return mName; }
-    uint32_t GetWidth() const { return mWidth; }
-    uint32_t GetHeight() const { return mHeight; }
-    uint32_t GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * mWidth); }
+public:
+    LayerData(std::uint32_t id, std::string_view name)
+        : mId(id),
+          mName(name)          
+    { }
 
 private:
     uint32_t mId;
     std::string mName;
+};
+
+// --------------------------------------------------------------------------------
+class Layer
+{
+public:
+    Layer(LayerData&& layerData)
+        : mLayerData(std::move(layerData))
+    { }
+
+    uint32_t GetId() const { return mLayerData.mId; }
+    const std::string_view GetName() const { return mLayerData.mName; }    
+
+private:
+    LayerData mLayerData;
+};
+
+// --------------------------------------------------------------------------------
+class TiledLayer : public Layer
+{
+public:
+    TiledLayer(LayerData&& layerData, uint32_t height, uint32_t width, std::vector<uint32_t>&& tiles)
+        : Layer(std::move(layerData)),
+          mWidth(width),
+          mHeight(height),
+          mTiles(std::move(tiles))
+    { }
+    
+    uint32_t GetWidth() const { return mWidth; }
+    uint32_t GetHeight() const { return mHeight; }
+    uint32_t GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }
+
+private:
     uint32_t mWidth;
     uint32_t mHeight;
     std::vector<uint32_t> mTiles;
@@ -76,14 +98,6 @@ private:
     uint32_t mMargin;
     uint32_t mSpacing;
     uint32_t mTileCount;
-};
-
-// --------------------------------------------------------------------------------
-class TiledSetTextureLookup
-{
-public:
-    virtual void Resolve(AssetManager& assetManager) = 0;
-    virtual TextureRegion GetTextureRegion(uint32_t index) const = 0;
 };
 
 // --------------------------------------------------------------------------------

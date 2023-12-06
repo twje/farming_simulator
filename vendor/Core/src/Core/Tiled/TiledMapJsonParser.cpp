@@ -37,21 +37,25 @@
 {
     for (const json& layerNode : parentNode["layers"])
     {
-        uint32_t layerId = ExtractUInt32(layerNode, "id");
-        const std::string& layerName = ExtractString(layerNode,"name");
+        std::string name = ExtractString(layerNode, "name");
+        std::cout << name << std::endl;
+
+        LayerData layerData(ExtractUInt32(layerNode, "id"), ExtractString(layerNode, "name"));
+
         const std::string& layerType = ExtractString(layerNode, "type");
         if (layerType == "tilelayer")
         {
-            uint32_t layerWidth = ExtractUInt32(layerNode, "width");
-            uint32_t layerHeight = ExtractUInt32(layerNode, "height");
-
             std::vector<uint32_t> tiles;
             for (const json& tileNode : layerNode["data"])
             {
                 tiles.emplace_back(tileNode.get<uint32_t>());
             }
-
-            TiledLayer layer(layerId, layerName, layerWidth, layerHeight, std::move(tiles));
+            
+            TiledLayer layer(std::move(layerData), 
+                             ExtractUInt32(layerNode, "width"),
+                             ExtractUInt32(layerNode, "height"),
+                             std::move(tiles));
+            
             tiledMap.AddLayer(std::move(layer));
         }
     }
