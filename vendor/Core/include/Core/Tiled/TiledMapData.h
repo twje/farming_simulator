@@ -6,12 +6,8 @@
 #include <algorithm>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <map>
-#include <memory>
 #include <cassert>
-#include <optional>
-#include <functional>
 #include <filesystem>
 #include <limits>
 
