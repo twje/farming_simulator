@@ -85,6 +85,7 @@
         TiledSetData tiledSetData(
             ExtractString(tilesetData, "name"),
             ExtractUInt32(tilesetNode, "firstgid"),     // firstgid is always present in map file
+            ExtractUInt32(tilesetData, "tilewidth"),
             ExtractUInt32(tilesetData, "tileheight"),
             columns,
             ExtractUInt32(tilesetData, "margin"),
@@ -102,8 +103,7 @@
                 std::move(tiledSetData),
                 absoluteImageFilePath, 
                 ExtractUInt32(tilesetData, "imageheight"),
-                ExtractUInt32(tilesetData, "imagewidth"),
-                ExtractUInt32(tilesetData, "tilewidth")
+                ExtractUInt32(tilesetData, "imagewidth")
             );
 
             tiledMap.AddSpritesheetTiledSet(std::move(tiledSet));
@@ -111,7 +111,23 @@
         // Image Collection TiledSet
         else
         {
+            std::vector<ImageTile> imageTiles;
+            for (const json& tileNode : tilesetData["tiles"])
+            {
+                fs::path relativeImageFilePath(ExtractString(tileNode, "image"));
+                fs::path absoluteImageFilePath = fs::absolute(relativeTilesetDirectory / relativeImageFilePath);
 
+                ImageTile tile(
+                    ExtractUInt32(tileNode, "id"),
+                    absoluteImageFilePath,
+                    ExtractUInt32(tileNode, "imageheight"),
+                    ExtractUInt32(tileNode, "imagewidth")
+                );
+                imageTiles.emplace_back(tile);
+            }
+
+            ImageCollectionTiledSet tiledSet(std::move(tiledSetData), std::move(imageTiles));
+            tiledMap.AddImageCollectionTiledSet(std::move(tiledSet));
         }
     }
 }
