@@ -6,8 +6,8 @@
 #include "Core/Animation/Animation.h"
 #include "Core/Animation/AnimationLoader.h"
 #include "Core/Spritesheet.h"
-#include "Core/Tiled/TiledMap.h"
-#include "Core/Tiled/TiledLoader.h"
+#include "Core/Tiled/TiledMapAsset.h"
+#include "Core/Tiled/TiledMapLoader.h"
 
 AssetManager::AssetManager()
 {
@@ -15,5 +15,5 @@ AssetManager::AssetManager()
 	RegisterLoader<Texture>(std::make_unique<TextureLoader>());
 	RegisterLoader<Spritesheet>(std::make_unique<SpritesheetLoader>());
 	RegisterLoader<Animation>(std::make_unique<AnimationLoader>());
-	RegisterLoader<TiledMap>(std::make_unique<TiledMapLoader>());
+	RegisterLoader<TiledMapAsset>(std::make_unique<TiledMapLoader>());
 }
