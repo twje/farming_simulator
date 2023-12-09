@@ -13,9 +13,7 @@
 
 // Forward declarations
 // --------------------------------------------------------------------------------
-class BaseAssetDescriptor;
-class AssetManager;
-class TextureRegion;
+class TileTextureLookup;
 
 // Namespaces
 // --------------------------------------------------------------------------------
@@ -65,7 +63,7 @@ public:
     
     uint32_t GetWidth() const { return mWidth; }
     uint32_t GetHeight() const { return mHeight; }
-    uint32_t GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }
+    uint32_t GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }    
 
 private:
     uint32_t mWidth;
@@ -104,6 +102,8 @@ public:
         : mTiledSetData(std::move(tiledSetData))
     { }
 
+    virtual std::unique_ptr<TileTextureLookup> CreateTileTextureLookup() const = 0;
+
     const std::string& GetName() const { return mTiledSetData.mName; }
     uint32_t GetFirstGid() const { return mTiledSetData.mFirstGid; }
     uint32_t GetTileWidth() const { return mTiledSetData.mTileWidth; }
@@ -127,6 +127,8 @@ public:
           mImageWidth(imageWidth),
           mImageHeight(imageHeight)
     { }
+
+    virtual std::unique_ptr<TileTextureLookup> CreateTileTextureLookup() const override;
 
     // Getters
     const fs::path& GetImageFilePath() const { return mImageFilePath; }
@@ -170,6 +172,8 @@ public:
         , mImageTiles(imageTiles)
     { }
 
+    virtual std::unique_ptr<TileTextureLookup> CreateTileTextureLookup() const override;
+
     const std::vector<ImageTile>& GetImageTiles() const { return mImageTiles; }
 
 private:
@@ -186,7 +190,7 @@ public:
           mHeight(height),
           mTileWidth(tileWidth),
           mTileHeight(tileHeight)
-    { }
+    { }    
 
     // Setters
     TiledLayer& AddLayer(TiledLayer&& layer)

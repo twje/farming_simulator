@@ -10,7 +10,6 @@
 #include "Core/Texture.h"
 #include "Core/TextureRegion.h"
 
-
 // Third party
 #include <SFML/Graphics.hpp>
 #include <yaml-cpp/yaml.h>
@@ -188,16 +187,16 @@ public:
 	{
 		std::vector<std::unique_ptr<BaseAssetDescriptor>> descriptors;
 
-		for (const SpritesheetTiledSet& tileset : mData->GetSpritesheetTiledSets())
+		for (const TiledSet& tileset : mData->GetSpritesheetTiledSets())
 		{	
-			auto tileTextureLookup = std::make_unique<SpritesheetData>(tileset);
+			auto tileTextureLookup = tileset.CreateTileTextureLookup();
 			tileTextureLookup->GetDependencyDescriptors(descriptors);
-			mTileTextureLookupMap.emplace(tileset.GetFirstGid(), std::move(tileTextureLookup));					
+			mTileTextureLookupMap.emplace(tileset.GetFirstGid(), std::move(tileTextureLookup));
 		}
 
-		for (const ImageCollectionTiledSet& tileset : mData->GetImageCollectionTiledSets())
+		for (const TiledSet& tileset : mData->GetImageCollectionTiledSets())
 		{
-			auto tileTextureLookup = std::make_unique<TextureListData>(tileset);
+			auto tileTextureLookup = tileset.CreateTileTextureLookup();
 			tileTextureLookup->GetDependencyDescriptors(descriptors);
 			mTileTextureLookupMap.emplace(tileset.GetFirstGid(), std::move(tileTextureLookup));
 		}
