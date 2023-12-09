@@ -233,10 +233,12 @@ public:
 		return descriptors;
 	}
 
-	const TextureRegion& GetTextureRegion(uint32_t firstGid, uint32_t globalTileId)
+	TextureRegion GetTextureRegion(uint32_t globalTileId) const
 	{
-		const TileTextureLookup* tileTextureLookup = mTileTextureLookupMap.at(firstGid).get();
-		uint32_t localTileId = globalTileId - firstGid;
+		const TiledSet& tiledSet = mData->GetTiledSet(globalTileId);
+		uint32_t localTileId = globalTileId - tiledSet.GetFirstGid();
+
+		const TileTextureLookup* tileTextureLookup = mTileTextureLookupMap.at(tiledSet.GetFirstGid()).get();
 		return tileTextureLookup->GetTextureRegion(localTileId);
 	}
 
@@ -263,11 +265,7 @@ private:
 			return;
 		}
 
-		const TiledSet& tiledSet = mData->GetTiledSet(globalTileId);
-		const TileTextureLookup* tileTextureLookup = mTileTextureLookupMap.at(tiledSet.GetFirstGid()).get();
-		uint32_t localTileId = globalTileId - tiledSet.GetFirstGid();
-		
-		const TextureRegion& textureRegion = tileTextureLookup->GetTextureRegion(localTileId);
+		const TextureRegion& textureRegion = GetTextureRegion(globalTileId);
 		sf::Sprite sprite(*textureRegion.GetTexture(), textureRegion.GetRegion());
 		sprite.setPosition(sf::Vector2f(x * tileWidth, y * tileHeight));
 		window.draw(sprite);
