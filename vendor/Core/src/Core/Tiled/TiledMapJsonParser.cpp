@@ -103,14 +103,11 @@
             fs::path relativeImageFilePath(ExtractString(tilesetData, "image"));
             fs::path absoluteImageFilePath = fs::absolute(relativeTilesetDirectory / relativeImageFilePath);
 
-            SpritesheetTiledSet tiledSet(
-                std::move(tiledSetData),
-                absoluteImageFilePath, 
-                ExtractUInt32(tilesetData, "imageheight"),
-                ExtractUInt32(tilesetData, "imagewidth")
-            );
-
-            tiledMap.AddSpritesheetTiledSet(std::move(tiledSet));
+            auto tiledSet = std::make_unique<SpritesheetTiledSet>(std::move(tiledSetData),
+                                                                  absoluteImageFilePath, 
+                                                                  ExtractUInt32(tilesetData, "imageheight"),
+                                                                  ExtractUInt32(tilesetData, "imagewidth"));
+            tiledMap.AddTiledSet(std::move(tiledSet));
         }
         // Image Collection TiledSet
         else
@@ -130,8 +127,8 @@
                 imageTiles.emplace_back(tile);
             }
 
-            ImageCollectionTiledSet tiledSet(std::move(tiledSetData), std::move(imageTiles));
-            tiledMap.AddImageCollectionTiledSet(std::move(tiledSet));
+            auto tiledSet = std::make_unique<ImageCollectionTiledSet>(std::move(tiledSetData), std::move(imageTiles));
+            tiledMap.AddTiledSet(std::move(tiledSet));
         }
     }
 }

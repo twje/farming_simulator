@@ -200,19 +200,11 @@ public:
         return mLayers.back();
     }
 
-    SpritesheetTiledSet& AddSpritesheetTiledSet(SpritesheetTiledSet&& tileSet)
+    void AddTiledSet(std::unique_ptr<TiledSet> tileSet)
     {
-        auto result = mSpritesheetTiledSetMap.emplace(tileSet.GetFirstGid(), std::move(tileSet));
-        assert(result.second && "Duplicate Spritesheet TileSet");
-        return result.first->second;
-    }
-
-    ImageCollectionTiledSet& AddImageCollectionTiledSet(ImageCollectionTiledSet&& tileSet)
-    {
-        auto result = mImageCollectionTiledSetMap.emplace(tileSet.GetFirstGid(), std::move(tileSet));
-        assert(result.second && "Duplicate Spritesheet TileSet");
-        return result.first->second;
-    }
+        auto result = mTiledSetMap.emplace(tileSet->GetFirstGid(), std::move(tileSet));
+        assert(result.second && "Duplicate Spritesheet TileSet");        
+    }    
 
     // Getters
     fs::path GetFilePath() { return mFilePath; }
@@ -221,59 +213,59 @@ public:
     uint32_t GetMapWidth() const { return mWidth * mTileWidth; }
     uint32_t GetMapHeight() const { return mHeight * mTileHeight; }
     
-    std::vector<std::reference_wrapper<const SpritesheetTiledSet>> GetSpritesheetTiledSets() const
-    {
-        std::vector<std::reference_wrapper<const SpritesheetTiledSet>> tileSets;
-        for (const auto& pair : mSpritesheetTiledSetMap)
-        {
-            tileSets.push_back(pair.second);
-        }
-        return tileSets;
-    }
+    //std::vector<std::reference_wrapper<const SpritesheetTiledSet>> GetTiledSets() const
+    //{
+    //    std::vector<std::reference_wrapper<const SpritesheetTiledSet>> tileSets;
+    //    for (const auto& pair : mSpritesheetTiledSetMap)
+    //    {
+    //        tileSets.push_back(pair.second);
+    //    }
+    //    return tileSets;
+    //}
 
-    std::vector<std::reference_wrapper<const ImageCollectionTiledSet>> GetImageCollectionTiledSets() const
-    {
-        std::vector<std::reference_wrapper<const ImageCollectionTiledSet>> tileSets;
-        for (const auto& pair : mImageCollectionTiledSetMap)
-        {
-            tileSets.push_back(pair.second);
-        }
-        return tileSets;
-    }
+    //std::vector<std::reference_wrapper<const ImageCollectionTiledSet>> GetImageCollectionTiledSets() const
+    //{
+    //    std::vector<std::reference_wrapper<const ImageCollectionTiledSet>> tileSets;
+    //    for (const auto& pair : mImageCollectionTiledSetMap)
+    //    {
+    //        tileSets.push_back(pair.second);
+    //    }
+    //    return tileSets;
+    //}
 
     const std::vector<TiledLayer>& GetTiledLayers() const
     {
         return mLayers;
     }
 
-    const SpritesheetTiledSet& GetSpritesheetTiledSet(uint32_t globalTileId) const
-    {     
-        assert(globalTileId != 0 && "Invalid tile id");
-        const SpritesheetTiledSet* result = nullptr;
+    //const SpritesheetTiledSet& GetSpritesheetTiledSet(uint32_t globalTileId) const
+    //{     
+    //    assert(globalTileId != 0 && "Invalid tile id");
+    //    const SpritesheetTiledSet* result = nullptr;
 
-        uint32_t closestValue = std::numeric_limits<uint32_t>::max();
-        for (const auto& pair : mSpritesheetTiledSetMap)
-        {            
-            if (globalTileId >= pair.first)
-            {   
-                uint32_t distance = globalTileId - pair.first;
-                if (closestValue >= distance)
-                {
-                    closestValue = distance;
-                    result = &pair.second;
-                }                
-            }
-        }
-        return *result;
-    }
+    //    uint32_t closestValue = std::numeric_limits<uint32_t>::max();
+    //    for (const auto& pair : mSpritesheetTiledSetMap)
+    //    {            
+    //        if (globalTileId >= pair.first)
+    //        {   
+    //            uint32_t distance = globalTileId - pair.first;
+    //            if (closestValue >= distance)
+    //            {
+    //                closestValue = distance;
+    //                result = &pair.second;
+    //            }                
+    //        }
+    //    }
+    //    return *result;
+    //}
 
-    const ImageCollectionTiledSet& GetImageCollectionTiledSet(uint32_t globalTileId) const
+    const TiledSet& GetTiledSet(uint32_t globalTileId) const
     {
         assert(globalTileId != 0 && "Invalid tile id");
-        const ImageCollectionTiledSet* result = nullptr;
+        const TiledSet* result = nullptr;
 
         uint32_t closestValue = std::numeric_limits<uint32_t>::max();
-        for (const auto& pair : mImageCollectionTiledSetMap)
+        for (const auto& pair : mTiledSetMap)
         {
             if (globalTileId >= pair.first)
             {
@@ -281,11 +273,21 @@ public:
                 if (closestValue >= distance)
                 {
                     closestValue = distance;
-                    result = &pair.second;
+                    result = pair.second.get();
                 }
             }
         }
         return *result;
+    }
+
+    std::vector<std::reference_wrapper<const TiledSet>> GetTiledSets() const
+    {
+        std::vector<std::reference_wrapper<const TiledSet>> tileSets;
+        for (const auto& pair : mTiledSetMap)
+        {
+            tileSets.push_back(*pair.second.get());
+        }
+        return tileSets;
     }
 
 private:
@@ -305,6 +307,5 @@ private:
     uint32_t mTileWidth;
     uint32_t mTileHeight;
     std::vector<TiledLayer> mLayers;
-    std::map<uint32_t, SpritesheetTiledSet> mSpritesheetTiledSetMap;
-    std::map<uint32_t, ImageCollectionTiledSet> mImageCollectionTiledSetMap;
+    std::map<uint32_t, std::unique_ptr<TiledSet>> mTiledSetMap;
 };

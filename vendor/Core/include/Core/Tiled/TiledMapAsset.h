@@ -186,15 +186,8 @@ public:
 	{
 		std::vector<std::unique_ptr<BaseAssetDescriptor>> descriptors;
 
-		for (const TiledSet& tileset : mData->GetSpritesheetTiledSets())
+		for (const TiledSet& tileset : mData->GetTiledSets())
 		{	
-			auto tileTextureLookup = tileset.CreateTileTextureLookup();
-			tileTextureLookup->GetDependencyDescriptors(descriptors);
-			mTileTextureLookupMap.emplace(tileset.GetFirstGid(), std::move(tileTextureLookup));
-		}
-
-		for (const TiledSet& tileset : mData->GetImageCollectionTiledSets())
-		{
 			auto tileTextureLookup = tileset.CreateTileTextureLookup();
 			tileTextureLookup->GetDependencyDescriptors(descriptors);
 			mTileTextureLookupMap.emplace(tileset.GetFirstGid(), std::move(tileTextureLookup));
@@ -203,10 +196,10 @@ public:
 		return descriptors;
 	}
 
-	const SpritesheetTiledSet& GetSpritesheetTiledSet(uint32_t globalTileId) const
-	{
-		return mData->GetSpritesheetTiledSet(globalTileId);
-	}
+	//const SpritesheetTiledSet& GetSpritesheetTiledSet(uint32_t globalTileId) const
+	//{
+	//	return mData->GetSpritesheetTiledSet(globalTileId);
+	//}
 
 	const TextureRegion& GetTextureRegion(uint32_t firstGid, uint32_t globalTileId)
 	{
@@ -245,7 +238,7 @@ private:
 			return;
 		}
 
-		const SpritesheetTiledSet& tiledSet = mData->GetSpritesheetTiledSet(globalTileId);
+		const TiledSet& tiledSet = mData->GetTiledSet(globalTileId);
 		const TileTextureLookup* tileTextureLookup = mTileTextureLookupMap.at(tiledSet.GetFirstGid()).get();
 		uint32_t localTileId = globalTileId - tiledSet.GetFirstGid();
 		
