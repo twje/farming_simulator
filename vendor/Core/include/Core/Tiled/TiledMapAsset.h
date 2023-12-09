@@ -14,11 +14,6 @@
 #include <SFML/Graphics.hpp>
 #include <yaml-cpp/yaml.h>
 
-// System
-#include <filesystem>
-#include <functional>
-#include <iostream>
-
 namespace fs = std::filesystem;
 
 //------------------------------------------------------------------------------
