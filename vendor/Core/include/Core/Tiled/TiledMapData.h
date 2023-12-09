@@ -59,10 +59,26 @@ private:
 };
 
 // --------------------------------------------------------------------------------
+class Tile : public TiledMapElement
+{
+public:
+    Tile(uint32_t gid)
+        : mGid(gid)
+    { }
+
+    uint32_t GetGlobalId() const { return mGid; }
+
+    virtual void Visit(TiledMapElementVisitor& visitor) const override;
+
+private:
+    uint32_t mGid;
+};
+
+// --------------------------------------------------------------------------------
 class TiledLayer : public Layer
 {
 public:
-    TiledLayer(LayerData&& layerData, uint32_t height, uint32_t width, std::vector<uint32_t>&& tiles)
+    TiledLayer(LayerData&& layerData, uint32_t height, uint32_t width, std::vector<Tile>&& tiles)
         : Layer(std::move(layerData)),
           mWidth(width),
           mHeight(height),
@@ -71,14 +87,14 @@ public:
     
     uint32_t GetWidth() const { return mWidth; }
     uint32_t GetHeight() const { return mHeight; }
-    uint32_t GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }    
+    const Tile& GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }
 
     virtual void Visit(TiledMapElementVisitor& visitor) const override;
 
 private:
     uint32_t mWidth;
     uint32_t mHeight;
-    std::vector<uint32_t> mTiles;
+    std::vector<Tile> mTiles;
 };
 
 // --------------------------------------------------------------------------------
@@ -151,7 +167,7 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class ImageTile
+class ImageTile  // TODO: confusing as this belongs to a tiledset not a layer (rename)
 {
 public:
     ImageTile(uint32_t mId, const fs::path& imagefilePath, uint32_t imageHeight, uint32_t imageWidth)
@@ -284,4 +300,5 @@ public:
     virtual void Accept(const TiledLayer& element) { }
     virtual void Accept(const SpritesheetTiledSet& element) { }
     virtual void Accept(const ImageCollectionTiledSet& element) { }
+    virtual void Accept(const Tile& element) { }
 };

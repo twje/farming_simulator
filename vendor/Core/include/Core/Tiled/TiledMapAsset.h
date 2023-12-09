@@ -289,7 +289,7 @@ private:
 
 	void DrawTile(sf::RenderWindow& window, const TiledLayer& layer, size_t x, size_t y, uint32_t tileWidth, uint32_t tileHeight) 
 	{
-		uint32_t globalTileId = layer.GetTile(x, y);
+		uint32_t globalTileId = layer.GetTile(x, y).GetGlobalId();
 		if (globalTileId == 0)
 		{
 			return;
