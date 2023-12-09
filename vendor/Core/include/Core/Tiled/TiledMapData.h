@@ -212,52 +212,11 @@ public:
     uint32_t GetTileHeight() const { return mTileHeight; }
     uint32_t GetMapWidth() const { return mWidth * mTileWidth; }
     uint32_t GetMapHeight() const { return mHeight * mTileHeight; }
-    
-    //std::vector<std::reference_wrapper<const SpritesheetTiledSet>> GetTiledSets() const
-    //{
-    //    std::vector<std::reference_wrapper<const SpritesheetTiledSet>> tileSets;
-    //    for (const auto& pair : mSpritesheetTiledSetMap)
-    //    {
-    //        tileSets.push_back(pair.second);
-    //    }
-    //    return tileSets;
-    //}
-
-    //std::vector<std::reference_wrapper<const ImageCollectionTiledSet>> GetImageCollectionTiledSets() const
-    //{
-    //    std::vector<std::reference_wrapper<const ImageCollectionTiledSet>> tileSets;
-    //    for (const auto& pair : mImageCollectionTiledSetMap)
-    //    {
-    //        tileSets.push_back(pair.second);
-    //    }
-    //    return tileSets;
-    //}
 
     const std::vector<TiledLayer>& GetTiledLayers() const
     {
         return mLayers;
     }
-
-    //const SpritesheetTiledSet& GetSpritesheetTiledSet(uint32_t globalTileId) const
-    //{     
-    //    assert(globalTileId != 0 && "Invalid tile id");
-    //    const SpritesheetTiledSet* result = nullptr;
-
-    //    uint32_t closestValue = std::numeric_limits<uint32_t>::max();
-    //    for (const auto& pair : mSpritesheetTiledSetMap)
-    //    {            
-    //        if (globalTileId >= pair.first)
-    //        {   
-    //            uint32_t distance = globalTileId - pair.first;
-    //            if (closestValue >= distance)
-    //            {
-    //                closestValue = distance;
-    //                result = &pair.second;
-    //            }                
-    //        }
-    //    }
-    //    return *result;
-    //}
 
     const TiledSet& GetTiledSet(uint32_t globalTileId) const
     {
