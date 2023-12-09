@@ -26,19 +26,36 @@ namespace fs = std::filesystem;
 class TileTextureLookup
 {
 public:
-	virtual void Resolve(AssetManager& assetManager) = 0;
+	// Dependency management
+	virtual void GetDependencyDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors) = 0;
+	virtual void ResolveDependencies(AssetManager& assetManager) = 0;
+	
 	virtual TextureRegion GetTextureRegion(uint32_t index) const = 0;
+
+protected:
+	std::string GenerateAssetId(const std::string& filePath)
+	{
+		std::hash<std::string> stringHasher;
+		return std::to_string(stringHasher(filePath));
+	}
 };
 
 //------------------------------------------------------------------------------
 class SpritesheetData : public TileTextureLookup
 {
-public:	
-	SpritesheetData(const std::string& assetId)
-		: mAssetId(assetId)
+public:
+	SpritesheetData(const SpritesheetTiledSet& tileset)
+		: mTileset(tileset)
+		, mSpritesheet{ nullptr }
 	{ }
 	
-	virtual void Resolve(AssetManager& assetManager) override
+	virtual void GetDependencyDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors) override
+	{		
+		AddTextureDescriptor(outDescriptors);
+		AddSpritesheetDescriptor(outDescriptors);
+	}
+
+	virtual void ResolveDependencies(AssetManager& assetManager) override
 	{
 		mSpritesheet = &assetManager.GetAsset<Spritesheet>(mAssetId);
 	}
@@ -49,20 +66,57 @@ public:
 	}	
 
 private:
+	void AddTextureDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors)
+	{
+		const std::string texFilePath = mTileset.GetImageFilePath().string();
+		std::string texAssetId = GenerateAssetId(texFilePath);
+
+		YAML::Emitter texEmitter;
+		texEmitter << YAML::BeginMap << YAML::Key << "filePath" << YAML::Value << texFilePath << YAML::EndMap;
+		auto texNode = YAML::Load(texEmitter.c_str());
+		auto texDescriptor = std::make_unique<AssetMemoryDescriptor<Texture>>(texAssetId, texNode);
+		descriptors.emplace_back(std::move(texDescriptor));
+	}
+
+	void AddSpritesheetDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors)
+	{
+		const std::string texFilePath = mTileset.GetImageFilePath().string();
+		mAssetId = GenerateAssetId(texFilePath + "_spt");
+
+		YAML::Emitter sptEmitter;
+		sptEmitter << YAML::BeginMap;
+		sptEmitter << YAML::Key << "textureId" << YAML::Value << GenerateAssetId(texFilePath);
+		sptEmitter << YAML::Key << "cols" << YAML::Value << mTileset.GetColumns();
+		sptEmitter << YAML::Key << "rows" << YAML::Value << mTileset.GetRows();
+		sptEmitter << YAML::Key << "margin" << YAML::Value << mTileset.GetMargin();
+		sptEmitter << YAML::Key << "spacing" << YAML::Value << mTileset.GetSpacing();
+		sptEmitter << YAML::EndMap;
+
+		auto sptNode = YAML::Load(sptEmitter.c_str());
+		auto sptDescriptor = std::make_unique<AssetMemoryDescriptor<Spritesheet>>(mAssetId, sptNode);
+		descriptors.emplace_back(std::move(sptDescriptor));
+	}
+
+private:
+	const SpritesheetTiledSet& mTileset;
+	Spritesheet* mSpritesheet;
 	std::string mAssetId;
-	Spritesheet* mSpritesheet{ nullptr };
 };
 
 //------------------------------------------------------------------------------
 class TextureListData : public TileTextureLookup
 {
 public:
-	void AddTextureReference(const std::string& assetId)
-	{ 
-		mTextures.push_back({ assetId , nullptr });
+	TextureListData(const ImageCollectionTiledSet& tileset)
+		: mTileset(tileset)
+	{ }
+
+	virtual void GetDependencyDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors) override
+	{
+		AddTextureDescriptors(outDescriptors);
 	}
 
-	virtual void Resolve(AssetManager& assetManager) override
+	virtual void ResolveDependencies(AssetManager& assetManager) override
 	{
 		for (auto& pair : mTextures)
 		{
@@ -77,7 +131,30 @@ public:
 	}
 
 private:
-	std::string mAssetId;
+	void AddTextureDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors)
+	{		
+		for (const ImageTile& imageTile : mTileset.GetImageTiles())
+		{
+			const std::string texFilePath = imageTile.GetImageFilePath().string();
+			std::string texAssetId = GenerateAssetId(texFilePath);
+
+			YAML::Emitter texEmitter;
+			texEmitter << YAML::BeginMap << YAML::Key << "filePath" << YAML::Value << texFilePath << YAML::EndMap;
+			auto texNode = YAML::Load(texEmitter.c_str());
+			auto texDescriptor = std::make_unique<AssetMemoryDescriptor<Texture>>(texAssetId, texNode);
+			descriptors.emplace_back(std::move(texDescriptor));
+
+			AddTextureReference(texAssetId);
+		}
+	}
+	
+	void AddTextureReference(const std::string& assetId)
+	{
+		mTextures.push_back({ assetId , nullptr });
+	}
+
+private:
+	const ImageCollectionTiledSet& mTileset;
 	std::vector<std::pair<std::string, Texture*>> mTextures;
 };
 
@@ -102,23 +179,27 @@ public:
 	{
 		for (auto& pair : mTileTextureLookupMap)
 		{
-			TileTextureLookup* spritesheetData = pair.second.get();
-			spritesheetData->Resolve(assetManager);
+			TileTextureLookup* tileTextureLookup = pair.second.get();
+			tileTextureLookup->ResolveDependencies(assetManager);
 		}
 	}
 
 	virtual std::vector<std::unique_ptr<BaseAssetDescriptor>> GetDependencyDescriptors()
 	{
 		std::vector<std::unique_ptr<BaseAssetDescriptor>> descriptors;
+
 		for (const SpritesheetTiledSet& tileset : mData->GetSpritesheetTiledSets())
-		{
-			AddTextureDescriptor(descriptors, tileset);
-			AddSpritesheetDescriptor(descriptors, tileset);
+		{	
+			auto tileTextureLookup = std::make_unique<SpritesheetData>(tileset);
+			tileTextureLookup->GetDependencyDescriptors(descriptors);
+			mTileTextureLookupMap.emplace(tileset.GetFirstGid(), std::move(tileTextureLookup));					
 		}
 
 		for (const ImageCollectionTiledSet& tileset : mData->GetImageCollectionTiledSets())
 		{
-			AddTextureDescriptor(descriptors, tileset);
+			auto tileTextureLookup = std::make_unique<TextureListData>(tileset);
+			tileTextureLookup->GetDependencyDescriptors(descriptors);
+			mTileTextureLookupMap.emplace(tileset.GetFirstGid(), std::move(tileTextureLookup));
 		}
 
 		return descriptors;
@@ -179,64 +260,6 @@ private:
 	int32_t Clamp(int32_t minValue, int32_t maxValue, int32_t value)
 	{
 		return std::min(maxValue, std::max(minValue, value));
-	}
-
-	void AddTextureDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors, const ImageCollectionTiledSet& tileset)
-	{
-		TextureListData* textureListData = new TextureListData();
-		for (const ImageTile& imageTile : tileset.GetImageTiles())
-		{
-			const std::string texFilePath = imageTile.GetImageFilePath().string();
-			std::string texAssetId = GenerateAssetId(texFilePath);
-
-			YAML::Emitter texEmitter;
-			texEmitter << YAML::BeginMap << YAML::Key << "filePath" << YAML::Value << texFilePath << YAML::EndMap;
-			auto texNode = YAML::Load(texEmitter.c_str());
-			auto texDescriptor = std::make_unique<AssetMemoryDescriptor<Texture>>(texAssetId, texNode);
-			descriptors.emplace_back(std::move(texDescriptor));
-
-			textureListData->AddTextureReference(texAssetId);
-		}
-		mTileTextureLookupMap.emplace(tileset.GetFirstGid(), textureListData);
-	}
-
-	void AddTextureDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors, const SpritesheetTiledSet& tileset)
-	{
-		const std::string texFilePath = tileset.GetImageFilePath().string();
-		std::string texAssetId = GenerateAssetId(texFilePath);
-
-		YAML::Emitter texEmitter;
-		texEmitter << YAML::BeginMap << YAML::Key << "filePath" << YAML::Value << texFilePath << YAML::EndMap;
-		auto texNode = YAML::Load(texEmitter.c_str());
-		auto texDescriptor = std::make_unique<AssetMemoryDescriptor<Texture>>(texAssetId, texNode);
-		descriptors.emplace_back(std::move(texDescriptor));
-	}
-	
-	void AddSpritesheetDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors, const SpritesheetTiledSet& tileset) 
-	{
-		const std::string texFilePath = tileset.GetImageFilePath().string();
-		std::string sptAssetId = GenerateAssetId(texFilePath + "_spt");
-
-		YAML::Emitter sptEmitter;
-		sptEmitter << YAML::BeginMap;
-		sptEmitter << YAML::Key << "textureId" << YAML::Value << GenerateAssetId(texFilePath);
-		sptEmitter << YAML::Key << "cols" << YAML::Value << tileset.GetColumns();
-		sptEmitter << YAML::Key << "rows" << YAML::Value << tileset.GetRows();
-		sptEmitter << YAML::Key << "margin" << YAML::Value << tileset.GetMargin();
-		sptEmitter << YAML::Key << "spacing" << YAML::Value << tileset.GetSpacing();
-		sptEmitter << YAML::EndMap;
-
-		auto sptNode = YAML::Load(sptEmitter.c_str());
-		auto sptDescriptor = std::make_unique<AssetMemoryDescriptor<Spritesheet>>(sptAssetId, sptNode);
-		descriptors.emplace_back(std::move(sptDescriptor));
-
-		mTileTextureLookupMap.emplace(tileset.GetFirstGid(), std::make_unique<SpritesheetData>(sptAssetId));
-	}
-
-	std::string GenerateAssetId(const std::string& filePath) 
-	{
-		std::hash<std::string> stringHasher;
-		return std::to_string(stringHasher(filePath));
 	}
 
 private:
