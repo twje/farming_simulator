@@ -45,7 +45,7 @@ class SpritesheetData : public TileTextureLookup
 public:
 	SpritesheetData(const SpritesheetTiledSet& tileset)
 		: mTileset(tileset)
-		, mSpritesheet{ nullptr }
+		, mSpritesheet{ "", nullptr}
 	{ }
 	
 	virtual void GetDependencyDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors) override
@@ -56,12 +56,12 @@ public:
 
 	virtual void ResolveDependencies(AssetManager& assetManager) override
 	{
-		mSpritesheet = &assetManager.GetAsset<Spritesheet>(mAssetId);
+		mSpritesheet.second = &assetManager.GetAsset<Spritesheet>(mSpritesheet.first);
 	}
 
 	virtual TextureRegion GetTextureRegion(uint32_t index) const override
 	{
-		return mSpritesheet->GetTextureRegion(index);
+		return mSpritesheet.second->GetTextureRegion(index);
 	}	
 
 private:
@@ -80,7 +80,7 @@ private:
 	void AddSpritesheetDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors)
 	{
 		const std::string texFilePath = mTileset.GetImageFilePath().string();
-		mAssetId = GenerateAssetId(texFilePath + "_spt");
+		mSpritesheet.first = GenerateAssetId(texFilePath + "_spt");
 
 		YAML::Emitter sptEmitter;
 		sptEmitter << YAML::BeginMap;
@@ -92,14 +92,13 @@ private:
 		sptEmitter << YAML::EndMap;
 
 		auto sptNode = YAML::Load(sptEmitter.c_str());
-		auto sptDescriptor = std::make_unique<AssetMemoryDescriptor<Spritesheet>>(mAssetId, sptNode);
+		auto sptDescriptor = std::make_unique<AssetMemoryDescriptor<Spritesheet>>(mSpritesheet.first, sptNode);
 		descriptors.emplace_back(std::move(sptDescriptor));
 	}
 
 private:
 	const SpritesheetTiledSet& mTileset;
-	Spritesheet* mSpritesheet;
-	std::string mAssetId;
+	std::pair<std::string, Spritesheet*> mSpritesheet;	
 };
 
 //------------------------------------------------------------------------------
