@@ -14,10 +14,18 @@
 // Forward declarations
 // --------------------------------------------------------------------------------
 class TileTextureLookup;
+class TiledMapElementVisitor;
 
 // Namespaces
 // --------------------------------------------------------------------------------
 namespace fs = std::filesystem;
+
+// --------------------------------------------------------------------------------
+class TiledMapElement
+{
+public:
+    virtual void Visit(TiledMapElementVisitor& visitor) const = 0;
+};
 
 // --------------------------------------------------------------------------------
 class LayerData
@@ -36,7 +44,7 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class Layer
+class Layer : public TiledMapElement
 {
 public:
     Layer(LayerData&& layerData)
@@ -64,6 +72,8 @@ public:
     uint32_t GetWidth() const { return mWidth; }
     uint32_t GetHeight() const { return mHeight; }
     uint32_t GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }    
+
+    virtual void Visit(TiledMapElementVisitor& visitor) const override;
 
 private:
     uint32_t mWidth;
@@ -95,14 +105,12 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class TiledSet
+class TiledSet : public TiledMapElement
 {
 public:
     TiledSet(TiledSetData&& tiledSetData)
         : mTiledSetData(std::move(tiledSetData))
-    { }
-
-    virtual std::unique_ptr<TileTextureLookup> CreateTileTextureLookup() const = 0;
+    { }    
 
     const std::string& GetName() const { return mTiledSetData.mName; }
     uint32_t GetFirstGid() const { return mTiledSetData.mFirstGid; }
@@ -128,13 +136,13 @@ public:
           mImageHeight(imageHeight)
     { }
 
-    virtual std::unique_ptr<TileTextureLookup> CreateTileTextureLookup() const override;
-
     // Getters
     const fs::path& GetImageFilePath() const { return mImageFilePath; }
     uint32_t GetImageWidth() const { return mImageWidth; }
     uint32_t GetImageHeight() const { return mImageHeight; }
     uint32_t GetRows() const { return GetTileCount() / GetColumns(); }
+
+    virtual void Visit(TiledMapElementVisitor& visitor) const override;
 
 private:
     fs::path mImageFilePath;    
@@ -172,9 +180,9 @@ public:
         , mImageTiles(imageTiles)
     { }
 
-    virtual std::unique_ptr<TileTextureLookup> CreateTileTextureLookup() const override;
-
     const std::vector<ImageTile>& GetImageTiles() const { return mImageTiles; }
+
+    virtual void Visit(TiledMapElementVisitor& visitor) const override;
 
 private:
     std::vector<ImageTile> mImageTiles;
@@ -267,4 +275,13 @@ private:
     uint32_t mTileHeight;
     std::vector<TiledLayer> mLayers;
     std::map<uint32_t, std::unique_ptr<TiledSet>> mTiledSetMap;
+};
+
+// --------------------------------------------------------------------------------
+class TiledMapElementVisitor
+{
+public:
+    virtual void Accept(const TiledLayer& element) { }
+    virtual void Accept(const SpritesheetTiledSet& element) { }
+    virtual void Accept(const ImageCollectionTiledSet& element) { }
 };

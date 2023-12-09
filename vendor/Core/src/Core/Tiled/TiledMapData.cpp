@@ -1,14 +1,19 @@
 #include "Core/Tiled/TiledMapData.h"
-#include "Core/Tiled/TiledMapAsset.h"
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<TileTextureLookup> SpritesheetTiledSet::CreateTileTextureLookup() const
+/*virtual*/ void SpritesheetTiledSet::Visit(TiledMapElementVisitor& visitor) const
 {
-    return std::make_unique<SpritesheetData>(*this);
+    visitor.Accept(*this);
 }
 
 // --------------------------------------------------------------------------------
-std::unique_ptr<TileTextureLookup> ImageCollectionTiledSet::CreateTileTextureLookup() const
+/*virtual*/ void ImageCollectionTiledSet::Visit(TiledMapElementVisitor& visitor) const
 {
-    return std::make_unique<TextureListData>(*this);
+    visitor.Accept(*this);
+}
+
+// --------------------------------------------------------------------------------
+/*virtual*/ void TiledLayer::Visit(TiledMapElementVisitor& visitor) const
+{
+    visitor.Accept(*this);
 }
