@@ -10,6 +10,8 @@ Application::Application(std::unique_ptr<IApplicationListener> listener, Applica
 	  mWindow(sf::VideoMode(sf::Vector2u(config.mWidth, config.mHeight), config.mBPP), config.mCaption),
       mResourceLocator(config)
 {
+    mWindow.setVerticalSyncEnabled(true);    
+
 	mListener->SetLayerStack(&mLayerStack);
 	mListener->SetResourceLocator(&mResourceLocator);
 	mListener->Create();

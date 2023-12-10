@@ -207,8 +207,8 @@ public:
 			mDirection = mDirection.normalized();
 		}
 
-		MoveX(mDirection.x * timestamp.asSeconds() * mSpeed);
-		MoveY(mDirection.y * timestamp.asSeconds() * mSpeed);
+		MoveX(static_cast<int32_t>(mDirection.x * timestamp.asSeconds() * mSpeed));
+		MoveY(static_cast<int32_t>(mDirection.y * timestamp.asSeconds() * mSpeed));
 	}
 
 	void Animate(const sf::Time& timestamp)
