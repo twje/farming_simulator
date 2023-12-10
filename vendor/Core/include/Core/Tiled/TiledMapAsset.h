@@ -153,13 +153,10 @@ private:
 class TiledTextureManager : public TiledMapElementVisitor
 {
 public:
-	TiledTextureManager(TiledMapData& map)
-		: mMap(map)
-	{ }
-
-	void GetDependencyDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors)
+	void GetDependencyDescriptors(const std::vector<std::reference_wrapper<const TiledSet>>& tilesets, 
+								  std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors)
 	{
-		for (const TiledSet& tileset : mMap.GetTiledSets())
+		for (const TiledSet& tileset : tilesets)
 		{
 			tileset.Visit(*this);
 		}
@@ -179,12 +176,10 @@ public:
 		}
 	}
 
-	TextureRegion GetTextureRegion(uint32_t globalTileId) const
+	TextureRegion GetTextureRegion(uint32_t firstGid, uint32_t gid) const
 	{
-		const TiledSet& tiledSet = mMap.GetTiledSet(globalTileId);
-		uint32_t localTileId = globalTileId - tiledSet.GetFirstGid();
-
-		const TileTextureResolver* resolver = mResourceMap.at(tiledSet.GetFirstGid()).get();
+		uint32_t localTileId = gid - firstGid;
+		const TileTextureResolver* resolver = mResourceMap.at(firstGid).get();
 		return resolver->GetTextureRegion(localTileId);
 	}
 
@@ -203,7 +198,6 @@ private:
 
 private:
 	std::unordered_map<uint32_t, std::unique_ptr<TileTextureResolver>> mResourceMap;
-	TiledMapData& mMap;
 };
 
 //------------------------------------------------------------------------------
@@ -211,14 +205,13 @@ class TiledMapAsset : public Asset, private NonCopyableNonMovableMarker
 {
 public:
 	TiledMapAsset(std::unique_ptr<TiledMapData> data)
-		: mData(std::move(data))
-		, mTiledTextureManager(*mData.get())
+		: mData(std::move(data))		
 	{ }
 
 	virtual std::vector<std::unique_ptr<BaseAssetDescriptor>> GetDependencyDescriptors() override
 	{		
 		std::vector<std::unique_ptr<BaseAssetDescriptor>> descriptors;
-		mTiledTextureManager.GetDependencyDescriptors(descriptors);
+		mTiledTextureManager.GetDependencyDescriptors(mData->GetTiledSets(), descriptors);
 		return descriptors;
 	}
 
@@ -229,7 +222,8 @@ public:
 
 	TextureRegion GetTextureRegion(uint32_t globalTileId) const
 	{
-		return mTiledTextureManager.GetTextureRegion(globalTileId);
+		const TiledSet& tiledSet = mData->GetTiledSet(globalTileId);
+		return mTiledTextureManager.GetTextureRegion(tiledSet.GetFirstGid(), globalTileId);
 	}
 
 	// Getters
