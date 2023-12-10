@@ -15,7 +15,7 @@
 #include <yaml-cpp/yaml.h>
 
 //------------------------------------------------------------------------------
-class TileTextureLookup
+class TileTextureResolver
 {
 public:
 	// Dependency management
@@ -33,10 +33,10 @@ protected:
 };
 
 //------------------------------------------------------------------------------
-class SpritesheetData : public TileTextureLookup
+class SpritesheetTextureProvider : public TileTextureResolver
 {
 public:
-	SpritesheetData(const SpritesheetTiledSet& tileset)
+	SpritesheetTextureProvider(const SpritesheetTiledSet& tileset)
 		: mTileset(tileset)
 		, mSpritesheet{ "", nullptr}
 	{ }
@@ -95,10 +95,10 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class TextureListData : public TileTextureLookup
+class IndividualTextureProvider : public TileTextureResolver
 {
 public:
-	TextureListData(const ImageCollectionTiledSet& tileset)
+	IndividualTextureProvider(const ImageCollectionTiledSet& tileset)
 		: mTileset(tileset)
 	{ }
 
@@ -150,10 +150,10 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class TextureLocator : public TiledMapElementVisitor
+class TiledTextureManager : public TiledMapElementVisitor
 {
 public:
-	TextureLocator(TiledMapData& map)
+	TiledTextureManager(TiledMapData& map)
 		: mMap(map)
 	{ }
 
@@ -174,8 +174,8 @@ public:
 	{
 		for (auto& pair : mResourceMap)
 		{
-			TileTextureLookup* tileTextureLookup = pair.second.get();
-			tileTextureLookup->ResolveDependencies(assetManager);
+			TileTextureResolver* provider = pair.second.get();
+			provider->ResolveDependencies(assetManager);
 		}
 	}
 
@@ -184,25 +184,25 @@ public:
 		const TiledSet& tiledSet = mMap.GetTiledSet(globalTileId);
 		uint32_t localTileId = globalTileId - tiledSet.GetFirstGid();
 
-		const TileTextureLookup* tileTextureLookup = mResourceMap.at(tiledSet.GetFirstGid()).get();
-		return tileTextureLookup->GetTextureRegion(localTileId);
+		const TileTextureResolver* resolver = mResourceMap.at(tiledSet.GetFirstGid()).get();
+		return resolver->GetTextureRegion(localTileId);
 	}
 
 private:
 	virtual void Accept(const SpritesheetTiledSet& element) override
 	{
-		auto tileTextureLookup = std::make_unique<SpritesheetData>(element);
-		mResourceMap.emplace(element.GetFirstGid(), std::move(tileTextureLookup));
+		auto provider = std::make_unique<SpritesheetTextureProvider>(element);
+		mResourceMap.emplace(element.GetFirstGid(), std::move(provider));
 	}
 	
 	virtual void Accept(const ImageCollectionTiledSet& element) override
 	{
-		auto tileTextureLookup = std::make_unique<TextureListData>(element);
-		mResourceMap.emplace(element.GetFirstGid(), std::move(tileTextureLookup));
+		auto provider = std::make_unique<IndividualTextureProvider>(element);
+		mResourceMap.emplace(element.GetFirstGid(), std::move(provider));
 	}
 
 private:
-	std::unordered_map<uint32_t, std::unique_ptr<TileTextureLookup>> mResourceMap;
+	std::unordered_map<uint32_t, std::unique_ptr<TileTextureResolver>> mResourceMap;
 	TiledMapData& mMap;
 };
 
@@ -212,24 +212,24 @@ class TiledMapAsset : public Asset, private NonCopyableNonMovableMarker
 public:
 	TiledMapAsset(std::unique_ptr<TiledMapData> data)
 		: mData(std::move(data))
-		, mTextureLocator(*mData.get())
+		, mTiledTextureManager(*mData.get())
 	{ }
 
 	virtual std::vector<std::unique_ptr<BaseAssetDescriptor>> GetDependencyDescriptors() override
 	{		
 		std::vector<std::unique_ptr<BaseAssetDescriptor>> descriptors;
-		mTextureLocator.GetDependencyDescriptors(descriptors);
+		mTiledTextureManager.GetDependencyDescriptors(descriptors);
 		return descriptors;
 	}
 
 	virtual void ResolveAssetDeps(AssetManager& assetManager) override
 	{
-		mTextureLocator.ResolveDependencies(assetManager);
+		mTiledTextureManager.ResolveDependencies(assetManager);
 	}
 
 	TextureRegion GetTextureRegion(uint32_t globalTileId) const
 	{
-		return mTextureLocator.GetTextureRegion(globalTileId);
+		return mTiledTextureManager.GetTextureRegion(globalTileId);
 	}
 
 	// Getters
@@ -241,5 +241,5 @@ public:
 
 private:
 	std::unique_ptr<TiledMapData> mData;
-	TextureLocator mTextureLocator;
+	TiledTextureManager mTiledTextureManager;
 };
