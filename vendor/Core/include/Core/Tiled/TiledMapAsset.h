@@ -14,12 +14,6 @@
 #include <SFML/Graphics.hpp>
 #include <yaml-cpp/yaml.h>
 
-namespace fs = std::filesystem;
-
-// Type Aliases
-//------------------------------------------------------------------------------
-using TileTextureLookupMap = std::unordered_map<uint32_t, std::unique_ptr<TileTextureLookup>>;
-
 //------------------------------------------------------------------------------
 class TileTextureLookup
 {
@@ -156,64 +150,29 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class TileTextureCollector : public TiledMapElementVisitor
+class TextureLocator : public TiledMapElementVisitor
 {
 public:
-	TileTextureCollector(TileTextureLookupMap& tileTextureLookupMap)
-		: mTileTextureLookupMap(tileTextureLookupMap)
+	TextureLocator(TiledMapData& map)
+		: mMap(map)
 	{ }
 
-	virtual void Accept(const SpritesheetTiledSet& element) override
+	void GetDependencyDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors)
 	{
-		auto tileTextureLookup = std::make_unique<SpritesheetData>(element);
-		mTileTextureLookupMap.emplace(element.GetFirstGid(), std::move(tileTextureLookup));
-	}
-	
-	virtual void Accept(const ImageCollectionTiledSet& element) override
-	{
-		auto tileTextureLookup = std::make_unique<TextureListData>(element);
-		mTileTextureLookupMap.emplace(element.GetFirstGid(), std::move(tileTextureLookup));
-	}
-
-private:
-	TileTextureLookupMap& mTileTextureLookupMap;
-};
-
-//------------------------------------------------------------------------------
-class TiledMapAsset : public Asset, private NonCopyableNonMovableMarker
-{
-public:
-	TiledMapAsset(std::unique_ptr<TiledMapData> data)
-		: mData(std::move(data))
-	{ }
-
-	uint32_t GetTileWidth() const { return mData->GetTileWidth(); }
-	uint32_t GetTileHeight() const { return mData->GetTileHeight(); }
-	uint32_t GetMapWidth() const { return mData->GetMapWidth(); }
-	uint32_t GetMapHeight() const { return mData->GetMapHeight(); }
-
-	const std::vector<TiledLayer>& GetTiledLayers() { return mData->GetTiledLayers(); }
-
-	virtual std::vector<std::unique_ptr<BaseAssetDescriptor>> GetDependencyDescriptors() override
-	{
-		TileTextureCollector tileTextureCollector(mTileTextureLookupMap);
-		for (const TiledSet& tileset : mData->GetTiledSets())
+		for (const TiledSet& tileset : mMap.GetTiledSets())
 		{
-			tileset.Visit(tileTextureCollector);
+			tileset.Visit(*this);
 		}
 
-		std::vector<std::unique_ptr<BaseAssetDescriptor>> descriptors;
-		for (const auto& pair : mTileTextureLookupMap)
+		for (const auto& pair : mResourceMap)
 		{
-			pair.second->GetDependencyDescriptors(descriptors);
+			pair.second->GetDependencyDescriptors(outDescriptors);
 		}
-
-		return descriptors;
 	}
 
-	virtual void ResolveAssetDeps(AssetManager& assetManager) override
+	void ResolveDependencies(AssetManager& assetManager)
 	{
-		for (auto& pair : mTileTextureLookupMap)
+		for (auto& pair : mResourceMap)
 		{
 			TileTextureLookup* tileTextureLookup = pair.second.get();
 			tileTextureLookup->ResolveDependencies(assetManager);
@@ -222,14 +181,65 @@ public:
 
 	TextureRegion GetTextureRegion(uint32_t globalTileId) const
 	{
-		const TiledSet& tiledSet = mData->GetTiledSet(globalTileId);
+		const TiledSet& tiledSet = mMap.GetTiledSet(globalTileId);
 		uint32_t localTileId = globalTileId - tiledSet.GetFirstGid();
 
-		const TileTextureLookup* tileTextureLookup = mTileTextureLookupMap.at(tiledSet.GetFirstGid()).get();
+		const TileTextureLookup* tileTextureLookup = mResourceMap.at(tiledSet.GetFirstGid()).get();
 		return tileTextureLookup->GetTextureRegion(localTileId);
 	}
 
 private:
+	virtual void Accept(const SpritesheetTiledSet& element) override
+	{
+		auto tileTextureLookup = std::make_unique<SpritesheetData>(element);
+		mResourceMap.emplace(element.GetFirstGid(), std::move(tileTextureLookup));
+	}
+	
+	virtual void Accept(const ImageCollectionTiledSet& element) override
+	{
+		auto tileTextureLookup = std::make_unique<TextureListData>(element);
+		mResourceMap.emplace(element.GetFirstGid(), std::move(tileTextureLookup));
+	}
+
+private:
+	std::unordered_map<uint32_t, std::unique_ptr<TileTextureLookup>> mResourceMap;
+	TiledMapData& mMap;
+};
+
+//------------------------------------------------------------------------------
+class TiledMapAsset : public Asset, private NonCopyableNonMovableMarker
+{
+public:
+	TiledMapAsset(std::unique_ptr<TiledMapData> data)
+		: mData(std::move(data))
+		, mTextureLocator(*mData.get())
+	{ }
+
+	virtual std::vector<std::unique_ptr<BaseAssetDescriptor>> GetDependencyDescriptors() override
+	{		
+		std::vector<std::unique_ptr<BaseAssetDescriptor>> descriptors;
+		mTextureLocator.GetDependencyDescriptors(descriptors);
+		return descriptors;
+	}
+
+	virtual void ResolveAssetDeps(AssetManager& assetManager) override
+	{
+		mTextureLocator.ResolveDependencies(assetManager);
+	}
+
+	TextureRegion GetTextureRegion(uint32_t globalTileId) const
+	{
+		return mTextureLocator.GetTextureRegion(globalTileId);
+	}
+
+	// Getters
+	uint32_t GetTileWidth() const { return mData->GetTileWidth(); }
+	uint32_t GetTileHeight() const { return mData->GetTileHeight(); }
+	uint32_t GetMapWidth() const { return mData->GetMapWidth(); }
+	uint32_t GetMapHeight() const { return mData->GetMapHeight(); }
+	const std::vector<TiledLayer>& GetTiledLayers() { return mData->GetTiledLayers(); }
+
+private:
 	std::unique_ptr<TiledMapData> mData;
-	TileTextureLookupMap mTileTextureLookupMap;
+	TextureLocator mTextureLocator;
 };
