@@ -48,11 +48,10 @@
                 tiles.emplace_back(tileNode.get<uint32_t>());
             }
             
-            TiledLayer layer(std::move(layerData), 
-                             ExtractUInt32(layerNode, "width"),
-                             ExtractUInt32(layerNode, "height"),
-                             std::move(tiles));
-            
+            auto layer = std::make_unique<TiledLayer>(std::move(layerData), 
+                                                      ExtractUInt32(layerNode, "width"),
+                                                      ExtractUInt32(layerNode, "height"),
+                                                      std::move(tiles));            
             tiledMap.AddLayer(std::move(layer));
         }
         else if (layerType == "objectgroup")

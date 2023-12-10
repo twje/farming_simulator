@@ -98,9 +98,9 @@ public:
     void Draw(sf::RenderWindow& window, const sf::IntRect& screenViewRegion)
     {        
 		TileLayerRenderer renderer(window, mMap, screenViewRegion);
-        for (const TiledLayer& layer : mMap.GetTiledLayers())
+        for (const auto& layerPtr : mMap.GetTiledLayers())
         {
-			renderer.Render(layer);
+			renderer.Render(*layerPtr.get());
         }
     }
 

@@ -232,7 +232,7 @@ public:
 	uint32_t GetTileHeight() const { return mData->GetTileHeight(); }
 	uint32_t GetMapWidth() const { return mData->GetMapWidth(); }
 	uint32_t GetMapHeight() const { return mData->GetMapHeight(); }
-	const std::vector<TiledLayer>& GetTiledLayers() { return mData->GetTiledLayers(); }
+	const std::vector<std::unique_ptr<Layer>>& GetTiledLayers() { return mData->GetTiledLayers(); }
 
 private:
 	std::unique_ptr<TiledMapData> mData;

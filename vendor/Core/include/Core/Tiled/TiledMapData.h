@@ -214,11 +214,10 @@ public:
     { }    
 
     // Setters
-    TiledLayer& AddLayer(TiledLayer&& layer)
+    void AddLayer(std::unique_ptr<Layer> layer)
     {
-        assert(!IsLayerAdded(layer.GetId()) && "Duplicate Layer");
-        mLayers.emplace_back(std::move(layer));
-        return mLayers.back();
+        assert(!IsLayerAdded(layer->GetId()) && "Duplicate Layer");
+        mLayers.emplace_back(std::move(layer));        
     }
 
     void AddTiledSet(std::unique_ptr<TiledSet> tileSet)
@@ -234,7 +233,7 @@ public:
     uint32_t GetMapWidth() const { return mWidth * mTileWidth; }
     uint32_t GetMapHeight() const { return mHeight * mTileHeight; }
 
-    const std::vector<TiledLayer>& GetTiledLayers() const
+    const std::vector<std::unique_ptr<Layer>>& GetTiledLayers() const
     {
         return mLayers;
     }
@@ -273,9 +272,9 @@ public:
 private:
     bool IsLayerAdded(uint32_t layerId)
     {
-        auto itr = std::find_if(mLayers.begin(), mLayers.end(), [layerId](const TiledLayer& obj)
+        auto itr = std::find_if(mLayers.begin(), mLayers.end(), [layerId](const std::unique_ptr<Layer>& obj)
         {
-            return obj.GetId() == layerId;
+            return obj->GetId() == layerId;
         });
         return itr != mLayers.end();
     }
@@ -286,7 +285,7 @@ private:
     uint32_t mHeight;
     uint32_t mTileWidth;
     uint32_t mTileHeight;
-    std::vector<TiledLayer> mLayers;
+    std::vector<std::unique_ptr<Layer>> mLayers;
     std::map<uint32_t, std::unique_ptr<TiledSet>> mTiledSetMap;
 };
 
