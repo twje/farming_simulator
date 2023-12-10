@@ -156,46 +156,6 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class TiledMapViewRegion
-{
-public:
-	TiledMapViewRegion(const TiledMapData& data, const sf::IntRect& screenViewRegion)
-	{
-		uint32_t tileWidth = data.GetTileWidth();
-		uint32_t tileHeight = data.GetTileHeight();
-		uint32_t mapWidth = data.GetMapWidth();
-		uint32_t mapHeight = data.GetMapHeight();
-
-		uint32_t left = screenViewRegion.left;
-		uint32_t top = screenViewRegion.top;
-		uint32_t right = screenViewRegion.left + screenViewRegion.width;
-		uint32_t bottom = screenViewRegion.top + screenViewRegion.height;
-
-		mStartX = Clamp(0, mapWidth, left) / tileWidth;
-		mStartY = Clamp(0, mapHeight, top) / tileHeight;
-		mEndX = std::ceil(static_cast<float>(Clamp(0, mapWidth, right)) / tileWidth);
-		mEndY = std::ceil(static_cast<float>(Clamp(0, mapHeight, bottom)) / tileHeight);
-	}
-
-	size_t GetStartX() const { return mStartX; }
-	size_t GetStartY() const { return mStartY; }
-	size_t GetEndX() const { return mEndX; }
-	size_t GetEndY() const { return mEndY; }
-
-private:
-	int32_t Clamp(int32_t minValue, int32_t maxValue, int32_t value)
-	{
-		return std::min(maxValue, std::max(minValue, value));
-	}
-
-private:
-	size_t mStartX;
-	size_t mStartY;
-	size_t mEndX;
-	size_t mEndY;
-};
-
-//------------------------------------------------------------------------------
 class TileTextureCollector : public TiledMapElementVisitor
 {
 public:
@@ -227,15 +187,12 @@ public:
 		: mData(std::move(data))
 	{ }
 
-	void Draw(sf::RenderWindow& window, const sf::IntRect& screenViewRegion)
-	{
-		TiledMapViewRegion viewRegion(*mData.get(), screenViewRegion);
-		
-		for (const TiledLayer& layer : mData->GetTiledLayers())
-		{
-			DrawLayer(window, layer, viewRegion);
-		}
-	}
+	uint32_t GetTileWidth() const { return mData->GetTileWidth(); }
+	uint32_t GetTileHeight() const { return mData->GetTileHeight(); }
+	uint32_t GetMapWidth() const { return mData->GetMapWidth(); }
+	uint32_t GetMapHeight() const { return mData->GetMapHeight(); }
+
+	const std::vector<TiledLayer>& GetTiledLayers() { return mData->GetTiledLayers(); }
 
 	virtual std::vector<std::unique_ptr<BaseAssetDescriptor>> GetDependencyDescriptors() override
 	{
@@ -270,35 +227,6 @@ public:
 
 		const TileTextureLookup* tileTextureLookup = mTileTextureLookupMap.at(tiledSet.GetFirstGid()).get();
 		return tileTextureLookup->GetTextureRegion(localTileId);
-	}
-
-private:
-	void DrawLayer(sf::RenderWindow& window, const TiledLayer& layer, const TiledMapViewRegion& viewRegion)
-	{
-		uint32_t tileWidth = mData->GetTileWidth();
-		uint32_t tileHeight = mData->GetTileHeight();
-
-		for (size_t y = viewRegion.GetStartY(); y < viewRegion.GetEndY(); y++)
-		{
-			for (size_t x = viewRegion.GetStartX(); x < viewRegion.GetEndX(); x++)
-			{
-				DrawTile(window, layer, x, y, tileWidth, tileHeight);
-			}
-		}
-	}
-
-	void DrawTile(sf::RenderWindow& window, const TiledLayer& layer, size_t x, size_t y, uint32_t tileWidth, uint32_t tileHeight) 
-	{
-		uint32_t globalTileId = layer.GetTile(x, y).GetGlobalId();
-		if (globalTileId == 0)
-		{
-			return;
-		}
-
-		const TextureRegion& textureRegion = GetTextureRegion(globalTileId);
-		sf::Sprite sprite(*textureRegion.GetTexture(), textureRegion.GetRegion());
-		sprite.setPosition(sf::Vector2f(x * tileWidth, y * tileHeight));
-		window.draw(sprite);
 	}
 
 private:
