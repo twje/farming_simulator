@@ -55,10 +55,34 @@
             tiledMap.AddLayer(std::move(layer));
         }
         else if (layerType == "objectgroup")
-        {
+        {            
             for (const json& objectNode : layerNode["objects"])
             {
-                // TODO: add objects
+                // Point
+                if (objectNode.find("point") != objectNode.end())
+                {
+                    std::cout << "Point" << std::endl;
+                }
+                // Ellipse
+                else if (objectNode.find("ellipse") != objectNode.end())
+                {
+                    std::cout << "Ellipse" << std::endl;
+                }
+                // Polygon
+                else if (objectNode.find("polyline") != objectNode.end())
+                {
+                    std::cout << "Polygon" << std::endl;
+                }
+                // Tile Object
+                else if (objectNode.find("gid") != objectNode.end())
+                {
+                    std::cout << "Tile Object" << std::endl;
+                }
+                // Rectangle
+                else
+                {
+                    std::cout << "Rectangle" << std::endl;                    
+                }
             }
             auto layer = std::make_unique<ObjectLayer>(std::move(layerData));
             tiledMap.AddLayer(std::move(layer));
