@@ -43,41 +43,33 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class TiledMapRenderer
+class TileLayerRenderer : public TiledMapElementVisitor
 {
 public:
-    TiledMapRenderer(TiledMapAsset& map)
-        : mMap(map)
-    { }    
+	TileLayerRenderer(sf::RenderWindow& window, TiledMapAsset& map, const sf::IntRect& screenViewRegion)
+		: mWindow(window)
+		, mMap(map)
+		, mViewRegion(map, screenViewRegion)
+	{ }
 
-    void Draw(sf::RenderWindow& window, const sf::IntRect& screenViewRegion)
-    {
-        TiledMapViewRegion viewRegion(mMap, screenViewRegion);
-
-        for (const TiledLayer& layer : mMap.GetTiledLayers())
-        {
-            DrawLayer(window, layer, viewRegion);
-        }
-    }
+	void Render(const Layer& layer) { layer.Visit(*this); }
 
 private:
-	void DrawLayer(sf::RenderWindow& window, const TiledLayer& layer, const TiledMapViewRegion& viewRegion)
+	virtual void Accept(const TiledLayer& tiledLayer) override
 	{
-		uint32_t tileWidth = mMap.GetTileWidth();
-		uint32_t tileHeight = mMap.GetTileHeight();
-
-		for (size_t y = viewRegion.GetStartY(); y < viewRegion.GetEndY(); y++)
+		for (size_t y = mViewRegion.GetStartY(); y < mViewRegion.GetEndY(); y++)
 		{
-			for (size_t x = viewRegion.GetStartX(); x < viewRegion.GetEndX(); x++)
+			for (size_t x = mViewRegion.GetStartX(); x < mViewRegion.GetEndX(); x++)
 			{
-				DrawTile(window, layer, x, y, tileWidth, tileHeight);
+				Tile tile = tiledLayer.GetTile(x, y);
+				DrawTile(tile, x, y, mMap.GetTileWidth(), mMap.GetTileHeight());
 			}
 		}
 	}
 
-	void DrawTile(sf::RenderWindow& window, const TiledLayer& layer, size_t x, size_t y, uint32_t tileWidth, uint32_t tileHeight)
+	void DrawTile(const Tile& tile, size_t x, size_t y, uint32_t tileWidth, uint32_t tileHeight)
 	{
-		uint32_t globalTileId = layer.GetTile(x, y).GetGlobalId();
+		uint32_t globalTileId = tile.GetGlobalId();
 		if (globalTileId == 0)
 		{
 			return;
@@ -86,8 +78,31 @@ private:
 		const TextureRegion& textureRegion = mMap.GetTextureRegion(globalTileId);
 		sf::Sprite sprite(*textureRegion.GetTexture(), textureRegion.GetRegion());
 		sprite.setPosition(sf::Vector2f(x * tileWidth, y * tileHeight));
-		window.draw(sprite);
+		mWindow.draw(sprite);
 	}
+
+private:
+	sf::RenderWindow& mWindow;
+	TiledMapAsset& mMap;
+	TiledMapViewRegion mViewRegion;
+};
+
+// --------------------------------------------------------------------------------
+class TiledMapRenderer
+{
+public:
+    TiledMapRenderer(TiledMapAsset& map)
+        : mMap(map)
+    { }    
+
+    void Draw(sf::RenderWindow& window, const sf::IntRect& screenViewRegion)
+    {        
+		TileLayerRenderer renderer(window, mMap, screenViewRegion);
+        for (const TiledLayer& layer : mMap.GetTiledLayers())
+        {
+			renderer.Render(layer);
+        }
+    }
 
 private:
     TiledMapAsset& mMap;
