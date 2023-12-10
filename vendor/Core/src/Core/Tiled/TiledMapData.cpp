@@ -17,3 +17,9 @@
 {
     visitor.Accept(*this);
 }
+
+// --------------------------------------------------------------------------------
+/*virtual*/ void ObjectLayer::Visit(TiledMapElementVisitor& visitor) const
+{
+    visitor.Accept(*this);
+}

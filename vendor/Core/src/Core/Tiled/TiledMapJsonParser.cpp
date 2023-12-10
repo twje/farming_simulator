@@ -58,9 +58,10 @@
         {
             for (const json& objectNode : layerNode["objects"])
             {
-                const std::string& name = ExtractString(objectNode, "name");
-                std::cout << name << std::endl;
+                // TODO: add objects
             }
+            auto layer = std::make_unique<ObjectLayer>(std::move(layerData));
+            tiledMap.AddLayer(std::move(layer));
         }
     }
 }

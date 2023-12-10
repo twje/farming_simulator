@@ -54,7 +54,7 @@ public:
 
 	void Render(const Layer& layer) { layer.Visit(*this); }
 
-private:
+private:	
 	virtual void Accept(const TiledLayer& tiledLayer) override
 	{
 		for (size_t y = mViewRegion.GetStartY(); y < mViewRegion.GetEndY(); y++)
@@ -66,6 +66,8 @@ private:
 			}
 		}
 	}
+
+	virtual void Accept(const ObjectLayer& objectLayer) override {	}
 
 	void DrawTile(const Tile& tile, size_t x, size_t y, uint32_t tileWidth, uint32_t tileHeight)
 	{

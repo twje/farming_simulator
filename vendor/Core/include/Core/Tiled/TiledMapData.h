@@ -95,6 +95,17 @@ private:
 };
 
 // --------------------------------------------------------------------------------
+class ObjectLayer : public Layer
+{
+public:
+    ObjectLayer(LayerData&& layerData)
+        : Layer(std::move(layerData))        
+    { }
+
+    virtual void Visit(TiledMapElementVisitor& visitor) const override;
+};
+
+// --------------------------------------------------------------------------------
 class TiledSetData
 {
     friend class TiledSet;
@@ -299,4 +310,5 @@ public:
     
     // Layers
     virtual void Accept(const TiledLayer& layer) { }
+    virtual void Accept(const ObjectLayer& layer) { }
 };
