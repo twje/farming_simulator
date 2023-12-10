@@ -152,9 +152,10 @@ private:
 //------------------------------------------------------------------------------
 class TiledTextureManager : public TiledMapElementVisitor
 {
+	using TiledSetRef = std::reference_wrapper<const TiledSet>;	
+
 public:
-	void GetDependencyDescriptors(const std::vector<std::reference_wrapper<const TiledSet>>& tilesets, 
-								  std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors)
+	void GetDependencyDescriptors(const std::vector<TiledSetRef>& tilesets, std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors)
 	{
 		for (const TiledSet& tileset : tilesets)
 		{
