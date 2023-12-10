@@ -13,7 +13,6 @@
 
 // Forward declarations
 // --------------------------------------------------------------------------------
-class TileTextureLookup;
 class TiledMapElementVisitor;
 
 // Namespaces
