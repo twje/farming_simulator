@@ -78,7 +78,7 @@ private:
 class TiledLayer : public Layer
 {
 public:
-    TiledLayer(LayerData&& layerData, uint32_t height, uint32_t width, std::vector<Tile>&& tiles)
+    TiledLayer(LayerData&& layerData, uint32_t width, uint32_t height, std::vector<Tile>&& tiles)
         : Layer(std::move(layerData)),
           mWidth(width),
           mHeight(height),
