@@ -17,9 +17,3 @@
 {
     visitor.Accept(*this);
 }
-
-// --------------------------------------------------------------------------------
-/*virtual*/ void Tile::Visit(TiledMapElementVisitor& visitor) const
-{
-    visitor.Accept(*this);
-}

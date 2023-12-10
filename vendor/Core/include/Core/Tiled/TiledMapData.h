@@ -58,16 +58,14 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class Tile : public TiledMapElement
+class Tile
 {
 public:
     Tile(uint32_t gid)
         : mGid(gid)
     { }
 
-    uint32_t GetGlobalId() const { return mGid; }
-
-    virtual void Visit(TiledMapElementVisitor& visitor) const override;
+    uint32_t GetGlobalId() const { return mGid; }    
 
 private:
     uint32_t mGid;
@@ -296,8 +294,10 @@ private:
 class TiledMapElementVisitor
 {
 public:
-    virtual void Accept(const TiledLayer& element) { }
-    virtual void Accept(const SpritesheetTiledSet& element) { }
-    virtual void Accept(const ImageCollectionTiledSet& element) { }
-    virtual void Accept(const Tile& element) { }
+    // Tilesets
+    virtual void Accept(const SpritesheetTiledSet& tileset) { }
+    virtual void Accept(const ImageCollectionTiledSet& tileset) { }
+    
+    // Layers
+    virtual void Accept(const TiledLayer& layer) { }
 };
