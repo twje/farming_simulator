@@ -14,6 +14,9 @@
 #include <SFML/Graphics.hpp>
 #include <yaml-cpp/yaml.h>
 
+// System
+#include <iostream>
+
 //------------------------------------------------------------------------------
 class TileTextureResolver
 {
@@ -22,7 +25,7 @@ public:
 	virtual void GetDependencyDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors) = 0;
 	virtual void ResolveDependencies(AssetManager& assetManager) = 0;
 	
-	virtual TextureRegion GetTextureRegion(uint32_t index) const = 0;
+	virtual const TextureRegion& GetTextureRegion(uint32_t index) const = 0;
 
 protected:
 	std::string GenerateAssetId(const std::string& filePath)
@@ -52,10 +55,10 @@ public:
 		mSpritesheet.second = &assetManager.GetAsset<Spritesheet>(mSpritesheet.first);
 	}
 
-	virtual TextureRegion GetTextureRegion(uint32_t index) const override
+	virtual const TextureRegion& GetTextureRegion(uint32_t index) const override
 	{
 		return mSpritesheet.second->GetTextureRegion(index);
-	}	
+	}
 
 private:
 	void AddTextureDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors)
@@ -115,10 +118,15 @@ public:
 		}
 	}
 
-	virtual TextureRegion GetTextureRegion(uint32_t index) const override
+	const TextureRegion& GetTextureRegion(uint32_t index) const override
 	{
-		Texture* texture = mTextures[index].second;
-		return TextureRegion(&texture->GetRawTexture(), sf::IntRect());
+		sf::Texture* texture = &mTextures[index].second->GetRawTexture();
+		sf::IntRect region(sf::Vector2i(), sf::Vector2i(texture->getSize()));
+
+		mTextureRegion.SetRegion(region);
+		mTextureRegion.SetTexture(texture);
+
+		return mTextureRegion;
 	}
 
 private:
@@ -128,6 +136,7 @@ private:
 		{
 			const std::string texFilePath = imageTile.GetImageFilePath().string();
 			std::string texAssetId = GenerateAssetId(texFilePath);
+			std::cout << texAssetId << std::endl;
 
 			YAML::Emitter texEmitter;
 			texEmitter << YAML::BeginMap << YAML::Key << "filePath" << YAML::Value << texFilePath << YAML::EndMap;
@@ -145,6 +154,7 @@ private:
 	}
 
 private:
+	mutable TextureRegion mTextureRegion;
 	const ImageCollectionTiledSet& mTileset;
 	std::vector<std::pair<std::string, Texture*>> mTextures;
 };
@@ -177,7 +187,7 @@ public:
 		}
 	}
 
-	TextureRegion GetTextureRegion(uint32_t firstGid, uint32_t gid) const
+	const TextureRegion& GetTextureRegion(uint32_t firstGid, uint32_t gid) const
 	{
 		uint32_t localTileId = gid - firstGid;
 		const TileTextureResolver* resolver = mResourceMap.at(firstGid).get();
@@ -221,7 +231,7 @@ public:
 		mTiledTextureManager.ResolveDependencies(assetManager);
 	}
 
-	TextureRegion GetTextureRegion(uint32_t globalTileId) const
+	const TextureRegion& GetTextureRegion(uint32_t globalTileId) const
 	{
 		const TiledSet& tiledSet = mData->GetTiledSet(globalTileId);
 		return mTiledTextureManager.GetTextureRegion(tiledSet.GetFirstGid(), globalTileId);
@@ -234,7 +244,7 @@ public:
 	uint32_t GetMapHeight() const { return mData->GetMapHeight(); }
 	const std::vector<std::unique_ptr<Layer>>& GetTiledLayers() { return mData->GetTiledLayers(); }
 
-private:
+private:	
 	std::unique_ptr<TiledMapData> mData;
 	TiledTextureManager mTiledTextureManager;
 };

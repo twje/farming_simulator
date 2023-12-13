@@ -9,6 +9,8 @@
 #include "Core/Scene.h"
 #include "Core/Group.h"
 #include "Core/AssetManager.h"
+#include "Core/Tiled/TiledMapRenderer.h"
+#include "Core/Tiled/TiledMap.h"
 
 #include <iostream>
 #include "Overlay.h"
@@ -30,7 +32,7 @@ public:
 		mHUDView.setSize(windowSize);
 		mHUDView.setCenter(windowSize * 0.5f);
 
-		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(100, 100));
+		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(0, 0));
 		//mGround = CreateGameObject<Generic>(assetManager.GetAsset<Texture>("ground").GetRawTexture(), sf::Vector2f(0, 0), LAYERS.at("ground"));
 
 		mAllSprites.Add(mPlayer);
@@ -38,37 +40,50 @@ public:
 
 		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
 
-		mTiledMap = &assetManager.GetAsset<TiledMap>("main");
+		TiledMapAsset& tiledMap = assetManager.GetAsset<TiledMapAsset>("main");
+		mTiledMapRenderer = new TiledMapRenderer(tiledMap);
+		
+		TiledMap foo(tiledMap);
 	}
 
 	void Update(const sf::Time& timestamp) override
 	{
-		mWorldView.setCenter(mPlayer->GetCenter());
-
 		for (GameObject* gameObject : mAllSprites)
 		{
 			if (!gameObject->IsMarkedForRemoval()) { continue; }
 
 			gameObject->Update(timestamp);
 		}
+
+		mWorldView.setCenter(mPlayer->GetCenter());
 	}
 
-	sf::IntRect GetViewRegion(const sf::View& view)
+	sf::Vector2f Lerp(const sf::Vector2f& a, const sf::Vector2f& b, float t) 
+	{
+		return sf::Vector2f(Lerp(a.x, b.x, t), Lerp(a.y, b.y, t));
+	}	
+
+	float Lerp(float a, float b, float t)
+	{
+		return (a * (1.0f - t) + b * t);
+	}
+
+	sf::FloatRect GetViewRegion(const sf::View& view)
 	{
 		sf::Vector2f center = view.getCenter();
 		sf::Vector2f size = view.getSize();
 
-		sf::Vector2i topLeft((center.x - size.x / 2), (center.y - size.y / 2));
-		sf::Vector2i bottomRight((center.x + size.x / 2), (center.y + size.y / 2));
+		sf::Vector2f topLeft((center.x - size.x / 2), (center.y - size.y / 2));
+		sf::Vector2f bottomRight((center.x + size.x / 2), (center.y + size.y / 2));
 
-		return sf::IntRect(topLeft, bottomRight - topLeft);
+		return sf::FloatRect(topLeft, bottomRight - topLeft);
 	}
 
 	virtual void Draw(sf::RenderWindow& window)
 	{
-		window.setView(mWorldView);
-		mTiledMap->Draw(window, GetViewRegion(mWorldView));
-		
+		window.setView(mWorldView);		
+		mTiledMapRenderer->Draw(window, GetViewRegion(mWorldView));
+
 		for (size_t z = 0; z < LAYERS.size(); z++)
 		{
 			for (GameObject* gameObject : mAllSprites)
@@ -94,8 +109,8 @@ public:
 
 private:
 	Player* mPlayer;
-	Generic* mGround;
-	TiledMap* mTiledMap;
+	Generic* mGround;	
+	TiledMapRenderer* mTiledMapRenderer;
 
 	Group mAllSprites;
 	std::unique_ptr<Overlay> mOverlay;

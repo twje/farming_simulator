@@ -35,9 +35,13 @@
 // --------------------------------------------------------------------------------
 /*static*/ void TiledMapJsonParser::LoadLayers(TiledMapData& tiledMap, json& parentNode)
 {
+    uint32_t depth = 0;
     for (const json& layerNode : parentNode["layers"])
     {
-        LayerData layerData(ExtractUInt32(layerNode, "id"), ExtractString(layerNode, "name"));
+        LayerData layerData(ExtractUInt32(layerNode, "id"), 
+                            ExtractString(layerNode, "name"),
+                            ExtractBool(layerNode, "visible"),
+                            depth++);
 
         const std::string& layerType = ExtractString(layerNode, "type");
         if (layerType == "tilelayer")
@@ -55,36 +59,44 @@
             tiledMap.AddLayer(std::move(layer));
         }
         else if (layerType == "objectgroup")
-        {            
+        {         
+            std::vector<Object> objects;
             for (const json& objectNode : layerNode["objects"])
             {
-                // Point
+                ObjectData objectData(ExtractString(objectNode, "name"),
+                                      ExtractUInt32(objectNode, "id"),
+                                      ExtractUInt32(objectNode, "width"),
+                                      ExtractUInt32(objectNode, "height"),
+                                      ExtractUInt32(objectNode, "rotation"),
+                                      ExtractBool(objectNode, "visible"),
+                                      ExtractUInt32(objectNode, "x"),
+                                      ExtractUInt32(objectNode, "y"));
+
                 if (objectNode.find("point") != objectNode.end())
                 {
-                    std::cout << "Point" << std::endl;
+                    objects.emplace_back(std::move(objectData), ObjectType::POINT);
                 }
-                // Ellipse
                 else if (objectNode.find("ellipse") != objectNode.end())
                 {
-                    std::cout << "Ellipse" << std::endl;
+                    objects.emplace_back(std::move(objectData), ObjectType::ELLIPSE);
                 }
-                // Polygon
                 else if (objectNode.find("polyline") != objectNode.end())
                 {
-                    std::cout << "Polygon" << std::endl;
+                    objects.emplace_back(std::move(objectData), ObjectType::POLYGON);
                 }
-                // Tile Object
                 else if (objectNode.find("gid") != objectNode.end())
                 {
-                    std::cout << "Tile Object" << std::endl;
+                    objects.emplace_back(std::move(objectData), 
+                                         ObjectType::TILE,
+                                         ExtractUInt32(objectNode, "gid"));
                 }
-                // Rectangle
                 else
-                {
-                    std::cout << "Rectangle" << std::endl;                    
+                {                    
+                    objects.emplace_back(std::move(objectData), ObjectType::RECTANGLE);
                 }
-            }
-            auto layer = std::make_unique<ObjectLayer>(std::move(layerData));
+            }            
+
+            auto layer = std::make_unique<ObjectLayer>(std::move(layerData), std::move(objects));
             tiledMap.AddLayer(std::move(layer));
         }
     }
@@ -179,6 +191,17 @@
         throw std::runtime_error("Error parsing JSON: " + std::string(e.what()));
     }
 }
+
+// --------------------------------------------------------------------------------
+/*static*/ uint32_t TiledMapJsonParser::ExtractBool(const json& parentNode, const std::string& key)
+{
+    if (!parentNode.contains(key))
+    {
+        throw std::invalid_argument("Invalid JSON structure: missing key - " + key);
+    }
+    return parentNode[key].get<bool>();
+}
+
 
 // --------------------------------------------------------------------------------
 /*static*/ uint32_t TiledMapJsonParser::ExtractUInt32(const json& parentNode, const std::string& key)

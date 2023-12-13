@@ -27,19 +27,25 @@ public:
 };
 
 // --------------------------------------------------------------------------------
+// LAYERS
+// --------------------------------------------------------------------------------
 class LayerData
 {
     friend class Layer;
 
 public:
-    LayerData(std::uint32_t id, std::string_view name)
+    LayerData(std::uint32_t id, std::string_view name, bool visible, uint32_t depth)
         : mId(id),
-          mName(name)          
+          mName(name),
+          mVisible(visible),
+          mDepth(depth)
     { }
 
 private:
     uint32_t mId;
     std::string mName;
+    bool mVisible;
+    uint32_t mDepth;
 };
 
 // --------------------------------------------------------------------------------
@@ -51,7 +57,9 @@ public:
     { }
 
     uint32_t GetId() const { return mLayerData.mId; }
-    const std::string_view GetName() const { return mLayerData.mName; }    
+    const std::string_view GetName() const { return mLayerData.mName; }
+    bool GetVisible() const { return mLayerData.mVisible; }
+    uint32_t GetDepth() const { return mLayerData.mDepth; }
 
 private:
     LayerData mLayerData;
@@ -95,16 +103,94 @@ private:
 };
 
 // --------------------------------------------------------------------------------
+enum class ObjectType : uint32_t
+{
+    RECTANGLE = 0,
+    POINT = 1,
+    POLYGON = 2,
+    ELLIPSE = 3,
+    TILE = 4,
+};
+
+// --------------------------------------------------------------------------------
+class ObjectData
+{
+    friend class Object;
+
+public:
+    ObjectData(const std::string& name, uint32_t id, uint32_t width, uint32_t height, uint32_t rotation,
+               bool visible, uint32_t x, uint32_t y)
+        : mName(name)
+        , mId(id)        
+        , mWidth(width)
+        , mHeight(height)
+        , mRotation(rotation)
+        , mVisible(visible)
+        , mX(x)
+        , mY(y)
+    { }
+
+private:
+    std::string mName;
+    uint32_t mId;
+    uint32_t mWidth;
+    uint32_t mHeight;
+    uint32_t mRotation;
+    bool mVisible;
+    uint32_t mX;
+    uint32_t mY;
+};
+
+// --------------------------------------------------------------------------------
+class Object
+{
+public:
+    Object(ObjectData&& data, ObjectType type, uint32_t gid=0)
+        : mData(data)
+        , mType(type)
+        , mGid(gid)
+    { }
+
+    const std::string& GetName() const { return mData.mName; }
+    uint32_t GetId() const { return mData.mId; }
+    uint32_t GetWidth() const { return mData.mWidth; }
+    uint32_t GetHeight() const { return mData.mHeight; }
+    uint32_t GetRotation() const { return mData.mRotation; }
+    bool GetVisible() const { return mData.mVisible; }
+    uint32_t GetX() const { return mData.mX; }
+    uint32_t GetY() const { return mData.mY; }    
+    ObjectType GetType() const { return mType; }
+
+    // temp
+    uint32_t GetGid() const { return mGid; }
+
+private:
+    ObjectData mData;
+    ObjectType mType;
+    
+    // Temp
+    uint32_t mGid;
+};
+
+// --------------------------------------------------------------------------------
 class ObjectLayer : public Layer
 {
 public:
-    ObjectLayer(LayerData&& layerData)
-        : Layer(std::move(layerData))        
+    ObjectLayer(LayerData&& layerData, std::vector<Object>&& objects)
+        : Layer(std::move(layerData))
+        , mObjects(objects)
     { }
 
+    const std::vector<Object>& GetObjects() const { return mObjects; }
+
     virtual void Visit(TiledMapElementVisitor& visitor) const override;
+
+private:
+    std::vector<Object> mObjects;
 };
 
+// --------------------------------------------------------------------------------
+// TILESETS
 // --------------------------------------------------------------------------------
 class TiledSetData
 {
@@ -113,8 +199,14 @@ class TiledSetData
 public:
     TiledSetData(const std::string& name, uint32_t firstGid, uint32_t tileWidth, uint32_t tileHeight, 
                  uint32_t columns, uint32_t margin, uint32_t spacing, uint32_t tileCount)
-        : mName(name), mFirstGid(firstGid), mTileWidth(tileWidth), mTileHeight(tileHeight), 
-          mColumns(columns), mMargin(margin), mSpacing(spacing), mTileCount(tileCount)
+        : mName(name)
+        , mFirstGid(firstGid)
+        , mTileWidth(tileWidth)
+        , mTileHeight(tileHeight), 
+          mColumns(columns)
+        , mMargin(margin)
+        , mSpacing(spacing)
+        , mTileCount(tileCount)
     { }
 
 private:
@@ -250,7 +342,7 @@ public:
     }
 
     const TiledSet& GetTiledSet(uint32_t globalTileId) const
-    {
+    {        
         assert(globalTileId != 0 && "Invalid tile id");
         const TiledSet* result = nullptr;
 

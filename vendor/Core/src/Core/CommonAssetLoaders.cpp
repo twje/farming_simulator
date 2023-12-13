@@ -30,7 +30,7 @@ std::unique_ptr<Asset> TextureLoader::Load(const std::string& filePath)
 	if (!texture.loadFromFile(filePath))
 	{
 		throw std::runtime_error("Failed to load texture: " + filePath);
-	}
+	}	
 	return std::make_unique<Texture>(std::move(texture));
 }
 

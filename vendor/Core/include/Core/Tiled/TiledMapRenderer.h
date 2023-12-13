@@ -1,28 +1,34 @@
 #pragma once
 
-#include "Core/Tiled/TiledMapAsset.h"
+#include "Core/Tiled/TiledMap.h"
+#include <algorithm>
 
 //------------------------------------------------------------------------------
 class TiledMapViewRegion
 {
 public:
-	TiledMapViewRegion(const TiledMapAsset& map, const sf::IntRect& screenViewRegion)
+	TiledMapViewRegion(const TiledMap& map, const sf::FloatRect& screenViewRegion)
 	{
-		uint32_t tileWidth = map.GetTileWidth();
-		uint32_t tileHeight = map.GetTileHeight();
-		uint32_t mapWidth = map.GetMapWidth();
-		uint32_t mapHeight = map.GetMapHeight();
+		float tileWidth = map.GetTileWidth();
+		float tileHeight = map.GetTileHeight();
+		float mapWidth = map.GetMapWidth();
+		float mapHeight = map.GetMapHeight();
+		
+		mLeft = screenViewRegion.left;
+		mTop = screenViewRegion.top;
+		mRight = screenViewRegion.left + screenViewRegion.width;
+		mBottom = screenViewRegion.top + screenViewRegion.height;
 
-		uint32_t left = screenViewRegion.left;
-		uint32_t top = screenViewRegion.top;
-		uint32_t right = screenViewRegion.left + screenViewRegion.width;
-		uint32_t bottom = screenViewRegion.top + screenViewRegion.height;
-
-		mStartX = Clamp(0, mapWidth, left) / tileWidth;
-		mStartY = Clamp(0, mapHeight, top) / tileHeight;
-		mEndX = std::ceil(static_cast<float>(Clamp(0, mapWidth, right)) / tileWidth);
-		mEndY = std::ceil(static_cast<float>(Clamp(0, mapHeight, bottom)) / tileHeight);
+		mStartX = Clamp(0, mapWidth, mLeft) / tileWidth;
+		mStartY = Clamp(0, mapHeight, mTop) / tileHeight;
+		mEndX = std::ceil(static_cast<float>(Clamp(0, mapWidth, mRight)) / tileWidth);
+		mEndY = std::ceil(static_cast<float>(Clamp(0, mapHeight, mBottom)) / tileHeight);
 	}
+
+	int32_t GetLeft() const { return mLeft; }
+	int32_t GetTop() const { return mTop; }
+	int32_t GetRight() const { return mRight; }
+	int32_t GetBottom() const { return mBottom; }
 
 	size_t GetStartX() const { return mStartX; }
 	size_t GetStartY() const { return mStartY; }
@@ -36,6 +42,10 @@ private:
 	}
 
 private:
+	float mLeft;
+	float mTop;
+	float mRight;
+	float mBottom;
 	size_t mStartX;
 	size_t mStartY;
 	size_t mEndX;
@@ -43,33 +53,39 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class TileLayerRenderer : public TiledMapElementVisitor
+class RenderableLayer
 {
 public:
-	TileLayerRenderer(sf::RenderWindow& window, TiledMapAsset& map, const sf::IntRect& screenViewRegion)
-		: mWindow(window)
-		, mMap(map)
-		, mViewRegion(map, screenViewRegion)
-	{ }
+    virtual uint32_t GetDrawOrder() = 0;
+	virtual bool IsVisible() = 0;
+    virtual void Draw(sf::RenderWindow& window, const TiledMap& map, const TiledMapViewRegion& viewRegion) = 0;
+};
 
-	void Render(const Layer& layer) { layer.Visit(*this); }
+// --------------------------------------------------------------------------------
+class RenderableTiledLayer : public RenderableLayer
+{
+public:
+    RenderableTiledLayer(EditableTiledLayer& layer)
+        : mLayer(layer)
+    { }
 
-private:	
-	virtual void Accept(const TiledLayer& tiledLayer) override
-	{
-		for (size_t y = mViewRegion.GetStartY(); y < mViewRegion.GetEndY(); y++)
+    virtual uint32_t GetDrawOrder() { return mLayer.GetDepth(); }
+	virtual bool IsVisible() { return mLayer.IsVisible(); }
+
+    virtual void Draw(sf::RenderWindow& window, const TiledMap& map, const TiledMapViewRegion& viewRegion)
+    {
+		for (size_t y = viewRegion.GetStartY(); y < viewRegion.GetEndY(); y++)
 		{
-			for (size_t x = mViewRegion.GetStartX(); x < mViewRegion.GetEndX(); x++)
+			for (size_t x = viewRegion.GetStartX(); x < viewRegion.GetEndX(); x++)
 			{
-				Tile tile = tiledLayer.GetTile(x, y);
-				DrawTile(tile, x, y, mMap.GetTileWidth(), mMap.GetTileHeight());
+				Tile tile = mLayer.GetTile(x, y);
+				DrawTile(window, map, tile, x, y);
 			}
 		}
-	}
+    }
 
-	virtual void Accept(const ObjectLayer& objectLayer) override {	}
-
-	void DrawTile(const Tile& tile, size_t x, size_t y, uint32_t tileWidth, uint32_t tileHeight)
+private:
+	void DrawTile(sf::RenderWindow& window, const TiledMap& map, const Tile& tile, size_t x, size_t y)
 	{
 		uint32_t globalTileId = tile.GetGlobalId();
 		if (globalTileId == 0)
@@ -77,16 +93,88 @@ private:
 			return;
 		}
 
-		const TextureRegion& textureRegion = mMap.GetTextureRegion(globalTileId);
+		const TextureRegion& textureRegion = map.GetTextureRegion(globalTileId);
 		sf::Sprite sprite(*textureRegion.GetTexture(), textureRegion.GetRegion());
-		sprite.setPosition(sf::Vector2f(x * tileWidth, y * tileHeight));
-		mWindow.draw(sprite);
+		sprite.setPosition(sf::Vector2f(x * map.GetTileWidth(), y * map.GetTileHeight()));
+		window.draw(sprite);
 	}
 
 private:
-	sf::RenderWindow& mWindow;
-	TiledMapAsset& mMap;
-	TiledMapViewRegion mViewRegion;
+    EditableTiledLayer& mLayer;
+};
+
+// --------------------------------------------------------------------------------
+class RenderableObjectLayer : public RenderableLayer
+{
+public:
+    RenderableObjectLayer(EditableObjectLayer& layer)
+        : mLayer(layer)
+    { }
+
+    virtual uint32_t GetDrawOrder() { return mLayer.GetDepth(); }
+	virtual bool IsVisible() { return mLayer.IsVisible(); }
+
+    virtual void Draw(sf::RenderWindow& window, const TiledMap& map, const TiledMapViewRegion& viewRegion)
+    {
+		for (const Object& object : mLayer.GetObjects())
+		{
+			if (!IsObjectInRegion(object, viewRegion, object.GetType() == ObjectType::TILE))
+			{
+				continue;
+			}
+
+			if (object.GetType() == ObjectType::RECTANGLE)
+			{
+				sf::RectangleShape rectangle;
+				rectangle.setPosition(sf::Vector2f(object.GetX(), object.GetY()));
+				rectangle.setSize(sf::Vector2f(object.GetWidth(), object.GetHeight()));
+				rectangle.setOutlineThickness(-1.0f);
+				rectangle.setOutlineColor(sf::Color(128, 128, 128, 255));
+				rectangle.setFillColor(sf::Color(128, 128, 128, 64));
+				
+				window.draw(rectangle);
+			}
+			else if (object.GetType() == ObjectType::TILE)
+			{	
+				float tileWidth = map.GetTileWidth();
+				float tileHeight = map.GetTileHeight();
+				int32_t x = object.GetX();
+				int32_t y = object.GetY() - object.GetHeight();
+				uint32_t gid = object.GetGid();
+
+				const TextureRegion& textureRegion = map.GetTextureRegion(gid);
+				sf::Sprite sprite(*textureRegion.GetTexture(), textureRegion.GetRegion());
+				sprite.setPosition(sf::Vector2f(x, y));
+				window.draw(sprite);
+			}
+		}
+    }
+
+private:
+	bool IsObjectInRegion(const Object& object, const TiledMapViewRegion& region, bool adjustY)
+	{
+		// Adjust Y-coordinate for the top edge of the object
+		float objectTopY = object.GetY();
+		if (adjustY)
+		{
+			objectTopY -= object.GetHeight();
+		}
+
+		// Object's pixel-based boundaries
+		float objectLeft = object.GetX();
+		float objectRight = object.GetX() + object.GetWidth();
+		float objectTop = objectTopY;
+		float objectBottom = object.GetY();
+
+		// Check if the object overlaps with the region
+		bool overlapsHorizontally = (objectLeft < region.GetRight()) && (objectRight > region.GetLeft());
+		bool overlapsVertically = (objectTop < region.GetBottom()) && (objectBottom > region.GetTop());
+
+		return overlapsHorizontally && overlapsVertically;
+	}
+
+private:
+    EditableObjectLayer& mLayer;
 };
 
 // --------------------------------------------------------------------------------
@@ -95,17 +183,35 @@ class TiledMapRenderer
 public:
     TiledMapRenderer(TiledMapAsset& map)
         : mMap(map)
-    { }    
-
-    void Draw(sf::RenderWindow& window, const sf::IntRect& screenViewRegion)
-    {        
-		TileLayerRenderer renderer(window, mMap, screenViewRegion);
-        for (const auto& layerPtr : mMap.GetTiledLayers())
+    { 
+        for (EditableTiledLayer& layer : mMap.GetTiledLayers())
         {
-			renderer.Render(*layerPtr.get());
+            mLayer.emplace_back(std::make_unique<RenderableTiledLayer>(layer));
+        }
+        
+        for (EditableObjectLayer& layer : mMap.GetObjectLayers())
+        {
+            mLayer.emplace_back(std::make_unique<RenderableObjectLayer>(layer));
+        }
+
+        std::sort(mLayer.begin(), mLayer.end(), [](const auto& a, const auto& b) {
+            return a->GetDrawOrder() < b->GetDrawOrder();
+        });
+	}
+
+    void Draw(sf::RenderWindow& window, sf::FloatRect screenViewRegion)
+    {
+        TiledMapViewRegion viewRegion(mMap, screenViewRegion);
+        for (auto& layerPtr : mLayer)
+        {
+			if (layerPtr->IsVisible())
+			{
+				layerPtr->Draw(window, mMap, viewRegion);
+			}
         }
     }
 
 private:
-    TiledMapAsset& mMap;
+	TiledMap mMap;
+    std::vector<std::unique_ptr<RenderableLayer>> mLayer;
 };

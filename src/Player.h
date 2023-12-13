@@ -63,7 +63,7 @@ class Player : public Sprite, public PlayerSubject
 public:
 	Player(AssetManager& assetManager, const sf::Vector2f& position)
 		: mAnimationPlayer(assetManager.GetAsset<Animation>("character")),
-		  mSpeed(200),
+		  mSpeed(300),
 		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),
 		  mSeedPicker({ "corn", "tomato" })
@@ -207,8 +207,16 @@ public:
 			mDirection = mDirection.normalized();
 		}
 
-		MoveX(static_cast<int32_t>(mDirection.x * timestamp.asSeconds() * mSpeed));
-		MoveY(static_cast<int32_t>(mDirection.y * timestamp.asSeconds() * mSpeed));
+		float lerpFactor = mSpeed * timestamp.asSeconds();
+
+		mTargetPosition.x = mDirection.x * lerpFactor;
+		mTargetPosition.y = mDirection.y * lerpFactor;
+		
+		mCurrentPosition.x += 0.1f * (mTargetPosition.x - mCurrentPosition.x);
+		mCurrentPosition.y += 0.1f * (mTargetPosition.y - mCurrentPosition.y);
+
+		MoveX(int(mTargetPosition.x));
+		MoveY(int(mTargetPosition.y));
 	}
 
 	void Animate(const sf::Time& timestamp)
@@ -235,4 +243,7 @@ private:
 	std::string mSelectedTool;
 	ItemPicker<std::string> mToolPicker;
 	ItemPicker<std::string> mSeedPicker;
+
+	sf::Vector2f mCurrentPosition;
+	sf::Vector2f mTargetPosition;
 };

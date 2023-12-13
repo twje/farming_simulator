@@ -10,8 +10,7 @@ Application::Application(std::unique_ptr<IApplicationListener> listener, Applica
 	  mWindow(sf::VideoMode(sf::Vector2u(config.mWidth, config.mHeight), config.mBPP), config.mCaption),
       mResourceLocator(config)
 {
-    mWindow.setVerticalSyncEnabled(true);   
-    mWindow.setFramerateLimit(60);
+    mWindow.setVerticalSyncEnabled(true);
 
 	mListener->SetLayerStack(&mLayerStack);
 	mListener->SetResourceLocator(&mResourceLocator);
@@ -20,6 +19,9 @@ Application::Application(std::unique_ptr<IApplicationListener> listener, Applica
 
 void Application::Run()
 {
+    const sf::Time timePerFrame = sf::seconds(1.f / 60.f);
+    sf::Time timeSinceLastUpdate = sf::Time::Zero;
+
     while (mWindow.isOpen())
     {
         sf::Event event;
@@ -37,13 +39,19 @@ void Application::Run()
             }
             mLayerStack.OnEvent(event);
         }
+        
+        timeSinceLastUpdate += mClock.restart();
+        while (timeSinceLastUpdate >= timePerFrame) {
+            timeSinceLastUpdate -= timePerFrame;
 
-        mLayerStack.Update(mClock.restart());
+            mLayerStack.Update(timePerFrame);
+            
+            mWindow.clear();
+            mLayerStack.Draw(mWindow);
+            mWindow.display();
 
-        mWindow.clear();
-        mLayerStack.Draw(mWindow);
-        mWindow.display();
+            mLayerStack.EndFrame();
+        }
 
-        mLayerStack.EndFrame();
     }
 }

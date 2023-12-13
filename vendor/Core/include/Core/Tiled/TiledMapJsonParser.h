@@ -25,6 +25,7 @@ private:
 
 	// Utility Methods
 	static void LoadJson(fs::path filePath, json& outJson);
+	static uint32_t ExtractBool(const json& parentNode, const std::string& key);
 	static uint32_t ExtractUInt32(const json& parentNode, const std::string& key);
 	static std::string ExtractString(const json& parentNode, const std::string& key);
 	static bool HasFileExtension(fs::path filePath, const std::string& extension);
