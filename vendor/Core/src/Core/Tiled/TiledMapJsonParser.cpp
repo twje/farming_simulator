@@ -52,11 +52,12 @@
                 tiles.emplace_back(tileNode.get<uint32_t>());
             }
             
-            auto layer = std::make_unique<TiledLayer>(std::move(layerData), 
-                                                      ExtractUInt32(layerNode, "width"),
-                                                      ExtractUInt32(layerNode, "height"),
-                                                      std::move(tiles));            
-            tiledMap.AddLayer(std::move(layer));
+            TiledLayer layer(std::move(layerData),
+                             ExtractUInt32(layerNode, "width"),
+                             ExtractUInt32(layerNode, "height"),
+                             std::move(tiles));            
+
+            tiledMap.AddTileLayer(std::move(layer));
         }
         else if (layerType == "objectgroup")
         {         
@@ -96,8 +97,8 @@
                 }
             }            
 
-            auto layer = std::make_unique<ObjectLayer>(std::move(layerData), std::move(objects));
-            tiledMap.AddLayer(std::move(layer));
+            ObjectLayer layer(std::move(layerData), std::move(objects));
+            tiledMap.AddObjectLayer(std::move(layer));
         }
     }
 }

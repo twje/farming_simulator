@@ -165,7 +165,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class TiledTextureManager : public TiledMapElementVisitor
+class TiledTextureManager
 {
 public:
 	void AddTextureProvider(std::unique_ptr<TileTextureResolver> provider)
@@ -261,12 +261,15 @@ public:
 		return mTiledTextureManager.GetTextureRegion(globalTileId);
 	}
 
-	// Getters
+	// Map data
 	uint32_t GetTileWidth() const { return mData->GetTileWidth(); }
 	uint32_t GetTileHeight() const { return mData->GetTileHeight(); }
 	uint32_t GetMapWidth() const { return mData->GetMapWidth(); }
-	uint32_t GetMapHeight() const { return mData->GetMapHeight(); }
-	const std::vector<std::unique_ptr<Layer>>& GetTiledLayers() { return mData->GetTiledLayers(); }
+	uint32_t GetMapHeight() const { return mData->GetMapHeight(); }		
+	
+	// Layers
+	const std::vector<TiledLayer>& GetTileLayers() { return mData->GetTilLayers(); }	
+	const std::vector<ObjectLayer>& GetObjectLayers() const { return mData->GetObjectLayers(); }
 
 private:	
 	std::unique_ptr<TiledMapData> mData;

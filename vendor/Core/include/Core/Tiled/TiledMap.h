@@ -37,15 +37,19 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class TiledMap : public TiledMapElementVisitor
+class TiledMap
 {
 public:
     TiledMap(TiledMapAsset& map)
         : mMap(map)
     {
-        for (const auto& layerPtr : mMap.GetTiledLayers())
-        {
-            layerPtr->Visit(*this);
+        for (const TiledLayer& layer : mMap.GetTileLayers())
+        {            
+            mTiledLayers.emplace_back(EditableTiledLayer(layer));
+        }
+        for (const ObjectLayer& layer : mMap.GetObjectLayers())
+        {            
+            mObjectLayers.emplace_back(EditableObjectLayer(layer));
         }
     }
 
@@ -58,17 +62,9 @@ public:
     std::vector<EditableTiledLayer>& GetTiledLayers() { return mTiledLayers; }
     std::vector<EditableObjectLayer>& GetObjectLayers() { return mObjectLayers; }
 
-    const TextureRegion& GetTextureRegion(uint32_t globalTileId) const { return mMap.GetTextureRegion(globalTileId); }
-
-private:
-    virtual void Accept(const TiledLayer& layer) 
-    {
-        mTiledLayers.emplace_back(layer);
-    }
-
-    virtual void Accept(const ObjectLayer& layer) 
-    {
-        mObjectLayers.emplace_back(layer);
+    const TextureRegion& GetTextureRegion(uint32_t globalTileId) const 
+    { 
+        return mMap.GetTextureRegion(globalTileId); 
     }
 
 private:

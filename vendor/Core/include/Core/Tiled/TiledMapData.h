@@ -20,13 +20,6 @@ class TiledMapElementVisitor;
 namespace fs = std::filesystem;
 
 // --------------------------------------------------------------------------------
-class TiledMapElement
-{
-public:
-    virtual void Visit(TiledMapElementVisitor& visitor) const = 0;
-};
-
-// --------------------------------------------------------------------------------
 // LAYERS
 // --------------------------------------------------------------------------------
 class LayerData
@@ -49,7 +42,7 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class Layer : public TiledMapElement
+class Layer
 {
 public:
     Layer(LayerData&& layerData)
@@ -92,9 +85,7 @@ public:
     
     uint32_t GetWidth() const { return mWidth; }
     uint32_t GetHeight() const { return mHeight; }
-    const Tile& GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }
-
-    virtual void Visit(TiledMapElementVisitor& visitor) const override;
+    const Tile& GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }    
 
 private:
     uint32_t mWidth;
@@ -183,8 +174,6 @@ public:
 
     const std::vector<Object>& GetObjects() const { return mObjects; }
 
-    virtual void Visit(TiledMapElementVisitor& visitor) const override;
-
 private:
     std::vector<Object> mObjects;
 };
@@ -221,7 +210,7 @@ private:
 };
 
 // --------------------------------------------------------------------------------
-class TiledSet : public TiledMapElement
+class TiledSet
 {
 public:
     TiledSet(TiledSetData&& tiledSetData)
@@ -257,8 +246,6 @@ public:
     uint32_t GetImageWidth() const { return mImageWidth; }
     uint32_t GetImageHeight() const { return mImageHeight; }
     uint32_t GetRows() const { return GetTileCount() / GetColumns(); }
-
-    virtual void Visit(TiledMapElementVisitor& visitor) const override;
 
 private:
     fs::path mImageFilePath;    
@@ -298,8 +285,6 @@ public:
 
     const std::vector<ImageTile>& GetImageTiles() const { return mImageTiles; }
 
-    virtual void Visit(TiledMapElementVisitor& visitor) const override;
-
 private:
     std::vector<ImageTile> mImageTiles;
 };
@@ -317,11 +302,6 @@ public:
     { }    
 
     // Setters
-    void AddLayer(std::unique_ptr<Layer> layer)
-    {
-        mLayers.emplace_back(std::move(layer));        
-    }
-
     void AddSpritesheetTiledSet(SpritesheetTiledSet&& tileset)
     {
         mSpritesheetTilesets.emplace_back(std::move(tileset));
@@ -332,10 +312,25 @@ public:
         mImageCollectionTilesets.emplace_back(std::move(tileset));
     }  
 
-    // Getters
-    const std::vector<std::unique_ptr<Layer>>& GetTiledLayers() const
+    void AddTileLayer(TiledLayer&& layer)
     {
-        return mLayers;
+        mTileLayers.emplace_back(std::move(layer));
+    }
+
+    void AddObjectLayer(ObjectLayer&& layer)
+    {
+        mObjectLayers.emplace_back(std::move(layer));
+    }
+
+    // Getters
+    const std::vector<TiledLayer>& GetTilLayers() const
+    {
+        return mTileLayers;
+    }
+
+    const std::vector<ObjectLayer>& GetObjectLayers() const
+    {
+        return mObjectLayers;
     }
 
     const std::vector<SpritesheetTiledSet>& GetSpritesheetTilesets() const
@@ -355,30 +350,18 @@ public:
     uint32_t GetMapHeight() const { return mHeight * mTileHeight; }
 
 private:
-    //
+    // Map data
     fs::path mFilePath;
     uint32_t mWidth;
     uint32_t mHeight;
     uint32_t mTileWidth;
     uint32_t mTileHeight;
 
-    //
-    std::vector<std::unique_ptr<Layer>> mLayers;
+    // Layers
+    std::vector<TiledLayer> mTileLayers;
+    std::vector<ObjectLayer> mObjectLayers;
 
-    //
+    // Tilesets
     std::vector<SpritesheetTiledSet> mSpritesheetTilesets;
     std::vector<ImageCollectionTiledSet> mImageCollectionTilesets;
-};
-
-// --------------------------------------------------------------------------------
-class TiledMapElementVisitor
-{
-public:
-    // Tilesets
-    virtual void Accept(const SpritesheetTiledSet& tileset) { }
-    virtual void Accept(const ImageCollectionTiledSet& tileset) { }
-    
-    // Layers
-    virtual void Accept(const TiledLayer& layer) { }
-    virtual void Accept(const ObjectLayer& layer) { }
 };
