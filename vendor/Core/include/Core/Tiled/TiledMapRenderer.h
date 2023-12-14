@@ -56,9 +56,9 @@ private:
 class RenderableLayer
 {
 public:
+    virtual void Draw(sf::RenderWindow& window, const TiledMap& map, const TiledMapViewRegion& viewRegion) = 0;
     virtual uint32_t GetDrawOrder() = 0;
 	virtual bool IsVisible() = 0;
-    virtual void Draw(sf::RenderWindow& window, const TiledMap& map, const TiledMapViewRegion& viewRegion) = 0;
 };
 
 // --------------------------------------------------------------------------------
@@ -68,9 +68,6 @@ public:
     RenderableTiledLayer(EditableTiledLayer& layer)
         : mLayer(layer)
     { }
-
-    virtual uint32_t GetDrawOrder() { return mLayer.GetDepth(); }
-	virtual bool IsVisible() { return mLayer.IsVisible(); }
 
     virtual void Draw(sf::RenderWindow& window, const TiledMap& map, const TiledMapViewRegion& viewRegion)
     {
@@ -83,6 +80,9 @@ public:
 			}
 		}
     }
+
+	virtual uint32_t GetDrawOrder() { return mLayer.GetDepth(); }
+	virtual bool IsVisible() { return mLayer.IsVisible(); }
 
 private:
 	void DrawTile(sf::RenderWindow& window, const TiledMap& map, const Tile& tile, size_t x, size_t y)
@@ -108,63 +108,112 @@ class RenderableObjectLayer : public RenderableLayer
 {
 public:
     RenderableObjectLayer(EditableObjectLayer& layer)
-        : mLayer(layer)
-    { }
-
-    virtual uint32_t GetDrawOrder() { return mLayer.GetDepth(); }
-	virtual bool IsVisible() { return mLayer.IsVisible(); }
+        : mLayer(layer)	  
+    { 
+		mObjects.reserve(mLayer.GetObjects().size());
+	}
 
     virtual void Draw(sf::RenderWindow& window, const TiledMap& map, const TiledMapViewRegion& viewRegion)
     {
-		for (const Object& object : mLayer.GetObjects())
-		{
-			if (!IsObjectInRegion(object, viewRegion, object.GetType() == ObjectType::TILE))
-			{
-				continue;
-			}
-
-			if (object.GetType() == ObjectType::RECTANGLE)
-			{
-				sf::RectangleShape rectangle;
-				rectangle.setPosition(sf::Vector2f(object.GetX(), object.GetY()));
-				rectangle.setSize(sf::Vector2f(object.GetWidth(), object.GetHeight()));
-				rectangle.setOutlineThickness(-1.0f);
-				rectangle.setOutlineColor(sf::Color(128, 128, 128, 255));
-				rectangle.setFillColor(sf::Color(128, 128, 128, 64));
-				
-				window.draw(rectangle);
-			}
-			else if (object.GetType() == ObjectType::TILE)
-			{	
-				float tileWidth = map.GetTileWidth();
-				float tileHeight = map.GetTileHeight();
-				int32_t x = object.GetX();
-				int32_t y = object.GetY() - object.GetHeight();
-				uint32_t gid = object.GetGid();
-
-				const TextureRegion& textureRegion = map.GetTextureRegion(gid);
-				sf::Sprite sprite(*textureRegion.GetTexture(), textureRegion.GetRegion());
-				sprite.setPosition(sf::Vector2f(x, y));
-				window.draw(sprite);
-			}
-		}
+		PopulateAndSortObjects();
+		DrawObjects(window, map, viewRegion);
     }
 
+	virtual uint32_t GetDrawOrder() { return mLayer.GetDepth(); }
+	virtual bool IsVisible() { return mLayer.IsVisible(); }
+
 private:
+	void PopulateAndSortObjects() 
+	{
+		mObjects.clear();
+		for (const Object& object : mLayer.GetObjects()) 
+		{
+			mObjects.emplace_back(&object);
+		}
+
+		std::sort(mObjects.begin(), mObjects.end(), [](const Object* a, const Object* b) {
+			return CompareObjects(a, b);
+		});
+	}
+
+	static bool CompareObjects(const Object* a, const Object* b) 
+	{
+		int aCompareValue = CalculateComparisonValue(a);
+		int bCompareValue = CalculateComparisonValue(b);
+		return aCompareValue < bCompareValue;
+	}
+
+	static int CalculateComparisonValue(const Object* object) 
+	{
+		int compareValue = object->GetY() + object->GetHeight() / 2.0f;
+		if (object->GetType() == ObjectType::TILE)
+		{
+			compareValue -= object->GetHeight();
+		}
+		return compareValue;
+	}
+
+	void DrawObjects(sf::RenderWindow& window, const TiledMap& map, const TiledMapViewRegion& viewRegion)
+	{
+		for (const Object* object : mObjects)
+		{
+			if (IsObjectInRegion(*object, viewRegion, object->GetType() == ObjectType::TILE))
+			{
+				DrawObject(*object, window, map);
+			}
+		}
+	}
+
+	void DrawObject(const Object& object, sf::RenderWindow& window, const TiledMap& map) 
+	{
+		switch (object.GetType()) 
+		{
+			case ObjectType::RECTANGLE:
+				DrawRectangle(object, window);
+				break;
+			case ObjectType::TILE:
+				DrawTile(object, window, map);
+				break;
+		}
+	}
+
+	void DrawRectangle(const Object& object, sf::RenderWindow& window)
+	{
+		sf::RectangleShape rectangle;
+		rectangle.setPosition(sf::Vector2f(object.GetX(), object.GetY()));
+		rectangle.setSize(sf::Vector2f(object.GetWidth(), object.GetHeight()));
+		rectangle.setOutlineThickness(-1.0f);
+		rectangle.setOutlineColor(sf::Color(128, 128, 128, 255));
+		rectangle.setFillColor(sf::Color(128, 128, 128, 64));
+
+		window.draw(rectangle);
+	}
+
+	void DrawTile(const Object& object, sf::RenderWindow& window, const TiledMap& map)
+	{
+		float tileWidth = map.GetTileWidth();
+		float tileHeight = map.GetTileHeight();
+		int32_t x = object.GetX();
+		int32_t y = object.GetY() - object.GetHeight();
+		uint32_t gid = object.GetGid();
+
+		const TextureRegion& textureRegion = map.GetTextureRegion(gid);
+		sf::Sprite sprite(*textureRegion.GetTexture(), textureRegion.GetRegion());
+		sprite.setPosition(sf::Vector2f(x, y));
+
+		window.draw(sprite);
+	}
+
 	bool IsObjectInRegion(const Object& object, const TiledMapViewRegion& region, bool adjustY)
 	{
 		// Adjust Y-coordinate for the top edge of the object
-		float objectTopY = object.GetY();
-		if (adjustY)
-		{
-			objectTopY -= object.GetHeight();
-		}
+		int objectTopY = adjustY ? object.GetY() - object.GetHeight() : object.GetY();
 
 		// Object's pixel-based boundaries
-		float objectLeft = object.GetX();
-		float objectRight = object.GetX() + object.GetWidth();
-		float objectTop = objectTopY;
-		float objectBottom = object.GetY();
+		int objectLeft = object.GetX();
+		int objectRight = object.GetX() + object.GetWidth();
+		int objectTop = objectTopY;
+		int objectBottom = objectTop + object.GetHeight();
 
 		// Check if the object overlaps with the region
 		bool overlapsHorizontally = (objectLeft < region.GetRight()) && (objectRight > region.GetLeft());
@@ -175,6 +224,7 @@ private:
 
 private:
     EditableObjectLayer& mLayer;
+	std::vector<const Object*> mObjects;
 };
 
 // --------------------------------------------------------------------------------

@@ -110,7 +110,7 @@ class ObjectData
 
 public:
     ObjectData(const std::string& name, uint32_t id, uint32_t width, uint32_t height, uint32_t rotation,
-               bool visible, uint32_t x, uint32_t y)
+               bool visible, int32_t x, int32_t y)
         : mName(name)
         , mId(id)        
         , mWidth(width)
@@ -128,8 +128,8 @@ private:
     uint32_t mHeight;
     uint32_t mRotation;
     bool mVisible;
-    uint32_t mX;
-    uint32_t mY;
+    int32_t mX;
+    int32_t mY;
 };
 
 // --------------------------------------------------------------------------------
@@ -148,8 +148,8 @@ public:
     uint32_t GetHeight() const { return mData.mHeight; }
     uint32_t GetRotation() const { return mData.mRotation; }
     bool GetVisible() const { return mData.mVisible; }
-    uint32_t GetX() const { return mData.mX; }
-    uint32_t GetY() const { return mData.mY; }    
+    int32_t GetX() const { return mData.mX; }
+    int32_t GetY() const { return mData.mY; }    
     ObjectType GetType() const { return mType; }
 
     // temp

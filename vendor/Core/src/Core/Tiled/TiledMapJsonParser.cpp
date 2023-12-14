@@ -70,8 +70,8 @@
                                       ExtractUInt32(objectNode, "height"),
                                       ExtractUInt32(objectNode, "rotation"),
                                       ExtractBool(objectNode, "visible"),
-                                      ExtractUInt32(objectNode, "x"),
-                                      ExtractUInt32(objectNode, "y"));
+                                      ExtractInt32(objectNode, "x"),
+                                      ExtractInt32(objectNode, "y"));
 
                 if (objectNode.find("point") != objectNode.end())
                 {
@@ -212,6 +212,16 @@
         throw std::invalid_argument("Invalid JSON structure: missing key - " + key);
     }
     return parentNode[key].get<uint32_t>();
+}
+
+// --------------------------------------------------------------------------------
+/*static*/ int32_t TiledMapJsonParser::ExtractInt32(const json& parentNode, const std::string& key)
+{
+    if (!parentNode.contains(key))
+    {
+        throw std::invalid_argument("Invalid JSON structure: missing key - " + key);
+    }
+    return parentNode[key].get<int32_t>();
 }
 
 // --------------------------------------------------------------------------------
