@@ -26,6 +26,7 @@ public:
 	virtual void ResolveDependencies(AssetManager& assetManager) = 0;
 	
 	virtual const TextureRegion& GetTextureRegion(uint32_t index) const = 0;
+	virtual uint32_t GetFirstGid() const = 0;
 
 protected:
 	std::string GenerateAssetId(const std::string& filePath)
@@ -59,6 +60,8 @@ public:
 	{
 		return mSpritesheet.second->GetTextureRegion(index);
 	}
+
+	virtual uint32_t GetFirstGid() const override { return mTileset.GetFirstGid(); }
 
 private:
 	void AddTextureDescriptor(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors)
@@ -103,7 +106,7 @@ class IndividualTextureProvider : public TileTextureResolver
 public:
 	IndividualTextureProvider(const ImageCollectionTiledSet& tileset)
 		: mTileset(tileset)
-	{ }
+	{ }	
 
 	virtual void GetDependencyDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors) override
 	{
@@ -128,6 +131,8 @@ public:
 
 		return mTextureRegion;
 	}
+
+	virtual uint32_t GetFirstGid() const override { return mTileset.GetFirstGid(); }
 
 private:
 	void AddTextureDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors)
@@ -162,16 +167,14 @@ private:
 //------------------------------------------------------------------------------
 class TiledTextureManager : public TiledMapElementVisitor
 {
-	using TiledSetRef = std::reference_wrapper<const TiledSet>;	
-
 public:
-	void GetDependencyDescriptors(const std::vector<TiledSetRef>& tilesets, std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors)
+	void AddTextureProvider(std::unique_ptr<TileTextureResolver> provider)
 	{
-		for (const TiledSet& tileset : tilesets)
-		{
-			tileset.Visit(*this);
-		}
+		mResourceMap.emplace(provider->GetFirstGid(), std::move(provider));
+	}
 
+	void GetDependencyDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& outDescriptors)
+	{
 		for (const auto& pair : mResourceMap)
 		{
 			pair.second->GetDependencyDescriptors(outDescriptors);
@@ -187,24 +190,34 @@ public:
 		}
 	}
 
-	const TextureRegion& GetTextureRegion(uint32_t firstGid, uint32_t gid) const
+	const TextureRegion& GetTextureRegion(uint32_t globalTileId) const
 	{
-		uint32_t localTileId = gid - firstGid;
-		const TileTextureResolver* resolver = mResourceMap.at(firstGid).get();
+		TileTextureResolver* resolver = GetResolver(globalTileId);		
+		uint32_t localTileId = globalTileId - resolver->GetFirstGid();		
 		return resolver->GetTextureRegion(localTileId);
 	}
 
 private:
-	virtual void Accept(const SpritesheetTiledSet& element) override
+	TileTextureResolver* GetResolver(uint32_t globalTileId) const
 	{
-		auto provider = std::make_unique<SpritesheetTextureProvider>(element);
-		mResourceMap.emplace(element.GetFirstGid(), std::move(provider));
-	}
-	
-	virtual void Accept(const ImageCollectionTiledSet& element) override
-	{
-		auto provider = std::make_unique<IndividualTextureProvider>(element);
-		mResourceMap.emplace(element.GetFirstGid(), std::move(provider));
+		TileTextureResolver* resolver = nullptr;
+
+		uint32_t closestValue = std::numeric_limits<uint32_t>::max();
+		for (const auto& pair : mResourceMap)
+		{
+			if (globalTileId >= pair.first)
+			{
+				uint32_t distance = globalTileId - pair.first;
+				if (closestValue >= distance)
+				{
+					closestValue = distance;
+					resolver = pair.second.get();
+				}
+			}
+		}	
+
+		assert(resolver);
+		return resolver;
 	}
 
 private:
@@ -217,12 +230,24 @@ class TiledMapAsset : public Asset, private NonCopyableNonMovableMarker
 public:
 	TiledMapAsset(std::unique_ptr<TiledMapData> data)
 		: mData(std::move(data))		
-	{ }
+	{ 
+		for (const SpritesheetTiledSet& tileset : mData->GetSpritesheetTilesets())
+		{
+			auto provider = std::make_unique<SpritesheetTextureProvider>(tileset);
+			mTiledTextureManager.AddTextureProvider(std::move(provider));
+		}
+
+		for (const ImageCollectionTiledSet& tileset : mData->GetImageCollectionTilesets())
+		{
+			auto provider = std::make_unique<IndividualTextureProvider>(tileset);
+			mTiledTextureManager.AddTextureProvider(std::move(provider));
+		}
+	}
 
 	virtual std::vector<std::unique_ptr<BaseAssetDescriptor>> GetDependencyDescriptors() override
 	{		
 		std::vector<std::unique_ptr<BaseAssetDescriptor>> descriptors;
-		mTiledTextureManager.GetDependencyDescriptors(mData->GetTiledSets(), descriptors);
+		mTiledTextureManager.GetDependencyDescriptors(descriptors);
 		return descriptors;
 	}
 
@@ -232,9 +257,8 @@ public:
 	}
 
 	const TextureRegion& GetTextureRegion(uint32_t globalTileId) const
-	{
-		const TiledSet& tiledSet = mData->GetTiledSet(globalTileId);
-		return mTiledTextureManager.GetTextureRegion(tiledSet.GetFirstGid(), globalTileId);
+	{		
+		return mTiledTextureManager.GetTextureRegion(globalTileId);
 	}
 
 	// Getters
