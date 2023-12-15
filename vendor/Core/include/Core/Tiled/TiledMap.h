@@ -3,37 +3,37 @@
 #include "Core/Tiled/TiledMapAsset.h"
 
 // --------------------------------------------------------------------------------
-class EditableTiledLayer
+class TileLayer
 {
 public:
-    EditableTiledLayer(const TiledLayer& layer)
+    TileLayer(const TileLayerData& layer)
         : mLayer(layer)
     { }
 
-    const Tile& GetTile(uint32_t x, uint32_t y) const { return mLayer.GetTile(x, y); }
+    const TileData& GetTile(uint32_t x, uint32_t y) const { return mLayer.GetTile(x, y); }
 
     const uint32_t GetDepth() { return mLayer.GetDepth(); }
     bool IsVisible() const { return mLayer.GetVisible(); }
 
 private:
-    const TiledLayer& mLayer;
+    const TileLayerData& mLayer;
 };
 
 // --------------------------------------------------------------------------------
-class EditableObjectLayer
+class ObjectLayer
 {
 public:
-    EditableObjectLayer(const ObjectLayer& layer)
+    ObjectLayer(const ObjectLayerData& layer)
         : mLayer(layer)
     { }
 
-    const std::vector<Object>& GetObjects() const { return mLayer.GetObjects(); }
+    const std::vector<ObjectData>& GetObjects() const { return mLayer.GetObjects(); }
 
     const uint32_t GetDepth() { return mLayer.GetDepth(); }
     bool IsVisible() const { return mLayer.GetVisible(); }
 
 private:
-    const ObjectLayer& mLayer;
+    const ObjectLayerData& mLayer;
 };
 
 // --------------------------------------------------------------------------------
@@ -43,13 +43,13 @@ public:
     TiledMap(TiledMapAsset& map)
         : mMap(map)
     {
-        for (const TiledLayer& layer : mMap.GetTileLayers())
+        for (const TileLayerData& layer : mMap.GetTileLayers())
         {            
-            mTiledLayers.emplace_back(EditableTiledLayer(layer));
+            mTiledLayers.emplace_back(TileLayer(layer));
         }
-        for (const ObjectLayer& layer : mMap.GetObjectLayers())
+        for (const ObjectLayerData& layer : mMap.GetObjectLayers())
         {            
-            mObjectLayers.emplace_back(EditableObjectLayer(layer));
+            mObjectLayers.emplace_back(ObjectLayer(layer));
         }
     }
 
@@ -59,8 +59,8 @@ public:
     uint32_t GetMapWidth() const { return mMap.GetMapWidth(); }
     uint32_t GetMapHeight() const { return mMap.GetMapHeight(); }
 
-    std::vector<EditableTiledLayer>& GetTiledLayers() { return mTiledLayers; }
-    std::vector<EditableObjectLayer>& GetObjectLayers() { return mObjectLayers; }
+    std::vector<TileLayer>& GetTiledLayers() { return mTiledLayers; }
+    std::vector<ObjectLayer>& GetObjectLayers() { return mObjectLayers; }
 
     const TextureRegion& GetTextureRegion(uint32_t globalTileId) const 
     { 
@@ -69,6 +69,6 @@ public:
 
 private:
     TiledMapAsset& mMap;
-    std::vector<EditableTiledLayer> mTiledLayers;
-    std::vector<EditableObjectLayer> mObjectLayers;
+    std::vector<TileLayer> mTiledLayers;
+    std::vector<ObjectLayer> mObjectLayers;
 };

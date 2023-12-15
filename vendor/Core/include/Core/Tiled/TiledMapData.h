@@ -2,36 +2,27 @@
 
 // Includes
 //------------------------------------------------------------------------------
-// System
-#include <algorithm>
 #include <string>
 #include <string_view>
-#include <map>
 #include <cassert>
 #include <filesystem>
-#include <limits>
-
-// Forward declarations
-// --------------------------------------------------------------------------------
-class TiledMapElementVisitor;
+#include <vector>
 
 // Namespaces
-// --------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 namespace fs = std::filesystem;
 
-// --------------------------------------------------------------------------------
-// LAYERS
-// --------------------------------------------------------------------------------
-class LayerData
+//------------------------------------------------------------------------------
+class LayerAttributes
 {
-    friend class Layer;
+    friend class LayerData;
 
 public:
-    LayerData(std::uint32_t id, std::string_view name, bool visible, uint32_t depth)
+    LayerAttributes(std::uint32_t id, std::string_view name, bool visible, uint32_t depth)
         : mId(id),
-          mName(name),
-          mVisible(visible),
-          mDepth(depth)
+        mName(name),
+        mVisible(visible),
+        mDepth(depth)
     { }
 
 private:
@@ -41,59 +32,59 @@ private:
     uint32_t mDepth;
 };
 
-// --------------------------------------------------------------------------------
-class Layer
+//------------------------------------------------------------------------------
+class LayerData
 {
 public:
-    Layer(LayerData&& layerData)
-        : mLayerData(std::move(layerData))
+    LayerData(LayerAttributes&& layerAttributes)
+        : mLayerAttributes(std::move(layerAttributes))
     { }
 
-    uint32_t GetId() const { return mLayerData.mId; }
-    const std::string_view GetName() const { return mLayerData.mName; }
-    bool GetVisible() const { return mLayerData.mVisible; }
-    uint32_t GetDepth() const { return mLayerData.mDepth; }
+    uint32_t GetId() const { return mLayerAttributes.mId; }
+    const std::string_view GetName() const { return mLayerAttributes.mName; }
+    bool GetVisible() const { return mLayerAttributes.mVisible; }
+    uint32_t GetDepth() const { return mLayerAttributes.mDepth; }
 
 private:
-    LayerData mLayerData;
+    LayerAttributes mLayerAttributes;
 };
 
-// --------------------------------------------------------------------------------
-class Tile
+//------------------------------------------------------------------------------
+class TileData
 {
 public:
-    Tile(uint32_t gid)
+    TileData(uint32_t gid)
         : mGid(gid)
     { }
 
-    uint32_t GetGlobalId() const { return mGid; }    
+    uint32_t GetGlobalId() const { return mGid; }
 
 private:
     uint32_t mGid;
 };
 
-// --------------------------------------------------------------------------------
-class TiledLayer : public Layer
+//------------------------------------------------------------------------------
+class TileLayerData : public LayerData
 {
 public:
-    TiledLayer(LayerData&& layerData, uint32_t width, uint32_t height, std::vector<Tile>&& tiles)
-        : Layer(std::move(layerData)),
-          mWidth(width),
-          mHeight(height),
-          mTiles(std::move(tiles))
+    TileLayerData(LayerData&& layerData, uint32_t width, uint32_t height, std::vector<TileData>&& tiles)
+        : LayerData(std::move(layerData)),
+        mWidth(width),
+        mHeight(height),
+        mTiles(std::move(tiles))
     { }
-    
+
     uint32_t GetWidth() const { return mWidth; }
     uint32_t GetHeight() const { return mHeight; }
-    const Tile& GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }    
+    const TileData& GetTile(uint32_t x, uint32_t y) const { return mTiles.at(x + y * GetWidth()); }
 
 private:
     uint32_t mWidth;
     uint32_t mHeight;
-    std::vector<Tile> mTiles;
+    std::vector<TileData> mTiles;
 };
 
-// --------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 enum class ObjectType : uint32_t
 {
     RECTANGLE = 0,
@@ -103,16 +94,16 @@ enum class ObjectType : uint32_t
     TILE = 4,
 };
 
-// --------------------------------------------------------------------------------
-class ObjectData
+//------------------------------------------------------------------------------
+class ObjectAttributes
 {
-    friend class Object;
+    friend class ObjectData;
 
 public:
-    ObjectData(const std::string& name, uint32_t id, uint32_t width, uint32_t height, uint32_t rotation,
-               bool visible, int32_t x, int32_t y)
+    ObjectAttributes(const std::string& name, uint32_t id, uint32_t width, uint32_t height, uint32_t rotation,
+        bool visible, int32_t x, int32_t y)
         : mName(name)
-        , mId(id)        
+        , mId(id)
         , mWidth(width)
         , mHeight(height)
         , mRotation(rotation)
@@ -132,67 +123,61 @@ private:
     int32_t mY;
 };
 
-// --------------------------------------------------------------------------------
-class Object
+//------------------------------------------------------------------------------
+class ObjectData
 {
 public:
-    Object(ObjectData&& data, ObjectType type, uint32_t gid=0)
-        : mData(data)
+    ObjectData(ObjectAttributes&& data, ObjectType type, uint32_t gid = 0)
+        : mObjectAttributes(std::move(data))
         , mType(type)
         , mGid(gid)
     { }
 
-    const std::string& GetName() const { return mData.mName; }
-    uint32_t GetId() const { return mData.mId; }
-    uint32_t GetWidth() const { return mData.mWidth; }
-    uint32_t GetHeight() const { return mData.mHeight; }
-    uint32_t GetRotation() const { return mData.mRotation; }
-    bool GetVisible() const { return mData.mVisible; }
-    int32_t GetX() const { return mData.mX; }
-    int32_t GetY() const { return mData.mY; }    
+    const std::string& GetName() const { return mObjectAttributes.mName; }
+    uint32_t GetId() const { return mObjectAttributes.mId; }
+    uint32_t GetWidth() const { return mObjectAttributes.mWidth; }
+    uint32_t GetHeight() const { return mObjectAttributes.mHeight; }
+    uint32_t GetRotation() const { return mObjectAttributes.mRotation; }
+    bool GetVisible() const { return mObjectAttributes.mVisible; }
+    int32_t GetX() const { return mObjectAttributes.mX; }
+    int32_t GetY() const { return mObjectAttributes.mY; }
     ObjectType GetType() const { return mType; }
-
-    // temp
     uint32_t GetGid() const { return mGid; }
 
 private:
-    ObjectData mData;
+    ObjectAttributes mObjectAttributes;
     ObjectType mType;
-    
-    // Temp
     uint32_t mGid;
 };
 
-// --------------------------------------------------------------------------------
-class ObjectLayer : public Layer
+//------------------------------------------------------------------------------
+class ObjectLayerData : public LayerData
 {
 public:
-    ObjectLayer(LayerData&& layerData, std::vector<Object>&& objects)
-        : Layer(std::move(layerData))
-        , mObjects(objects)
+    ObjectLayerData(LayerData&& layerData, std::vector<ObjectData>&& objects)
+        : LayerData(std::move(layerData))
+        , mObjects(std::move(objects))
     { }
 
-    const std::vector<Object>& GetObjects() const { return mObjects; }
+    const std::vector<ObjectData>& GetObjects() const { return mObjects; }
 
 private:
-    std::vector<Object> mObjects;
+    std::vector<ObjectData> mObjects;
 };
 
-// --------------------------------------------------------------------------------
-// TILESETS
-// --------------------------------------------------------------------------------
-class TiledSetData
+//------------------------------------------------------------------------------
+class TilesetAttributes
 {
-    friend class TiledSet;
+    friend class TilesetData;
 
 public:
-    TiledSetData(const std::string& name, uint32_t firstGid, uint32_t tileWidth, uint32_t tileHeight, 
-                 uint32_t columns, uint32_t margin, uint32_t spacing, uint32_t tileCount)
+    TilesetAttributes(const std::string& name, uint32_t firstGid, uint32_t tileWidth, uint32_t tileHeight,
+        uint32_t columns, uint32_t margin, uint32_t spacing, uint32_t tileCount)
         : mName(name)
         , mFirstGid(firstGid)
         , mTileWidth(tileWidth)
-        , mTileHeight(tileHeight), 
-          mColumns(columns)
+        , mTileHeight(tileHeight)
+        , mColumns(columns)
         , mMargin(margin)
         , mSpacing(spacing)
         , mTileCount(tileCount)
@@ -209,159 +194,153 @@ private:
     uint32_t mTileCount;
 };
 
-// --------------------------------------------------------------------------------
-class TiledSet
+// TilesetData
+//------------------------------------------------------------------------------
+class TilesetData
 {
 public:
-    TiledSet(TiledSetData&& tiledSetData)
-        : mTiledSetData(std::move(tiledSetData))
-    { }    
-
-    const std::string& GetName() const { return mTiledSetData.mName; }
-    uint32_t GetFirstGid() const { return mTiledSetData.mFirstGid; }
-    uint32_t GetTileWidth() const { return mTiledSetData.mTileWidth; }
-    uint32_t GetTileHeight() const { return mTiledSetData.mTileHeight; }
-    uint32_t GetColumns() const { return mTiledSetData.mColumns; }
-    uint32_t GetMargin() const { return mTiledSetData.mMargin; }
-    uint32_t GetSpacing() const { return mTiledSetData.mSpacing; }
-    uint32_t GetTileCount() const { return mTiledSetData.mTileCount; }    
-   
-private:
-    TiledSetData mTiledSetData;
-};
-
-// --------------------------------------------------------------------------------
-class SpritesheetTiledSet : public TiledSet
-{
-public:    
-    SpritesheetTiledSet(TiledSetData&& tiledSetData, const fs::path& imageFilePath, uint32_t imageHeight, uint32_t imageWidth)
-        : TiledSet(std::move(tiledSetData)), 
-          mImageFilePath(imageFilePath), 
-          mImageWidth(imageWidth),
-          mImageHeight(imageHeight)
+    TilesetData(TilesetAttributes&& tilesetAttributes)
+        : mTilesetAttributes(std::move(tilesetAttributes))
     { }
 
-    // Getters
+    const std::string& GetName() const { return mTilesetAttributes.mName; }
+    uint32_t GetFirstGid() const { return mTilesetAttributes.mFirstGid; }
+    uint32_t GetTileWidth() const { return mTilesetAttributes.mTileWidth; }
+    uint32_t GetTileHeight() const { return mTilesetAttributes.mTileHeight; }
+    uint32_t GetColumns() const { return mTilesetAttributes.mColumns; }
+    uint32_t GetMargin() const { return mTilesetAttributes.mMargin; }
+    uint32_t GetSpacing() const { return mTilesetAttributes.mSpacing; }
+    uint32_t GetTileCount() const { return mTilesetAttributes.mTileCount; }
+
+private:
+    TilesetAttributes mTilesetAttributes;
+};
+
+//------------------------------------------------------------------------------
+class SpritesheetTilesetData : public TilesetData
+{
+public:
+    SpritesheetTilesetData(TilesetData&& tilesetData, const fs::path& imageFilePath, uint32_t imageHeight, uint32_t imageWidth)
+        : TilesetData(std::move(tilesetData)),
+        mImageFilePath(imageFilePath),
+        mImageWidth(imageWidth),
+        mImageHeight(imageHeight)
+    { }
+
     const fs::path& GetImageFilePath() const { return mImageFilePath; }
     uint32_t GetImageWidth() const { return mImageWidth; }
     uint32_t GetImageHeight() const { return mImageHeight; }
     uint32_t GetRows() const { return GetTileCount() / GetColumns(); }
 
 private:
-    fs::path mImageFilePath;    
+    fs::path mImageFilePath;
     uint32_t mImageWidth;
     uint32_t mImageHeight;
 };
 
-// --------------------------------------------------------------------------------
-class ImageTile  // TODO: confusing as this belongs to a tiledset not a layer (rename)
+//------------------------------------------------------------------------------
+class TilesetImageData
 {
 public:
-    ImageTile(uint32_t mId, const fs::path& imagefilePath, uint32_t imageHeight, uint32_t imageWidth)
-        : mId(mId)
-        , mImagefilePath(imagefilePath)
+    TilesetImageData(uint32_t id, const fs::path& imageFilePath, uint32_t imageHeight, uint32_t imageWidth)
+        : mId(id)
+        , mImageFilePath(imageFilePath)
         , mImageHeight(imageHeight)
         , mImageWidth(imageWidth)
     { }
 
     const uint32_t GetId() const { return mId; }
-    const fs::path& GetImageFilePath() const { return mImagefilePath; }
+    const fs::path& GetImageFilePath() const { return mImageFilePath; }
 
 private:
     uint32_t mId;
-    fs::path mImagefilePath;
+    fs::path mImageFilePath;
     uint32_t mImageHeight;
     uint32_t mImageWidth;
 };
 
-// --------------------------------------------------------------------------------
-class ImageCollectionTiledSet : public TiledSet
+//------------------------------------------------------------------------------
+class ImageCollectionTilesetData : public TilesetData
 {
 public:
-    ImageCollectionTiledSet(TiledSetData&& tiledSetData, std::vector<ImageTile>&& imageTiles)
-        : TiledSet(std::move(tiledSetData))
-        , mImageTiles(imageTiles)
+    ImageCollectionTilesetData(TilesetData&& tilesetData, std::vector<TilesetImageData>&& imageTiles)
+        : TilesetData(std::move(tilesetData))
+        , mImageTiles(std::move(imageTiles))
     { }
 
-    const std::vector<ImageTile>& GetImageTiles() const { return mImageTiles; }
+    const std::vector<TilesetImageData>& GetImageTiles() const { return mImageTiles; }
 
 private:
-    std::vector<ImageTile> mImageTiles;
+    std::vector<TilesetImageData> mImageTiles;
 };
 
-// --------------------------------------------------------------------------------
+// TiledMapData
+//------------------------------------------------------------------------------
 class TiledMapData
 {
 public:
     TiledMapData(const fs::path& filePath, uint32_t width, uint32_t height, uint32_t tileWidth, uint32_t tileHeight)
         : mFilePath(filePath),
-          mWidth(width),
-          mHeight(height),
-          mTileWidth(tileWidth),
-          mTileHeight(tileHeight)
-    { }    
+        mWidth(width),
+        mHeight(height),
+        mTileWidth(tileWidth),
+        mTileHeight(tileHeight)
+    { }
 
-    // Setters
-    void AddSpritesheetTiledSet(SpritesheetTiledSet&& tileset)
+    void AddSpritesheetTileset(SpritesheetTilesetData&& tileset)
     {
         mSpritesheetTilesets.emplace_back(std::move(tileset));
     }
 
-    void AddImageCollectionTiledSet(ImageCollectionTiledSet&& tileset)
+    void AddImageCollectionTileset(ImageCollectionTilesetData&& tileset)
     {
         mImageCollectionTilesets.emplace_back(std::move(tileset));
-    }  
+    }
 
-    void AddTileLayer(TiledLayer&& layer)
+    void AddTileLayer(TileLayerData&& layer)
     {
         mTileLayers.emplace_back(std::move(layer));
     }
 
-    void AddObjectLayer(ObjectLayer&& layer)
+    void AddObjectLayer(ObjectLayerData&& layer)
     {
         mObjectLayers.emplace_back(std::move(layer));
     }
 
-    // Getters
-    const std::vector<TiledLayer>& GetTilLayers() const
+    const std::vector<TileLayerData>& GetTileLayers() const
     {
         return mTileLayers;
     }
 
-    const std::vector<ObjectLayer>& GetObjectLayers() const
+    const std::vector<ObjectLayerData>& GetObjectLayers() const
     {
         return mObjectLayers;
     }
 
-    const std::vector<SpritesheetTiledSet>& GetSpritesheetTilesets() const
+    const std::vector<SpritesheetTilesetData>& GetSpritesheetTilesets() const
     {
         return mSpritesheetTilesets;
     }
 
-    const std::vector<ImageCollectionTiledSet>& GetImageCollectionTilesets() const
+    const std::vector<ImageCollectionTilesetData>& GetImageCollectionTilesets() const
     {
         return mImageCollectionTilesets;
     }
 
-    fs::path GetFilePath() { return mFilePath; }
+    const fs::path& GetFilePath() const { return mFilePath; }
     uint32_t GetTileWidth() const { return mTileWidth; }
     uint32_t GetTileHeight() const { return mTileHeight; }
     uint32_t GetMapWidth() const { return mWidth * mTileWidth; }
     uint32_t GetMapHeight() const { return mHeight * mTileHeight; }
 
 private:
-    // Map data
     fs::path mFilePath;
     uint32_t mWidth;
     uint32_t mHeight;
     uint32_t mTileWidth;
     uint32_t mTileHeight;
-
-    // Layers
-    std::vector<TiledLayer> mTileLayers;
-    std::vector<ObjectLayer> mObjectLayers;
-
-    // Tilesets
-    std::vector<SpritesheetTiledSet> mSpritesheetTilesets;
-    std::vector<ImageCollectionTiledSet> mImageCollectionTilesets;
+    std::vector<TileLayerData> mTileLayers;
+    std::vector<ObjectLayerData> mObjectLayers;
+    std::vector<SpritesheetTilesetData> mSpritesheetTilesets;
+    std::vector<ImageCollectionTilesetData> mImageCollectionTilesets;
 };

@@ -40,7 +40,7 @@ protected:
 class SpritesheetTextureProvider : public TileTextureResolver
 {
 public:
-	SpritesheetTextureProvider(const SpritesheetTiledSet& tileset)
+	SpritesheetTextureProvider(const SpritesheetTilesetData& tileset)
 		: mTileset(tileset)
 		, mSpritesheet{ "", nullptr}
 	{ }
@@ -96,7 +96,7 @@ private:
 	}
 
 private:
-	const SpritesheetTiledSet& mTileset;
+	const SpritesheetTilesetData& mTileset;
 	std::pair<std::string, Spritesheet*> mSpritesheet;	
 };
 
@@ -104,7 +104,7 @@ private:
 class IndividualTextureProvider : public TileTextureResolver
 {
 public:
-	IndividualTextureProvider(const ImageCollectionTiledSet& tileset)
+	IndividualTextureProvider(const ImageCollectionTilesetData& tileset)
 		: mTileset(tileset)
 	{ }	
 
@@ -137,7 +137,7 @@ public:
 private:
 	void AddTextureDescriptors(std::vector<std::unique_ptr<BaseAssetDescriptor>>& descriptors)
 	{		
-		for (const ImageTile& imageTile : mTileset.GetImageTiles())
+		for (const TilesetImageData& imageTile : mTileset.GetImageTiles())
 		{
 			const std::string texFilePath = imageTile.GetImageFilePath().string();
 			std::string texAssetId = GenerateAssetId(texFilePath);
@@ -160,7 +160,7 @@ private:
 
 private:
 	mutable TextureRegion mTextureRegion;
-	const ImageCollectionTiledSet& mTileset;
+	const ImageCollectionTilesetData& mTileset;
 	std::vector<std::pair<std::string, Texture*>> mTextures;
 };
 
@@ -228,16 +228,16 @@ private:
 class TiledMapAsset : public Asset, private NonCopyableNonMovableMarker
 {
 public:
-	TiledMapAsset(std::unique_ptr<TiledMapData> data)
-		: mData(std::move(data))		
+	TiledMapAsset(std::unique_ptr<TiledMapData> tiledMapData)
+		: mTiledMapData(std::move(tiledMapData))
 	{ 
-		for (const SpritesheetTiledSet& tileset : mData->GetSpritesheetTilesets())
+		for (const SpritesheetTilesetData& tileset : mTiledMapData->GetSpritesheetTilesets())
 		{
 			auto provider = std::make_unique<SpritesheetTextureProvider>(tileset);
 			mTiledTextureManager.AddTextureProvider(std::move(provider));
 		}
 
-		for (const ImageCollectionTiledSet& tileset : mData->GetImageCollectionTilesets())
+		for (const ImageCollectionTilesetData& tileset : mTiledMapData->GetImageCollectionTilesets())
 		{
 			auto provider = std::make_unique<IndividualTextureProvider>(tileset);
 			mTiledTextureManager.AddTextureProvider(std::move(provider));
@@ -262,16 +262,16 @@ public:
 	}
 
 	// Map data
-	uint32_t GetTileWidth() const { return mData->GetTileWidth(); }
-	uint32_t GetTileHeight() const { return mData->GetTileHeight(); }
-	uint32_t GetMapWidth() const { return mData->GetMapWidth(); }
-	uint32_t GetMapHeight() const { return mData->GetMapHeight(); }		
+	uint32_t GetTileWidth() const { return mTiledMapData->GetTileWidth(); }
+	uint32_t GetTileHeight() const { return mTiledMapData->GetTileHeight(); }
+	uint32_t GetMapWidth() const { return mTiledMapData->GetMapWidth(); }
+	uint32_t GetMapHeight() const { return mTiledMapData->GetMapHeight(); }
 	
 	// Layers
-	const std::vector<TiledLayer>& GetTileLayers() { return mData->GetTilLayers(); }	
-	const std::vector<ObjectLayer>& GetObjectLayers() const { return mData->GetObjectLayers(); }
+	const std::vector<TileLayerData>& GetTileLayers() { return mTiledMapData->GetTileLayers(); }
+	const std::vector<ObjectLayerData>& GetObjectLayers() const { return mTiledMapData->GetObjectLayers(); }
 
 private:	
-	std::unique_ptr<TiledMapData> mData;
+	std::unique_ptr<TiledMapData> mTiledMapData;
 	TiledTextureManager mTiledTextureManager;
 };

@@ -65,7 +65,7 @@ public:
 class RenderableTiledLayer : public RenderableLayer
 {
 public:
-    RenderableTiledLayer(EditableTiledLayer& layer)
+    RenderableTiledLayer(TileLayer& layer)
         : mLayer(layer)
     { }
 
@@ -75,7 +75,7 @@ public:
 		{
 			for (size_t x = viewRegion.GetStartX(); x < viewRegion.GetEndX(); x++)
 			{
-				Tile tile = mLayer.GetTile(x, y);
+				TileData tile = mLayer.GetTile(x, y);
 				DrawTile(window, map, tile, x, y);
 			}
 		}
@@ -85,7 +85,7 @@ public:
 	virtual bool IsVisible() { return mLayer.IsVisible(); }
 
 private:
-	void DrawTile(sf::RenderWindow& window, const TiledMap& map, const Tile& tile, size_t x, size_t y)
+	void DrawTile(sf::RenderWindow& window, const TiledMap& map, const TileData& tile, size_t x, size_t y)
 	{
 		uint32_t globalTileId = tile.GetGlobalId();
 		if (globalTileId == 0)
@@ -100,14 +100,14 @@ private:
 	}
 
 private:
-    EditableTiledLayer& mLayer;
+    TileLayer& mLayer;
 };
 
 // --------------------------------------------------------------------------------
 class RenderableObjectLayer : public RenderableLayer
 {
 public:
-    RenderableObjectLayer(EditableObjectLayer& layer)
+    RenderableObjectLayer(ObjectLayer& layer)
         : mLayer(layer)	  
     { 
 		mObjects.reserve(mLayer.GetObjects().size());
@@ -126,24 +126,24 @@ private:
 	void PopulateAndSortObjects() 
 	{
 		mObjects.clear();
-		for (const Object& object : mLayer.GetObjects()) 
+		for (const ObjectData& object : mLayer.GetObjects())
 		{
 			mObjects.emplace_back(&object);
 		}
 
-		std::sort(mObjects.begin(), mObjects.end(), [](const Object* a, const Object* b) {
+		std::sort(mObjects.begin(), mObjects.end(), [](const ObjectData* a, const ObjectData* b) {
 			return CompareObjects(a, b);
 		});
 	}
 
-	static bool CompareObjects(const Object* a, const Object* b) 
+	static bool CompareObjects(const ObjectData* a, const ObjectData* b)
 	{
 		int aCompareValue = CalculateComparisonValue(a);
 		int bCompareValue = CalculateComparisonValue(b);
 		return aCompareValue < bCompareValue;
 	}
 
-	static int CalculateComparisonValue(const Object* object) 
+	static int CalculateComparisonValue(const ObjectData* object)
 	{
 		int compareValue = object->GetY() + object->GetHeight() / 2.0f;
 		if (object->GetType() == ObjectType::TILE)
@@ -155,7 +155,7 @@ private:
 
 	void DrawObjects(sf::RenderWindow& window, const TiledMap& map, const TiledMapViewRegion& viewRegion)
 	{
-		for (const Object* object : mObjects)
+		for (const ObjectData* object : mObjects)
 		{
 			if (IsObjectInRegion(*object, viewRegion, object->GetType() == ObjectType::TILE))
 			{
@@ -164,7 +164,7 @@ private:
 		}
 	}
 
-	void DrawObject(const Object& object, sf::RenderWindow& window, const TiledMap& map) 
+	void DrawObject(const ObjectData& object, sf::RenderWindow& window, const TiledMap& map)
 	{
 		switch (object.GetType()) 
 		{
@@ -177,7 +177,7 @@ private:
 		}
 	}
 
-	void DrawRectangle(const Object& object, sf::RenderWindow& window)
+	void DrawRectangle(const ObjectData& object, sf::RenderWindow& window)
 	{
 		sf::RectangleShape rectangle;
 		rectangle.setPosition(sf::Vector2f(object.GetX(), object.GetY()));
@@ -189,7 +189,7 @@ private:
 		window.draw(rectangle);
 	}
 
-	void DrawTile(const Object& object, sf::RenderWindow& window, const TiledMap& map)
+	void DrawTile(const ObjectData& object, sf::RenderWindow& window, const TiledMap& map)
 	{
 		float tileWidth = map.GetTileWidth();
 		float tileHeight = map.GetTileHeight();
@@ -204,7 +204,7 @@ private:
 		window.draw(sprite);
 	}
 
-	bool IsObjectInRegion(const Object& object, const TiledMapViewRegion& region, bool adjustY)
+	bool IsObjectInRegion(const ObjectData& object, const TiledMapViewRegion& region, bool adjustY)
 	{
 		// Adjust Y-coordinate for the top edge of the object
 		int objectTopY = adjustY ? object.GetY() - object.GetHeight() : object.GetY();
@@ -223,8 +223,8 @@ private:
 	}
 
 private:
-    EditableObjectLayer& mLayer;
-	std::vector<const Object*> mObjects;
+    ObjectLayer& mLayer;
+	std::vector<const ObjectData*> mObjects;
 };
 
 // --------------------------------------------------------------------------------
@@ -234,12 +234,12 @@ public:
     TiledMapRenderer(TiledMapAsset& map)
         : mMap(map)
     { 
-        for (EditableTiledLayer& layer : mMap.GetTiledLayers())
+        for (TileLayer& layer : mMap.GetTiledLayers())
         {
             mLayer.emplace_back(std::make_unique<RenderableTiledLayer>(layer));
         }
         
-        for (EditableObjectLayer& layer : mMap.GetObjectLayers())
+        for (ObjectLayer& layer : mMap.GetObjectLayers())
         {
             mLayer.emplace_back(std::make_unique<RenderableObjectLayer>(layer));
         }

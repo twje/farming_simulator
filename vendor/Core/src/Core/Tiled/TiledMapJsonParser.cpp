@@ -38,66 +38,66 @@
     uint32_t depth = 0;
     for (const json& layerNode : parentNode["layers"])
     {
-        LayerData layerData(ExtractUInt32(layerNode, "id"), 
-                            ExtractString(layerNode, "name"),
-                            ExtractBool(layerNode, "visible"),
-                            depth++);
+        LayerAttributes layerAttributes(ExtractUInt32(layerNode, "id"), 
+                                        ExtractString(layerNode, "name"),
+                                        ExtractBool(layerNode, "visible"),
+                                        depth++);
 
         const std::string& layerType = ExtractString(layerNode, "type");
         if (layerType == "tilelayer")
         {
-            std::vector<Tile> tiles;
+            std::vector<TileData> tiles;
             for (const json& tileNode : layerNode["data"])
             {
                 tiles.emplace_back(tileNode.get<uint32_t>());
             }
             
-            TiledLayer layer(std::move(layerData),
-                             ExtractUInt32(layerNode, "width"),
-                             ExtractUInt32(layerNode, "height"),
-                             std::move(tiles));            
+            TileLayerData layer(std::move(layerAttributes),
+                                ExtractUInt32(layerNode, "width"),
+                                ExtractUInt32(layerNode, "height"),
+                                std::move(tiles));            
 
             tiledMap.AddTileLayer(std::move(layer));
         }
         else if (layerType == "objectgroup")
         {         
-            std::vector<Object> objects;
+            std::vector<ObjectData> objects;
             for (const json& objectNode : layerNode["objects"])
             {
-                ObjectData objectData(ExtractString(objectNode, "name"),
-                                      ExtractUInt32(objectNode, "id"),
-                                      ExtractUInt32(objectNode, "width"),
-                                      ExtractUInt32(objectNode, "height"),
-                                      ExtractUInt32(objectNode, "rotation"),
-                                      ExtractBool(objectNode, "visible"),
-                                      ExtractInt32(objectNode, "x"),
-                                      ExtractInt32(objectNode, "y"));
+                ObjectAttributes objectAttributes(ExtractString(objectNode, "name"),
+                                                  ExtractUInt32(objectNode, "id"),
+                                                  ExtractUInt32(objectNode, "width"),
+                                                  ExtractUInt32(objectNode, "height"),
+                                                  ExtractUInt32(objectNode, "rotation"),
+                                                  ExtractBool(objectNode, "visible"),
+                                                  ExtractInt32(objectNode, "x"),
+                                                  ExtractInt32(objectNode, "y"));
 
                 if (objectNode.find("point") != objectNode.end())
                 {
-                    objects.emplace_back(std::move(objectData), ObjectType::POINT);
+                    objects.emplace_back(std::move(objectAttributes), ObjectType::POINT);
                 }
                 else if (objectNode.find("ellipse") != objectNode.end())
                 {
-                    objects.emplace_back(std::move(objectData), ObjectType::ELLIPSE);
+                    objects.emplace_back(std::move(objectAttributes), ObjectType::ELLIPSE);
                 }
                 else if (objectNode.find("polyline") != objectNode.end())
                 {
-                    objects.emplace_back(std::move(objectData), ObjectType::POLYGON);
+                    objects.emplace_back(std::move(objectAttributes), ObjectType::POLYGON);
                 }
                 else if (objectNode.find("gid") != objectNode.end())
                 {
-                    objects.emplace_back(std::move(objectData), 
+                    objects.emplace_back(std::move(objectAttributes),
                                          ObjectType::TILE,
                                          ExtractUInt32(objectNode, "gid"));
                 }
                 else
                 {                    
-                    objects.emplace_back(std::move(objectData), ObjectType::RECTANGLE);
+                    objects.emplace_back(std::move(objectAttributes), ObjectType::RECTANGLE);
                 }
             }            
 
-            ObjectLayer layer(std::move(layerData), std::move(objects));
+            ObjectLayerData layer(std::move(layerAttributes), std::move(objects));
             tiledMap.AddObjectLayer(std::move(layer));
         }
     }
@@ -128,16 +128,14 @@
 
         uint32_t columns = ExtractUInt32(tilesetData, "columns");                
 
-        TiledSetData tiledSetData(
-            ExtractString(tilesetData, "name"),
-            ExtractUInt32(tilesetNode, "firstgid"),     // firstgid is always present in map file
-            ExtractUInt32(tilesetData, "tilewidth"),
-            ExtractUInt32(tilesetData, "tileheight"),
-            columns,
-            ExtractUInt32(tilesetData, "margin"),
-            ExtractUInt32(tilesetData, "spacing"),
-            ExtractUInt32(tilesetData, "tilecount")
-        );
+        TilesetAttributes tilesetAttributes(ExtractString(tilesetData, "name"),
+                                            ExtractUInt32(tilesetNode, "firstgid"),     // firstgid is always present in map file
+                                            ExtractUInt32(tilesetData, "tilewidth"),
+                                            ExtractUInt32(tilesetData, "tileheight"),
+                                            columns,
+                                            ExtractUInt32(tilesetData, "margin"),
+                                            ExtractUInt32(tilesetData, "spacing"),
+                                            ExtractUInt32(tilesetData, "tilecount"));
         
         // Spritesheet TiledSet
         if (columns > 0)
@@ -145,32 +143,30 @@
             fs::path relativeImageFilePath(ExtractString(tilesetData, "image"));
             fs::path absoluteImageFilePath = fs::absolute(relativeTilesetDirectory / relativeImageFilePath);
 
-            SpritesheetTiledSet tiledSet(std::move(tiledSetData),
-                                         absoluteImageFilePath, 
-                                         ExtractUInt32(tilesetData, "imageheight"),
-                                         ExtractUInt32(tilesetData, "imagewidth"));
-            tiledMap.AddSpritesheetTiledSet(std::move(tiledSet));
+            SpritesheetTilesetData tileset(std::move(tilesetAttributes),
+                                           absoluteImageFilePath, 
+                                           ExtractUInt32(tilesetData, "imageheight"),
+                                           ExtractUInt32(tilesetData, "imagewidth"));
+            tiledMap.AddSpritesheetTileset(std::move(tileset));
         }
         // Image Collection TiledSet
         else
         {
-            std::vector<ImageTile> imageTiles;
+            std::vector<TilesetImageData> imageTiles;
             for (const json& tileNode : tilesetData["tiles"])
             {
                 fs::path relativeImageFilePath(ExtractString(tileNode, "image"));
                 fs::path absoluteImageFilePath = fs::absolute(relativeTilesetDirectory / relativeImageFilePath);
 
-                ImageTile tile(
-                    ExtractUInt32(tileNode, "id"),
-                    absoluteImageFilePath,
-                    ExtractUInt32(tileNode, "imageheight"),
-                    ExtractUInt32(tileNode, "imagewidth")
-                );
+                TilesetImageData tile(ExtractUInt32(tileNode, "id"),
+                                      absoluteImageFilePath,
+                                      ExtractUInt32(tileNode, "imageheight"),
+                                      ExtractUInt32(tileNode, "imagewidth"));
                 imageTiles.emplace_back(tile);
             }
 
-            ImageCollectionTiledSet tiledSet(std::move(tiledSetData), std::move(imageTiles));
-            tiledMap.AddImageCollectionTiledSet(std::move(tiledSet));
+            ImageCollectionTilesetData tiledSet(std::move(tilesetAttributes), std::move(imageTiles));
+            tiledMap.AddImageCollectionTileset(std::move(tiledSet));
         }
     }
 }
