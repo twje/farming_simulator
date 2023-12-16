@@ -39,12 +39,25 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(json)
 
+# Add tileson header-only library
+FetchContent_Declare(
+  tileson
+  GIT_REPOSITORY https://github.com/SSBMTonberry/tileson.git
+  GIT_TAG        master
+)
+
+FetchContent_GetProperties(tileson)
+if(NOT tileson_POPULATED)
+  FetchContent_Populate(tileson)        # does not execute project's cmake script
+endif()
+
 # Configure project-wide include directories
 set(CoreIncludes
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${SFML_SOURCE_DIR}/include
     ${yaml-cpp_SOURCE_DIR}/include
     ${json_SOURCE_DIR}/include
+    ${tileson_SOURCE_DIR}
 )
 
 # Gather source files for CoreLibrary
