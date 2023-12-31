@@ -232,6 +232,35 @@ private:
 };
 
 //------------------------------------------------------------------------------
+class SpriteAdapterManager
+{
+public:
+	SpriteAdapterManager() = default;
+
+	SpriteAdpater* AcquireSpriteAdapter(Sprite* sprite) 
+	{
+		auto spriteAdapterPtr = mPool.acquire();
+		spriteAdapterPtr->Assign(sprite);
+		
+		mCache.push_back(std::move(spriteAdapterPtr));
+		return mCache.back().get();
+	}
+
+	void ReleaseAllSpriteAdapters() 
+	{
+		for (auto& spriteAdapterPtr : mCache)
+		{
+			mPool.release(std::move(spriteAdapterPtr));
+		}
+		mCache.clear();
+	}
+
+private:
+	ObjectPool<SpriteAdpater> mPool;
+	std::vector<std::unique_ptr<SpriteAdpater>> mCache;
+};
+
+//------------------------------------------------------------------------------
 class TiledMap : public Asset
 {
 public:
@@ -360,11 +389,8 @@ private:
 				continue; 
 			}*/
 
-			auto spriteAdapterPtr = mSpriteAdapterPool.acquire();
-			spriteAdapterPtr->Assign(static_cast<Sprite*>(gameObject));
-			
-			mObjectSortList.push_back(spriteAdapterPtr.get());
-			mSpriteAdapaterCache.push_back(std::move(spriteAdapterPtr));
+			TSonObjectWrapper* spriteAdapterPtr = mSpriteAdapterManager.AcquireSpriteAdapter(static_cast<Sprite*>(gameObject));
+			mObjectSortList.push_back(spriteAdapterPtr);
 		}
 		
 		// Populate tiled map objects
@@ -396,11 +422,7 @@ private:
 		}
 
 		// Release external objects from pool
-		for (auto& spriteAdapterPtr : mSpriteAdapaterCache)
-		{
-			mSpriteAdapterPool.release(std::move(spriteAdapterPtr));
-		}
-		mSpriteAdapaterCache.clear();
+		mSpriteAdapterManager.ReleaseAllSpriteAdapters();
 	}
 
 	void DrawText(sf::RenderWindow& window, const std::string& text, sf::Vector2f position, float width)
@@ -504,12 +526,9 @@ private:
 	// Sorting
 	std::vector<TSonObjectWrapper*> mObjectSortList;
 	
-	// Tiled map objects
+	// Objects
 	std::unordered_map<uint32_t, std::unique_ptr<TSonObjectWrapper>> mObjects;
-
-	// External objects
-	ObjectPool<SpriteAdpater> mSpriteAdapterPool;
-	std::vector<std::unique_ptr<SpriteAdpater>> mSpriteAdapaterCache;
+	SpriteAdapterManager mSpriteAdapterManager;
 
 	// Text	
 	sf::Font mFont;
