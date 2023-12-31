@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.22)
 
 # Set project name and specify C++ standard
 set(PROJECT_NAME CoreLibrary)
@@ -25,7 +25,8 @@ FetchContent_MakeAvailable(yaml-cpp)
 
 # Add SFML dependency
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
-FetchContent_Declare(SFML
+FetchContent_Declare(
+    SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
     GIT_TAG master
 )
@@ -42,7 +43,7 @@ FetchContent_MakeAvailable(json)
 # Add tileson header-only library
 FetchContent_Declare(
   tileson
-  GIT_REPOSITORY https://github.com/SSBMTonberry/tileson.git
+  GIT_REPOSITORY https://github.com/twje/tileson.git
   GIT_TAG        master
 )
 

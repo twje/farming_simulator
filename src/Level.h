@@ -9,7 +9,6 @@
 #include "Core/Scene.h"
 #include "Core/Group.h"
 #include "Core/AssetManager.h"
-#include "Core/Tiled/TiledMapRenderer.h"
 #include "Core/Tiled/TiledMap.h"
 
 #include <iostream>
@@ -22,6 +21,9 @@ public:
 	void Create() override
 	{
 		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
+		
+		mTiledMap = &assetManager.GetAsset<TiledMap>("main");
+
 
 		const ApplicationConfig& config = GetResourceLocator().GetApplicationConfig();
 		sf::Vector2f windowSize = sf::Vector2f(config.GetWindowSize());
@@ -39,15 +41,12 @@ public:
 		//mAllSprites.Add(mGround);
 
 		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
-
-		TiledMapAsset& tiledMap = assetManager.GetAsset<TiledMapAsset>("main");
-		mTiledMapRenderer = new TiledMapRenderer(tiledMap);
-		
-		TiledMap foo(tiledMap);
 	}
 
 	void Update(const sf::Time& timestamp) override
 	{
+		mTiledMap->Update(timestamp);
+
 		for (GameObject* gameObject : mAllSprites)
 		{
 			if (!gameObject->IsMarkedForRemoval()) { continue; }
@@ -81,21 +80,8 @@ public:
 
 	virtual void Draw(sf::RenderWindow& window)
 	{
-		window.setView(mWorldView);		
-		mTiledMapRenderer->Draw(window, GetViewRegion(mWorldView));
-
-		for (size_t z = 0; z < LAYERS.size(); z++)
-		{
-			for (GameObject* gameObject : mAllSprites)
-			{
-				if (!gameObject->IsMarkedForRemoval()) { continue; }
-
-				if (z == gameObject->GetDepth())
-				{
-					window.draw(*gameObject);
-				}
-			}
-		}
+		window.setView(mWorldView);	
+		mTiledMap->Draw(window, GetScreenViewRegion(), mAllSprites);
 		
 		window.setView(mHUDView);
 		mOverlay->Draw(window);
@@ -108,12 +94,22 @@ public:
 	}
 
 private:
+	sf::FloatRect GetScreenViewRegion()
+	{
+		sf::Vector2f halfSize = mWorldView.getSize() / 2.0f;
+		sf::Vector2f position = mWorldView.getCenter() - halfSize;
+		sf::Vector2f size = halfSize * 2.0f;
+		
+		return sf::FloatRect(position, size);
+	}
+
 	Player* mPlayer;
-	Generic* mGround;	
-	TiledMapRenderer* mTiledMapRenderer;
+	Generic* mGround;
 
 	Group mAllSprites;
 	std::unique_ptr<Overlay> mOverlay;
 	sf::View mWorldView;
 	sf::View mHUDView;
+
+	TiledMap* mTiledMap;
 };
