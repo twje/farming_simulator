@@ -264,6 +264,53 @@ private:
 class TiledMap : public Asset
 {
 public:
+	static std::unique_ptr<TiledMap> LoadFromDefinitionFile(const fs::path& defintionFilepath)
+	{
+		YAML::Node node = YAML::LoadFile(defintionFilepath.generic_string());
+		fs::path mapFilepath = defintionFilepath.parent_path() / node["filepath"].as<std::string>();
+		
+		// Load tiled map data
+		tson::Tileson parser;
+		std::unique_ptr<tson::Map> data = parser.parse(mapFilepath);
+		if (data->getStatus() != tson::ParseStatus::OK)
+		{
+			std::cerr << "Failed to load tiled map: " + data->getStatusMessage() << std::endl;
+			return nullptr;			
+		}		
+
+		// Populate objects in a layer to be rendered
+		std::unordered_map<uint32_t, bool> renderObjectsInLayer;
+		for (tson::Layer& layer : data->getLayers())
+		{
+			uint32_t layerId = static_cast<uint32_t>(layer.getId());
+			renderObjectsInLayer[layerId] = true;
+		
+			for (const auto& layerNameNode : node["noRenderObjectsInLayer"])
+			{
+				tson::Layer* noRenderLayer = data->getLayer(layerNameNode.as<std::string>());
+				if (noRenderLayer && noRenderLayer->getId() == layer.getId()) 
+				{
+					renderObjectsInLayer[layerId] = false;
+					break;
+				}
+			}
+		}
+
+		// Initialize tiled map
+		auto result = std::make_unique<TiledMap>(std::move(data));
+		
+		for (tson::Layer& layer : result->mData->getLayers())
+		{			
+			uint32_t layerId = static_cast<uint32_t>(layer.getId());
+			if (renderObjectsInLayer[layerId])
+			{
+				result->PopulateObjectsInLayer(layer);
+			}			
+		}
+		
+		return result;
+	}
+
 	explicit TiledMap(std::unique_ptr<tson::Map> data)
 		: mData(std::move(data))
 		, mText(mFont)
@@ -469,8 +516,10 @@ private:
 				mAnimationUpdateQueue[tile->getGid()] = &tile->getAnimation();
 			}
 		}
+	}
 
-		// Populate object lookup map
+	void PopulateObjectsInLayer(tson::Layer& layer)
+	{
 		if (layer.getType() == tson::LayerType::ObjectGroup)
 		{
 			for (tson::Object& object : layer.getObjects())
@@ -516,21 +565,12 @@ private:
 		}
 	}
 	
-	// Data
 	std::unique_ptr<tson::Map> mData;
-	TextureLookup mTextures;
-
-	// Animations
-	std::unordered_map<uint32_t, tson::Animation*> mAnimationUpdateQueue;
-
-	// Sorting
-	std::vector<TSonObjectWrapper*> mObjectSortList;
-	
-	// Objects
+	TextureLookup mTextures;	
+	std::unordered_map<uint32_t, tson::Animation*> mAnimationUpdateQueue;	
+	std::vector<TSonObjectWrapper*> mObjectSortList;	
 	std::unordered_map<uint32_t, std::unique_ptr<TSonObjectWrapper>> mObjects;
 	SpriteAdapterManager mSpriteAdapterManager;
-
-	// Text	
 	sf::Font mFont;
 	sf::Text mText;
 };
@@ -541,12 +581,8 @@ class TiledMapLoader : public AssetLoader<TiledMap>
 public:
 	virtual std::unique_ptr<Asset> Load(AssetFileDescriptor<TiledMap> descriptor) override
 	{
-		tson::Tileson parser;
-		std::unique_ptr<tson::Map> data = parser.parse(descriptor.GetFilePath());				
-		if (data->getStatus() != tson::ParseStatus::OK)
-		{
-			throw std::runtime_error("Failed to load tiled map: " + data->getStatusMessage());
-		}
-		return std::make_unique<TiledMap>(std::move(data));
+		auto result = TiledMap::LoadFromDefinitionFile(descriptor.GetFilePath());
+		assert(result);
+		return result;
 	}
 };
