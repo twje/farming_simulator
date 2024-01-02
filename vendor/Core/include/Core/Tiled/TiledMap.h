@@ -156,8 +156,28 @@ public:
 	explicit TiledMap(std::unique_ptr<tson::Map> data)
 		: mData(std::move(data))
 	{
-		mTextureManager.LoadTextures(*mData);		
+		mTextureManager.LoadTextures(*mData);
+
+		// Animations
+		for (tson::Layer& layer : mData->getLayers())
+		{
+			for (auto& pair : layer.getTileObjects())
+			{
+				tson::Tile* tile = pair.second.getTile();
+				if (tile->getAnimation().any())
+				{
+					assert(tile->getTileset()->getType() == tson::TilesetType::ImageTileset);
+					assert(tile->getId() != 0);
+					mAnimationUpdateQueue[tile->getGid()] = &tile->getAnimation();
+				}
+			}
+		}
 	}	
+
+	std::vector<TiledMapObjectDefinition> GetObjectDefinitions(std::string layerName)
+	{
+
+	}
 
 	size_t LayerCount() { return mData->getLayers().size(); }
 
@@ -173,11 +193,6 @@ public:
 		return { static_cast<float>(tileSize.x), static_cast<float>(tileSize.y) };
 	}
 
-	std::vector<TiledMapObjectDefinition> GetObjectDefinitions(std::string layerName)
-	{
-
-	}
-
 	sf::Vector2f GetMapSize()
 	{
 		const tson::Vector2i& tileSize = mData->getTileSize();
@@ -187,6 +202,16 @@ public:
 		float yComponent = static_cast<float>(mapSize.y * tileSize.y);
 
 		return { xComponent, yComponent };
+	}
+
+	void Update(const sf::Time& timestamp)
+	{
+		for (const auto& pair : mAnimationUpdateQueue)
+		{
+			// Time needs to be received as microseconds to get the right precision		
+			float ms = (float)((double)timestamp.asMicroseconds() / 1000);
+			pair.second->update(ms);
+		}
 	}
 
 	void DrawLayer(size_t layerIndex, sf::RenderWindow& window, const ViewRegion& viewRegion)
@@ -236,13 +261,13 @@ private:
 
 				// Animation
 				sf::IntRect textureRegion = ConvertTsonRectToSFMLIntRect(tileObject.getDrawingRect());
-				//if (mAnimationUpdateQueue.find(tile->getGid()) != mAnimationUpdateQueue.end())
-				//{
-				//	assert(tileObject.getTile()->getAnimation().any());
-				//	uint32_t animationTileId = tileObject.getTile()->getAnimation().getCurrentTileId();
-				//	tson::Tile* animationTile = tileset->getTile(animationTileId);
-				//	textureRegion = ConvertTsonRectToSFMLIntRect(animationTile->getDrawingRect());
-				//}
+				if (mAnimationUpdateQueue.find(tile->getGid()) != mAnimationUpdateQueue.end())
+				{
+					assert(tileObject.getTile()->getAnimation().any());
+					uint32_t animationTileId = tileObject.getTile()->getAnimation().getCurrentTileId();
+					tson::Tile* animationTile = tileset->getTile(animationTileId);
+					textureRegion = ConvertTsonRectToSFMLIntRect(animationTile->getDrawingRect());
+				}
 				
 				const sf::Texture& texture = mTextureManager.GetTexture(tile->getGid());
 				sf::Sprite sprite(texture, textureRegion);
@@ -259,63 +284,82 @@ private:
 		for (tson::Object& object : layer.getObjects())
 		{
 			assert(object.getFlipFlags() == tson::TileFlipFlags::None);
+
+			sf::Vector2f position = ConvertTsonVectorToSFMLVector2f(object.getPosition());
+
 			switch (object.getObjectType())
 			{
 				case tson::ObjectType::Object:
 				{
-					tson::Tileset* tileset = mData->getTilesetByGid(object.getGid());
-					assert(tileset->getType() == tson::TilesetType::ImageCollectionTileset);
-					
-					const sf::Texture& texture = mTextureManager.GetTexture(object.getGid());
-					sf::Sprite sprite(texture);
-					sprite.setOrigin({ 0.0f, static_cast<float>(texture.getSize().y) });
-					sprite.setPosition(ConvertTsonVectorToSFMLVector2f(object.getPosition()));
-
-					window.draw(sprite);
+					DrawObject(window, object.getGid(), position);
 					break;
 				}
 				case tson::ObjectType::Rectangle:
 				{
-					sf::Color solidGray(128, 128, 128, 255);
-					sf::Color transparentGray(128, 128, 128, 64);
-
-					sf::RectangleShape rectangle;
-					rectangle.setSize(ConvertTsonVectorToSFMLVector2f(object.getSize()));
-					rectangle.setPosition(ConvertTsonVectorToSFMLVector2f(object.getPosition()));
-					rectangle.setOutlineThickness(-1);
-					rectangle.setOutlineColor(solidGray);
-					rectangle.setFillColor(transparentGray);
-
-					window.draw(rectangle);
+					DrawRectangle(window, position, 
+								  ConvertTsonVectorToSFMLVector2f(object.getSize()));
 					break;
 				}
 				case tson::ObjectType::Point:
 				{
-					sf::Color solidGray(128, 128, 128, 255);
-					sf::Color transparentGray(128, 128, 128, 64);
-
-					float size = 20.0f;
-					sf::Vector2f sfmlPosition = ConvertTsonVectorToSFMLVector2f(object.getPosition());
-
-					sf::ConvexShape triangle;
-					triangle.setPointCount(3);
-					triangle.setPoint(0, sf::Vector2f(0, size) + sfmlPosition);
-					triangle.setPoint(1, sf::Vector2f(size, -size) + sfmlPosition);
-					triangle.setPoint(2, sf::Vector2f(-size, -size) + sfmlPosition);
-
-					triangle.setOutlineThickness(-1);
-					triangle.setOutlineColor(solidGray);
-					triangle.setFillColor(transparentGray);
-
-					window.draw(triangle);
+					DrawTriangle(window, position);
 					break;
 				}
 			}
 		}
 	}
 
+	void DrawObject(sf::RenderWindow& window, uint32_t gid, const sf::Vector2f& position)
+	{
+		tson::Tileset* tileset = mData->getTilesetByGid(gid);
+		assert(tileset->getType() == tson::TilesetType::ImageCollectionTileset);
+
+		const sf::Texture& texture = mTextureManager.GetTexture(gid);
+		sf::Sprite sprite(texture);
+		sprite.setOrigin({ 0.0f, static_cast<float>(texture.getSize().y) });
+		sprite.setPosition(position);
+
+		window.draw(sprite);
+	}
+
+	void DrawRectangle(sf::RenderWindow& window, const sf::Vector2f& position, const sf::Vector2f size)
+	{
+		sf::Color solidGray(128, 128, 128, 255);
+		sf::Color transparentGray(128, 128, 128, 64);
+
+		sf::RectangleShape rectangle;
+		rectangle.setSize(ConvertTsonVectorToSFMLVector2f(size));
+		rectangle.setPosition(position);
+		rectangle.setOutlineThickness(-1);
+		rectangle.setOutlineColor(solidGray);
+		rectangle.setFillColor(transparentGray);
+
+		window.draw(rectangle);
+	}
+
+	void DrawTriangle(sf::RenderWindow& window, const sf::Vector2f& position)
+	{
+		sf::Color solidGray(128, 128, 128, 255);
+		sf::Color transparentGray(128, 128, 128, 64);
+
+		float size = 20.0f;		
+
+		sf::ConvexShape triangle;
+		triangle.setPointCount(3);
+		triangle.setPoint(0, sf::Vector2f(0, size) + position);
+		triangle.setPoint(1, sf::Vector2f(size, -size) + position);
+		triangle.setPoint(2, sf::Vector2f(-size, -size) + position);
+
+		triangle.setOutlineThickness(-1);
+		triangle.setOutlineColor(solidGray);
+		triangle.setFillColor(transparentGray);
+
+		window.draw(triangle);
+	}
+
 	std::unique_ptr<tson::Map> mData;
 	TiledMapTextureManager mTextureManager;
+	std::unordered_map<uint32_t, tson::Animation*> mAnimationUpdateQueue;
 };
 
 //------------------------------------------------------------------------------
