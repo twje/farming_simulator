@@ -261,6 +261,23 @@ private:
 };
 
 //------------------------------------------------------------------------------
+class TiledMapObjectDefinition
+{
+public:
+	TiledMapObjectDefinition(tson::Object& data, sf::Texture& texture)
+		: mData(data)
+		, mTexture(texture)
+	{ }
+
+	tson::Object& GetData() const { return mData; }
+	sf::Texture& GetTexture() const { return mTexture; }
+
+private:
+	tson::Object& mData;
+	sf::Texture& mTexture;
+};
+
+//------------------------------------------------------------------------------
 class TiledMap : public Asset
 {
 public:
@@ -326,6 +343,30 @@ public:
 		{
 			ProcessLayer(layer);
 		}		
+	}
+
+	void GetObjectDefinitionsInLayer(const std::string& layerName, std::vector<std::unique_ptr<TiledMapObjectDefinition>>& outDefinitions)
+	{	
+		tson::Layer* layer = mData->getLayer(layerName);
+		if (layer)
+		{
+			for (tson::Object& object : layer->getObjects())
+			{
+				if (object.getObjectType() != tson::ObjectType::Object)
+				{
+					continue;
+				}
+
+				tson::Tileset* tileset = mData->getTilesetByGid(object.getGid());
+				assert(tileset->getType() == tson::TilesetType::ImageCollectionTileset);
+
+				uint32_t id = object.getGid() - tileset->getFirstgid() + 1;
+				tson::Tile* tile = tileset->getTile(id);
+				sf::Texture* texture = mTextures.at(tile->getImage().generic_string()).get();
+
+				outDefinitions.push_back(std::make_unique<TiledMapObjectDefinition>(object, *texture));
+			}
+		}
 	}
 
 	void Update(const sf::Time& timestamp)

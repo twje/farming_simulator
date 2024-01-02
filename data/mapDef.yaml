@@ -1,3 +1,4 @@
 filepath: "map.json"
 noRenderObjectsInLayer:    
-    - Objects
+    - Trees
+    - Decoration

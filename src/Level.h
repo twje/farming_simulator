@@ -15,6 +15,7 @@
 #include "Overlay.h"
 #include "Sprites.h"
 
+//------------------------------------------------------------------------------
 class Level : public Scene
 {
 public:
@@ -22,8 +23,7 @@ public:
 	{
 		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
 		
-		mTiledMap = &assetManager.GetAsset<TiledMap>("main");
-
+		
 
 		const ApplicationConfig& config = GetResourceLocator().GetApplicationConfig();
 		sf::Vector2f windowSize = sf::Vector2f(config.GetWindowSize());
@@ -35,11 +35,30 @@ public:
 		mHUDView.setCenter(windowSize * 0.5f);
 
 		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(0, 0));
-		//mGround = CreateGameObject<Generic>(assetManager.GetAsset<Texture>("ground").GetRawTexture(), sf::Vector2f(0, 0), LAYERS.at("ground"));
-
 		mAllSprites.Add(mPlayer);
-		//mAllSprites.Add(mGround);
 
+		mTiledMap = &assetManager.GetAsset<TiledMap>("main");
+
+		std::vector<std::unique_ptr<TiledMapObjectDefinition>> tiledMapObjectDefs;
+
+		// Trees
+		mTiledMap->GetObjectDefinitionsInLayer("Trees", tiledMapObjectDefs);
+		for (auto& definition : tiledMapObjectDefs)
+		{
+			Tree* object = CreateGameObject<Tree>(std::move(definition));
+			mAllSprites.Add(object);
+		}
+		tiledMapObjectDefs.clear();
+
+		// Decoration
+		mTiledMap->GetObjectDefinitionsInLayer("Decoration", tiledMapObjectDefs);
+		for (auto& definition : tiledMapObjectDefs)
+		{
+			WildFlower* object = CreateGameObject<WildFlower>(std::move(definition));
+			mAllSprites.Add(object);
+		}
+		tiledMapObjectDefs.clear();
+		
 		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
 	}
 
