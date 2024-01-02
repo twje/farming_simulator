@@ -19,3 +19,8 @@ void Group::Remove(GameObject* gameObject)
         mGameObjects.end()
     );
 }
+
+void Group::Sort(const std::function<bool(const GameObject*, const GameObject*)>& compareFunc)
+{
+    std::sort(mGameObjects.begin(), mGameObjects.end(), compareFunc);
+}

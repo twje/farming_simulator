@@ -18,10 +18,17 @@ public:
 		SetPosition(position);
 	}
 
-	virtual sf::FloatRect GetLocalBoundsInternal() const override { return mSprite.getLocalBounds(); }
-	virtual sf::FloatRect GetGlobalBoundsInternal() const override { return mSprite.getGlobalBounds(); }
-	virtual const sf::Drawable& GetDrawable() const override { return mSprite; }
-	
+	virtual sf::FloatRect GetLocalBoundsInternal() const override 
+	{ 
+		return mSprite.getLocalBounds(); 
+	}
+
+	virtual sf::FloatRect GetGlobalBoundsInternal() const override 
+	{ 
+		return mSprite.getGlobalBounds(); 
+	}
+
+	virtual const sf::Drawable& GetDrawable() const override { return mSprite; }	
 	virtual uint16_t GetDepth() const { return mDepth; }
 
 private:
@@ -30,57 +37,23 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class WildFlower : public Sprite
+class WildFlower : public Generic
 {
 public:
-	WildFlower(std::unique_ptr<TiledMapObjectDefinition> definition, uint16_t depth = LAYERS.at("main"))
-		: mDefinition(std::move(definition))
-		, mSprite(mDefinition->GetTexture()),
-		  mDepth(depth)
-	{
-		sf::IntRect textureRect = mSprite.getTextureRect();
-		mSprite.setOrigin({ 0.0f, static_cast<float>(textureRect.height) }); // tiled map object origin is BL
-
-		tson::Vector2i position = mDefinition->GetData().getPosition();
-		mSprite.setPosition({ static_cast<float>(position.x), static_cast<float>(position.y) });
+	WildFlower(const TiledMapObjectDefinition& definition, uint16_t depth = LAYERS.at("main"))
+		: Generic(*definition.GetTexture(), definition.GetPosition())
+	{		
+		SetOrigin(definition.GetOrigin());
 	}
-
-	virtual sf::FloatRect GetLocalBoundsInternal() const override { return mSprite.getLocalBounds(); }
-	virtual sf::FloatRect GetGlobalBoundsInternal() const override { return mSprite.getGlobalBounds(); }
-	virtual const sf::Drawable& GetDrawable() const override { return mSprite; }
-
-	virtual uint16_t GetDepth() const { return mDepth; }
-
-private:
-	std::unique_ptr<TiledMapObjectDefinition>& mDefinition;
-	sf::Sprite mSprite;
-	uint16_t mDepth;
 };
 
 //------------------------------------------------------------------------------
-class Tree : public Sprite
+class Tree : public Generic
 {
 public:
-	Tree(std::unique_ptr<TiledMapObjectDefinition> definition, uint16_t depth = LAYERS.at("main"))
-		: mDefinition(std::move(definition))
-		, mSprite(mDefinition->GetTexture()),
-		  mDepth(depth)
+	Tree(const TiledMapObjectDefinition& definition, uint16_t depth = LAYERS.at("main"))
+		: Generic(*definition.GetTexture(), definition.GetPosition())		  
 	{
-		sf::IntRect textureRect = mSprite.getTextureRect();
-		mSprite.setOrigin({ 0.0f, static_cast<float>(textureRect.height) }); // tiled map object origin is BL
-		
-		tson::Vector2i position = mDefinition->GetData().getPosition();
-		mSprite.setPosition({ static_cast<float>(position.x), static_cast<float>(position.y) });
-	}
-
-	virtual sf::FloatRect GetLocalBoundsInternal() const override { return mSprite.getLocalBounds(); }
-	virtual sf::FloatRect GetGlobalBoundsInternal() const override { return mSprite.getGlobalBounds(); }
-	virtual const sf::Drawable& GetDrawable() const override { return mSprite; }
-
-	virtual uint16_t GetDepth() const { return mDepth; }
-
-private:
-	std::unique_ptr<TiledMapObjectDefinition>& mDefinition;
-	sf::Sprite mSprite;
-	uint16_t mDepth;
+		SetOrigin(definition.GetOrigin());
+	}	
 };

@@ -22,8 +22,8 @@ public:
 	void Create() override
 	{
 		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
-		
-		
+
+
 
 		const ApplicationConfig& config = GetResourceLocator().GetApplicationConfig();
 		sf::Vector2f windowSize = sf::Vector2f(config.GetWindowSize());
@@ -39,26 +39,20 @@ public:
 
 		mTiledMap = &assetManager.GetAsset<TiledMap>("main");
 
-		std::vector<std::unique_ptr<TiledMapObjectDefinition>> tiledMapObjectDefs;
-
 		// Trees
-		mTiledMap->GetObjectDefinitionsInLayer("Trees", tiledMapObjectDefs);
-		for (auto& definition : tiledMapObjectDefs)
+		for (auto& definition : mTiledMap->GetObjectDefinitions("Trees"))
 		{
 			Tree* object = CreateGameObject<Tree>(std::move(definition));
 			mAllSprites.Add(object);
 		}
-		tiledMapObjectDefs.clear();
 
 		// Decoration
-		mTiledMap->GetObjectDefinitionsInLayer("Decoration", tiledMapObjectDefs);
-		for (auto& definition : tiledMapObjectDefs)
+		for (auto& definition : mTiledMap->GetObjectDefinitions("Decoration"))
 		{
 			WildFlower* object = CreateGameObject<WildFlower>(std::move(definition));
 			mAllSprites.Add(object);
 		}
-		tiledMapObjectDefs.clear();
-		
+
 		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
 	}
 
@@ -68,22 +62,15 @@ public:
 
 		for (GameObject* gameObject : mAllSprites)
 		{
-			if (!gameObject->IsMarkedForRemoval()) { continue; }
+			if (gameObject->IsMarkedForRemoval()) 
+			{ 
+				continue; 
+			}
 
 			gameObject->Update(timestamp);
 		}
 
 		mWorldView.setCenter(mPlayer->GetCenter());
-	}
-
-	sf::Vector2f Lerp(const sf::Vector2f& a, const sf::Vector2f& b, float t) 
-	{
-		return sf::Vector2f(Lerp(a.x, b.x, t), Lerp(a.y, b.y, t));
-	}	
-
-	float Lerp(float a, float b, float t)
-	{
-		return (a * (1.0f - t) + b * t);
 	}
 
 	sf::FloatRect GetViewRegion(const sf::View& view)
@@ -99,9 +86,32 @@ public:
 
 	virtual void Draw(sf::RenderWindow& window)
 	{
-		window.setView(mWorldView);	
-		mTiledMap->Draw(window, GetScreenViewRegion(), mAllSprites);
-		
+		window.setView(mWorldView);
+
+		mAllSprites.Sort(SpriteCompareFunc);
+
+		const ViewRegion viewRegion = GetViewRegion();
+		for (size_t layerIndex = 0; layerIndex < mTiledMap->LayerCount(); layerIndex++)
+		{
+			if (mTiledMap->GetLayerType(layerIndex) == LayerType::TileLayer)
+			{
+				mTiledMap->DrawLayer(layerIndex, window, viewRegion);
+			}
+
+			for (GameObject* gameObject : mAllSprites)
+			{
+				if (gameObject->IsMarkedForRemoval())
+				{
+					continue;
+				}
+
+				if (gameObject->GetDepth() == layerIndex)
+				{
+					window.draw(*gameObject);
+				}
+			}
+		}
+				
 		window.setView(mHUDView);
 		mOverlay->Draw(window);
 	}
@@ -113,13 +123,21 @@ public:
 	}
 
 private:
-	sf::FloatRect GetScreenViewRegion()
+	static bool SpriteCompareFunc(const GameObject* object1, const GameObject* object2)
+	{		
+		float y1 = static_cast<const Sprite*>(object1)->GetCenter().y;
+		float y2 = static_cast<const Sprite*>(object2)->GetCenter().y;
+
+		return y1 < y2;
+	}
+
+	ViewRegion GetViewRegion()
 	{
 		sf::Vector2f halfSize = mWorldView.getSize() / 2.0f;
 		sf::Vector2f position = mWorldView.getCenter() - halfSize;
 		sf::Vector2f size = halfSize * 2.0f;
 		
-		return sf::FloatRect(position, size);
+		return { mTiledMap->GetTileSize(), mTiledMap->GetMapSize(), { position, size } };
 	}
 
 	Player* mPlayer;

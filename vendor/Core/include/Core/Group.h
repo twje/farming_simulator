@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 #include <algorithm>
 
@@ -13,6 +14,7 @@ public:
 
     std::vector<GameObject*>::iterator begin() { return mGameObjects.begin(); }
     std::vector<GameObject*>::iterator end(){ return mGameObjects.end(); }
+    void Sort(const std::function<bool(const GameObject*, const GameObject*)>& compareFunc);
 
 public:
 	std::vector<GameObject*> mGameObjects;

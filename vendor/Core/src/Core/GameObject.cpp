@@ -59,7 +59,7 @@ const sf::Transform& Sprite::GetTransform() const
 //--------------------------------------------------------------------------------
 bool GameObject::IsMarkedForRemoval()
 {
-	return mScene->IsGameObjectAlive(this);
+	return !mScene->IsGameObjectAlive(this);
 }
 
 //--------------------------------------------------------------------------------

@@ -15,7 +15,6 @@
 #include <unordered_map>
 #include <vector>
 
-// Type alias
 //------------------------------------------------------------------------------
 sf::IntRect ConvertTsonRectToSFMLIntRect(const tson::Rect& rect)
 {
@@ -81,17 +80,23 @@ enum class LayerType : uint8_t
 class TiledMapObjectDefinition
 {
 public:
-	TiledMapObjectDefinition(tson::Object& data, sf::Texture& texture)
-		: mData(data)
+	TiledMapObjectDefinition(tson::Object& object, sf::Texture* texture, sf::Vector2f& origin)
+		: mPosition(ConvertTsonVectorToSFMLVector2f(object.getPosition()))
 		, mTexture(texture)
+		, mOrigin(origin)
+		, mType(static_cast<LayerType>(object.getObjectType()))
 	{ }
-
-	tson::Object& GetData() const { return mData; }
-	sf::Texture& GetTexture() const { return mTexture; }
+	
+	const sf::Vector2f& GetPosition() const { return mPosition; }
+	const sf::Texture* GetTexture() const { return mTexture; }
+	const sf::Vector2f& GetOrigin() const { return mOrigin; }
+	LayerType GetLayerType() const { return mType; }
 
 private:
-	tson::Object& mData;
-	sf::Texture& mTexture;
+	sf::Vector2f mPosition;	
+	sf::Texture* mTexture;
+	sf::Vector2f mOrigin;
+	LayerType mType;
 };
 
 //------------------------------------------------------------------------------
@@ -176,7 +181,26 @@ public:
 
 	std::vector<TiledMapObjectDefinition> GetObjectDefinitions(std::string layerName)
 	{
+		std::vector<TiledMapObjectDefinition> definitions;
+		
+		tson::Layer* layer = mData->getLayer(layerName);
+		if (layer)
+		{
+			for (tson::Object& object : layer->getObjects())
+			{				
+				sf::Texture* texture = nullptr;
+				sf::Vector2f origin(0, 0);
 
+				if (object.getObjectType() == tson::ObjectType::Object)
+				{
+					texture = &mTextureManager.GetTexture(object.getGid());
+					origin.y = 1;
+				}
+				definitions.emplace_back(object, texture, origin);
+			}
+		}
+		
+		return definitions;
 	}
 
 	size_t LayerCount() { return mData->getLayers().size(); }
