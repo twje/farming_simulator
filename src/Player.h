@@ -69,7 +69,7 @@ public:
 		  mSpeed(300),
 		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),
-		  mSeedPicker({ "corn", "tomato" })
+		  mSeedPicker({ "corn", "tomato" })		  
 	{		
 		mAnimationPlayer.SetAnimationSequence(mStatus);
 		SetPosition(position);
@@ -79,7 +79,7 @@ public:
 		mTimers.emplace(TimerId::TOOL_SWITCH, Timer(sf::milliseconds(200)));
 		mTimers.emplace(TimerId::SEED_USE, Timer(sf::milliseconds(350), std::bind(&Player::UseSeed, this)));
 		mTimers.emplace(TimerId::SEED_SWITCH, Timer(sf::milliseconds(200)));
-	
+			
 		mHitbox = InflateRect(GetGlobalBounds(), -127, -70);
 	}
 
@@ -258,7 +258,8 @@ public:
 		mHitbox.top += positionDelta.y;
 		VertCollision();
 
-		SetPosition(GetRectCenter(mHitbox));
+		sf::Vector2f center = GetRectCenter(mHitbox);
+		SetPosition(sf::Vector2f(static_cast<int32_t>(center.x), static_cast<int32_t>(center.y)));
 	}
 
 	void Animate(const sf::Time& timestamp)
@@ -276,7 +277,7 @@ public:
 		Animate(timestamp);
 	};
 
-private:
+private:	
 	sf::FloatRect mHitbox;
 	sf::Vector2f mDirection;
 	float mSpeed;
