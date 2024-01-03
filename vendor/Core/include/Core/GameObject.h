@@ -44,6 +44,8 @@ public:
 	void Move(const sf::Vector2f& offset);
 	void MoveX(float value) { Move(sf::Vector2f(value, 0)); }
 	void MoveY(float value) { Move(sf::Vector2f(0, value)); }
+	
+	virtual sf::FloatRect GetHitbox() const { return { }; }
 
 protected:
 	// Hooks

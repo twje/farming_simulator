@@ -16,14 +16,41 @@
 #include "Sprites.h"
 
 //------------------------------------------------------------------------------
+class SceneLayerRenderer
+{
+public:
+	SceneLayerRenderer(TiledMap* tiledMap)
+		: mTiledMap(tiledMap)
+		, mExcludedLayers(tiledMap->LayerCount(), false)
+	{ }
+
+	void ExcludeLayerFromRendering(const std::string& layerName) 
+	{
+		std::optional<size_t> index = mTiledMap->GetLayerIndex(layerName);
+		assert(index.has_value());
+		mExcludedLayers[index.value()] = true;
+	}
+
+	void DrawLayer(size_t layerIndex, sf::RenderWindow& window, const ViewRegion& viewRegion)
+	{
+		if (!mExcludedLayers[layerIndex])
+		{
+			mTiledMap->DrawLayer(layerIndex, window, viewRegion);
+		}
+	}
+
+private:
+	TiledMap* mTiledMap;
+	std::vector<bool> mExcludedLayers;
+};
+
+//------------------------------------------------------------------------------
 class Level : public Scene
 {
 public:
 	void Create() override
 	{
 		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
-
-
 
 		const ApplicationConfig& config = GetResourceLocator().GetApplicationConfig();
 		sf::Vector2f windowSize = sf::Vector2f(config.GetWindowSize());
@@ -34,23 +61,86 @@ public:
 		mHUDView.setSize(windowSize);
 		mHUDView.setCenter(windowSize * 0.5f);
 
-		mPlayer = CreateGameObject<Player>(assetManager, sf::Vector2f(0, 0));
-		mAllSprites.Add(mPlayer);
-
 		mTiledMap = &assetManager.GetAsset<TiledMap>("main");
+		mLayerRenderer = std::make_unique<SceneLayerRenderer>(mTiledMap);
+		
+		// House
+		for (const std::string& layerName : { "HouseFloor", "HouseFurnitureBottom" })
+		{
+			mLayerRenderer->ExcludeLayerFromRendering(layerName);
+			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
+			{
+				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition, 
+																	  LAYERS.at("house bottom"));
+				mAllSprites.Add(sprite);
+			}
+		}
+		
+		for (const std::string& layerName : { "HouseWalls", "HouseFurnitureTop" })
+		{
+			mLayerRenderer->ExcludeLayerFromRendering(layerName);
+			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
+			{
+				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition);
+				mAllSprites.Add(sprite);
+			}
+		}		
+		
+		// Fence
+		for (const std::string& layerName : { "Fence" })
+		{
+			mLayerRenderer->ExcludeLayerFromRendering(layerName);
+			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
+			{
+				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition);
+				mAllSprites.Add(sprite);
+				mCollisionSprites.Add(sprite);
+			}
+		}		
 
 		// Trees
-		for (auto& definition : mTiledMap->GetObjectDefinitions("Trees"))
+		for (const std::string& layerName : { "Trees" })
 		{
-			Tree* object = CreateGameObject<Tree>(std::move(definition));
-			mAllSprites.Add(object);
+			mLayerRenderer->ExcludeLayerFromRendering(layerName);
+			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
+			{
+				Tree* object = CreateGameObject<Tree>(std::move(definition));
+				mAllSprites.Add(object);
+				mCollisionSprites.Add(object);
+			}
 		}
 
-		// Decoration
-		for (auto& definition : mTiledMap->GetObjectDefinitions("Decoration"))
+		// Wild flowers
+		for (const std::string& layerName : { "Decoration" })
 		{
-			WildFlower* object = CreateGameObject<WildFlower>(std::move(definition));
-			mAllSprites.Add(object);
+			mLayerRenderer->ExcludeLayerFromRendering(layerName);
+			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
+			{
+				WildFlower* object = CreateGameObject<WildFlower>(std::move(definition));
+				mAllSprites.Add(object);
+				mCollisionSprites.Add(object);
+			}
+		}
+
+		// Collion tiles
+		for (const std::string& layerName : { "Collision" })
+		{
+			mLayerRenderer->ExcludeLayerFromRendering(layerName);
+			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
+			{
+				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition);
+				mCollisionSprites.Add(sprite);
+			}
+		}		
+
+		// Player
+		for (auto& definition : mTiledMap->GetObjectDefinitions("Player"))
+		{
+			if (definition.GetName() == "Start")
+			{
+				mPlayer = CreateGameObject<Player>(assetManager, definition.GetPosition(), mCollisionSprites);
+				mAllSprites.Add(mPlayer);
+			}
 		}
 
 		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
@@ -92,12 +182,7 @@ public:
 
 		const ViewRegion viewRegion = GetViewRegion();
 		for (size_t layerIndex = 0; layerIndex < mTiledMap->LayerCount(); layerIndex++)
-		{
-			if (mTiledMap->GetLayerType(layerIndex) == LayerType::TileLayer)
-			{
-				mTiledMap->DrawLayer(layerIndex, window, viewRegion);
-			}
-
+		{									
 			for (GameObject* gameObject : mAllSprites)
 			{
 				if (gameObject->IsMarkedForRemoval())
@@ -110,10 +195,24 @@ public:
 					window.draw(*gameObject);
 				}
 			}
+			mLayerRenderer->DrawLayer(layerIndex, window, viewRegion);
 		}
-				
+		// DebugDrawHitboxes(window);
+
 		window.setView(mHUDView);
 		mOverlay->Draw(window);
+	}
+
+	void DebugDrawHitboxes(sf::RenderWindow& window)
+	{
+		for (GameObject* gameObject : mCollisionSprites)
+		{
+			if (gameObject->IsMarkedForRemoval())
+			{
+				continue;
+			}
+			DrawRect(window, static_cast<Sprite*>(gameObject)->GetHitbox());
+		}
 	}
 
 	virtual void OnWindowResize(const sf::Vector2u& size)
@@ -144,9 +243,12 @@ private:
 	Generic* mGround;
 
 	Group mAllSprites;
+	Group mCollisionSprites;
+
 	std::unique_ptr<Overlay> mOverlay;
 	sf::View mWorldView;
 	sf::View mHUDView;
 
 	TiledMap* mTiledMap;
+	std::unique_ptr<SceneLayerRenderer> mLayerRenderer;
 };

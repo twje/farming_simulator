@@ -8,9 +8,11 @@
 #include "Core/ResourceLocator.h"
 #include "Core/Animation/Animation.h"
 #include "Core/Support.h"
+#include "Core/Group.h"
 #include "Core/ItemPicker.h"
 #include "Core/AssetManager.h"
 #include "Core/Animation/AnimationPlayer.h"
+#include "Core/RectUtils.h"
 
 #include "Settings.h"
 
@@ -61,8 +63,9 @@ private:
 class Player : public Sprite, public PlayerSubject
 {
 public:
-	Player(AssetManager& assetManager, const sf::Vector2f& position)
-		: mAnimationPlayer(assetManager.GetAsset<Animation>("character")),
+	Player(AssetManager& assetManager, const sf::Vector2f& position, Group& collisionSprites)
+		: mCollisionSprites(collisionSprites),
+		  mAnimationPlayer(assetManager.GetAsset<Animation>("character")),
 		  mSpeed(300),
 		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),
@@ -76,6 +79,8 @@ public:
 		mTimers.emplace(TimerId::TOOL_SWITCH, Timer(sf::milliseconds(200)));
 		mTimers.emplace(TimerId::SEED_USE, Timer(sf::milliseconds(350), std::bind(&Player::UseSeed, this)));
 		mTimers.emplace(TimerId::SEED_SWITCH, Timer(sf::milliseconds(200)));
+	
+		mHitbox = InflateRect(GetGlobalBounds(), -127, -70);
 	}
 
 	virtual sf::FloatRect GetLocalBoundsInternal() const override
@@ -200,6 +205,44 @@ public:
 		}
 	}
 
+	void HortCollision()
+	{
+		for (GameObject* gameObject : mCollisionSprites)
+		{
+			const sf::FloatRect& targetHitbox = static_cast<Sprite*>(gameObject)->GetHitbox();
+			if (mHitbox.findIntersection(targetHitbox))
+			{
+				if (mDirection.x > 0)
+				{
+					mHitbox.left = targetHitbox.left - mHitbox.width;
+				}
+				else if (mDirection.x < 0)
+				{
+					mHitbox.left = targetHitbox.left + targetHitbox.width;
+				}
+			}
+		}
+	}
+
+	void VertCollision()
+	{
+		for (GameObject* gameObject : mCollisionSprites)
+		{
+			const sf::FloatRect& targetHitbox = static_cast<Sprite*>(gameObject)->GetHitbox();
+			if (mHitbox.findIntersection(targetHitbox))
+			{
+				if (mDirection.y > 0)
+				{
+					mHitbox.top = targetHitbox.top - mHitbox.height;
+				}
+				else if (mDirection.y < 0)
+				{
+					mHitbox.top = targetHitbox.top + targetHitbox.height;
+				}
+			}
+		}
+	}
+
 	void Move(const sf::Time& timestamp)
 	{
 		if (mDirection.lengthSq() != 0)
@@ -207,16 +250,15 @@ public:
 			mDirection = mDirection.normalized();
 		}
 
-		float lerpFactor = mSpeed * timestamp.asSeconds();
-
-		mTargetPosition.x = mDirection.x * lerpFactor;
-		mTargetPosition.y = mDirection.y * lerpFactor;
+		sf::Vector2f positionDelta = mDirection * mSpeed * timestamp.asSeconds();
 		
-		mCurrentPosition.x += 0.1f * (mTargetPosition.x - mCurrentPosition.x);
-		mCurrentPosition.y += 0.1f * (mTargetPosition.y - mCurrentPosition.y);
+		mHitbox.left += positionDelta.x;
+		HortCollision();
+		
+		mHitbox.top += positionDelta.y;
+		VertCollision();
 
-		MoveX(int(mTargetPosition.x));
-		MoveY(int(mTargetPosition.y));
+		SetPosition(GetRectCenter(mHitbox));
 	}
 
 	void Animate(const sf::Time& timestamp)
@@ -235,6 +277,7 @@ public:
 	};
 
 private:
+	sf::FloatRect mHitbox;
 	sf::Vector2f mDirection;
 	float mSpeed;
 	std::string mStatus;
@@ -243,7 +286,5 @@ private:
 	std::string mSelectedTool;
 	ItemPicker<std::string> mToolPicker;
 	ItemPicker<std::string> mSeedPicker;
-
-	sf::Vector2f mCurrentPosition;
-	sf::Vector2f mTargetPosition;
+	Group& mCollisionSprites;
 };

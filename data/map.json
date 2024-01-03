@@ -48,7 +48,7 @@
          "name":"Water",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":50,
          "x":0,
          "y":0
@@ -99,7 +99,7 @@
          "name":"Ground",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":50,
          "x":0,
          "y":0
@@ -150,7 +150,7 @@
          "name":"Forest Grass",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":50,
          "x":0,
          "y":0
@@ -201,7 +201,7 @@
          "name":"Outside Decoration",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":50,
          "x":0,
          "y":0
@@ -252,7 +252,7 @@
          "name":"Hills",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":50,
          "x":0,
          "y":0
@@ -303,7 +303,7 @@
          "name":"Fence",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":50,
          "x":0,
          "y":0
@@ -405,7 +405,7 @@
          "name":"HouseWalls",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":50,
          "x":0,
          "y":0
@@ -507,7 +507,7 @@
          "name":"HouseFurnitureTop",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":50,
          "x":0,
          "y":0
@@ -879,7 +879,7 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":true,
+         "visible":false,
          "x":0,
          "y":0
         }, 
@@ -1587,7 +1587,7 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":true,
+         "visible":false,
          "x":0,
          "y":0
         }, 
@@ -1664,7 +1664,7 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":true,
+         "visible":false,
          "x":0,
          "y":0
         }, 
@@ -2126,8 +2126,8 @@
                  "type":"",
                  "visible":true,
                  "width":56,
-                 "x":60,
-                 "y":86
+                 "x":0,
+                 "y":0
                 }, 
                 {
                  "gid":149,
@@ -2384,7 +2384,7 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":true,
+         "visible":false,
          "x":0,
          "y":0
         }, 
@@ -2490,8 +2490,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":21,
- "nextobjectid":278,
+ "nextlayerid":22,
+ "nextobjectid":281,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.2",

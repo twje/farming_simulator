@@ -80,23 +80,27 @@ enum class LayerType : uint8_t
 class TiledMapObjectDefinition
 {
 public:
-	TiledMapObjectDefinition(tson::Object& object, sf::Texture* texture, sf::Vector2f& origin)
-		: mPosition(ConvertTsonVectorToSFMLVector2f(object.getPosition()))
+	TiledMapObjectDefinition(const std::string& name, sf::Texture* texture, const sf::IntRect textureRegion, 
+							 const sf::Vector2f& origin, const sf::Vector2f& position)
+		: mName(name)
 		, mTexture(texture)
+		, mTextureRegion(textureRegion)
 		, mOrigin(origin)
-		, mType(static_cast<LayerType>(object.getObjectType()))
+		, mPosition(position)
 	{ }
 	
+	const std::string& GetName() const { return mName; }
 	const sf::Vector2f& GetPosition() const { return mPosition; }
+	const sf::IntRect& GetTextureRegion() const { return mTextureRegion; }
 	const sf::Texture* GetTexture() const { return mTexture; }
 	const sf::Vector2f& GetOrigin() const { return mOrigin; }
-	LayerType GetLayerType() const { return mType; }
 
 private:
-	sf::Vector2f mPosition;	
+	std::string mName;
 	sf::Texture* mTexture;
+	sf::IntRect mTextureRegion;
+	sf::Vector2f mPosition;	
 	sf::Vector2f mOrigin;
-	LayerType mType;
 };
 
 //------------------------------------------------------------------------------
@@ -183,20 +187,48 @@ public:
 	{
 		std::vector<TiledMapObjectDefinition> definitions;
 		
-		tson::Layer* layer = mData->getLayer(layerName);
-		if (layer)
+		if (tson::Layer* layer = mData->getLayer(layerName))
 		{
-			for (tson::Object& object : layer->getObjects())
-			{				
-				sf::Texture* texture = nullptr;
-				sf::Vector2f origin(0, 0);
+			// Iterate objects
+			if (layer->getType() == tson::LayerType::ObjectGroup)
+			{
+				for (tson::Object& object : layer->getObjects())
+				{				
+					sf::Texture* texture = nullptr;
+					sf::IntRect textureRegion;
+					sf::Vector2f origin(0, 0);
 
-				if (object.getObjectType() == tson::ObjectType::Object)
-				{
-					texture = &mTextureManager.GetTexture(object.getGid());
-					origin.y = 1;
+					if (object.getObjectType() == tson::ObjectType::Object)
+					{
+						tson::Tile* tile = GetTileByGid(object.getGid());
+
+						texture = &mTextureManager.GetTexture(object.getGid());
+						textureRegion = ConvertTsonRectToSFMLIntRect(tile->getDrawingRect());
+						origin.y = 1;
+					}
+					definitions.emplace_back(object.getName(),
+											 texture,
+											 textureRegion,
+											 origin,
+											 ConvertTsonVectorToSFMLVector2f(object.getPosition()));
 				}
-				definitions.emplace_back(object, texture, origin);
+			}
+			// Iterate tiles
+			else if (layer->getType() == tson::LayerType::TileLayer)
+			{
+				for (auto& pair : layer->getTileData())
+				{
+					tson::Tile* tile = pair.second;
+					sf::Texture* texture = &mTextureManager.GetTexture(tile->getGid());
+					sf::Vector2f origin(0, 0);
+
+					definitions.emplace_back("",
+											 texture,
+											 ConvertTsonRectToSFMLIntRect(tile->getDrawingRect()),
+											 sf::Vector2f(0, 0),
+											 ConvertTsonVectorToSFMLVector2f(tile->getPosition(pair.first)));
+
+				}
 			}
 		}
 		
@@ -209,6 +241,19 @@ public:
 	{ 
 		tson::Layer& layer = mData->getLayers().at(layerIndex);
 		return static_cast<LayerType>(layer.getType());
+	}
+
+	std::optional<size_t> GetLayerIndex(const std::string& layerName)
+	{
+		const std::vector<tson::Layer>& layers = mData->getLayers();
+		for (size_t index = 0; index < layers.size(); ++index)
+		{
+			if (layers[index].getName() == layerName)
+			{
+				return index;
+			}
+		}
+		return std::nullopt; // Or return InvalidIndex if not using C++17.
 	}
 
 	sf::Vector2f GetTileSize()
@@ -260,6 +305,13 @@ public:
 	}	
 
 private:
+	tson::Tile* GetTileByGid(uint32_t gid)
+	{
+		tson::Tileset* tileset = mData->getTilesetByGid(gid);
+		uint32_t id = gid - tileset->getFirstgid() + 1;
+		return tileset->getTile(id);
+	}
+
 	void DrawTileLayer(sf::RenderWindow& window, const ViewRegion& viewRegion, tson::Layer& layer)
 	{
 		auto& tileObjects = layer.getTileObjects();
