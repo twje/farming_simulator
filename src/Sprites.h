@@ -8,6 +8,7 @@
 #include "Core/Texture.h"
 #include "Core/Utils.h"
 #include "Core/Scene.h"
+#include "Core/Timer.h"
 
 #include "Settings.h"
 
@@ -44,6 +45,7 @@ public:
 
 	virtual const sf::Drawable& GetDrawable() const override { return mSprite; }	
 	virtual uint16_t GetDepth() const { return mDepth; }
+	const sf::Sprite& GetSprite() const { return mSprite; }
 
 protected:
 	void SetHitbox(const sf::FloatRect& hitbox)
@@ -55,7 +57,7 @@ protected:
 	{
 		mSprite.setTexture(texture);
 		mSprite.setTextureRect(textureRect);
-	}
+	}	
 
 private:
 	sf::FloatRect mHitbox;
@@ -74,6 +76,32 @@ public:
 		  definition.GetPosition(),
 		  depth)
 	{ }
+};
+
+//------------------------------------------------------------------------------
+class Particle : public Generic
+{
+public:
+	Particle(const sf::Texture& texture, const sf::IntRect& textureRegion, const sf::Vector2f& origin, 
+			 const sf::Vector2f& position, uint16_t depth, int32_t msDuration)
+		: Generic(texture, textureRegion, origin, position, depth)
+		, mTimer(sf::milliseconds(msDuration))
+	{ 
+
+		mTimer.Start();
+	}
+
+	virtual void Update(const sf::Time& timestamp) 
+	{
+		mTimer.Update(timestamp);
+		if (mTimer.IsFinished())
+		{
+			Kill();
+		}
+	};
+
+private:
+	Timer mTimer;
 };
 
 //------------------------------------------------------------------------------
@@ -98,11 +126,14 @@ public:
 		: TiledMapObjectSprite(definition, depth)
 		, mAssetManager(assetManager)		
 		, mName(definition.GetName())
+		, mScene(scene)
+		, mSpriteGroup(spriteGroup)
+		, mAppleGroup(scene.CreateGroup())
 		, mAlive(true)
 		, mHealth(5)
 	{
 		SetOrigin(definition.GetOrigin());
-		CreateFruit(scene, spriteGroup);
+		CreateFruit();
 	}
 
 	virtual void Update(const sf::Time& timestamp)
@@ -113,22 +144,17 @@ public:
 		}
 	}
 
-	void InflictDemage()
+	void ChopWood()
 	{
 		if (mAlive)
 		{
 			mHealth -= 1;
 		}
-
-		GameObject* apple = mAppleGroup.GetRandomGameObject();
-		if (apple)
-		{
-			apple->Kill();
-		}
+		PickApple();		
 	}
 
 private:
-	void CreateFruit(Scene& scene, Group& spriteGroup)
+	void CreateFruit()
 	{			
 		sf::FloatRect bounds = GetGlobalBounds();
 		const sf::Vector2f position = sf::Vector2f(bounds.left, bounds.top);
@@ -140,13 +166,13 @@ private:
 				const sf::Texture& texture = mAssetManager.GetAsset<Texture>("apple").GetRawTexture();
 				const sf::IntRect textureRegion(sf::Vector2i(), sf::Vector2i(texture.getSize()));				
 
-				Generic* apple = scene.CreateGameObject<Generic>(texture,
-				    											 textureRegion, 
-						                                         sf::Vector2f(), 
-																 position + positionOffset,
-																 LAYERS.at("fruit"));
-				spriteGroup.Add(apple);
-				mAppleGroup.Add(apple);
+				Generic* apple = mScene.CreateGameObject<Generic>(texture,
+				    											  textureRegion, 
+						                                          sf::Vector2f(), 
+																  position + positionOffset,
+																  LAYERS.at("fruit"));
+				mSpriteGroup.Add(apple);
+				mAppleGroup->Add(apple);
 			}
 		}
 	}
@@ -164,8 +190,8 @@ private:
 	{
 		static const std::unordered_map<std::string, std::string> textureMap = 
 		{
-			{"Small", "large_stump"},
-			{"Large", "small_stump"}
+			{"Small", "small_stump"},
+			{"Large", "large_stump"}
 		};
 
 		auto it = textureMap.find(mName);
@@ -180,7 +206,7 @@ private:
 		// Update sprite texture
 		SetTexture(*texture, { sf::Vector2i(), sf::Vector2i(texture->getSize()) });
 		SetOrigin({ 0.5f, 1.0f });
-		SetPosition({ oldBounds.left + oldBounds.width / 2.0f, GetPosition().y });
+		SetPosition({ oldBounds.left + oldBounds.width / 2.0f, GetPosition().y });  // Tiled map origin is BL
 
 		// Update hitbox
 		sf::FloatRect newBounds = GetGlobalBounds();
@@ -190,9 +216,19 @@ private:
 		mAlive = false;
 	}
 
+	void PickApple()
+	{
+		GameObject* apple = mAppleGroup->GetRandomGameObject();
+		if (apple)
+		{
+			CreateSilhouetteFlash(static_cast<Generic*>(apple), LAYERS.at("fruit"), 200);
+			apple->Kill();
+		}
+	}
+
 	void KillAllApples()
 	{
-		for (GameObject* apple : mAppleGroup)
+		for (GameObject* apple : *mAppleGroup)
 		{
 			if (!apple->IsMarkedForRemoval())
 			{
@@ -201,7 +237,24 @@ private:
 		}
 	}
 
-	Group mAppleGroup;
+	void CreateSilhouetteFlash(const Generic* source, uint16_t depth, float duration)
+	{
+		const sf::FloatRect& bounds = source->GetGlobalBounds();
+		const sf::Texture& texture = source->GetSprite().getTexture();
+		const sf::IntRect textureRegion(sf::Vector2i(), sf::Vector2i(texture.getSize()));
+
+		Particle* particle = mScene.CreateGameObject<Particle>(texture,
+															   textureRegion,
+															   sf::Vector2f(),
+															   sf::Vector2f(bounds.left, bounds.top),
+															   depth,
+															   duration);
+		mSpriteGroup.Add(particle);
+	}
+
+	Group* mAppleGroup;
+	Group& mSpriteGroup;
+	Scene& mScene;
 	std::string mName;
 	AssetManager& mAssetManager;	
 	bool mAlive;

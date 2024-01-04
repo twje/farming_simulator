@@ -8,8 +8,10 @@
 
 class Group
 {
-public:
+public:    
+    void Update();
     void Add(GameObject* gameObject);
+
     void Remove(GameObject* gameObject);
     GameObject* GetRandomGameObject();
     size_t GetSize();
@@ -20,4 +22,5 @@ public:
 
 public:
 	std::vector<GameObject*> mGameObjects;
+    std::vector<GameObject*> mPostFrameAddGameObjectList;
 };

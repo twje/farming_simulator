@@ -114,7 +114,7 @@ public:
 				Tree* tree = static_cast<Tree*>(gameObject);
 				if (tree->GetGlobalBounds().contains(mTargetPosition))
 				{
-					tree->InflictDemage();
+					tree->ChopWood();
 				}
 			}
 		}

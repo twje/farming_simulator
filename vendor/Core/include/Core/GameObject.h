@@ -18,7 +18,7 @@ public:
 	bool IsMarkedForRemoval();
 	void Kill();
 	void RemoveFromGroups();
-
+	
 private:
 	void SetScene(Scene* scene) { mScene = scene; }
 	void AddGroup(Group* group) { mGroups.emplace_back(group); }

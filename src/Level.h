@@ -50,6 +50,10 @@ class Level : public Scene
 public:
 	void Create() override
 	{
+		mAllSprites = CreateGroup();
+		mTreeSprites = CreateGroup();
+		mCollisionSprites = CreateGroup();
+
 		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
 
 		const ApplicationConfig& config = GetResourceLocator().GetApplicationConfig();
@@ -72,7 +76,7 @@ public:
 			{
 				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition, 
 																	  LAYERS.at("house bottom"));
-				mAllSprites.Add(sprite);
+				mAllSprites->Add(sprite);
 			}
 		}
 		
@@ -82,7 +86,7 @@ public:
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
 				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition);
-				mAllSprites.Add(sprite);
+				mAllSprites->Add(sprite);
 			}
 		}		
 		
@@ -93,8 +97,8 @@ public:
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
 				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition);
-				mAllSprites.Add(sprite);
-				mCollisionSprites.Add(sprite);
+				mAllSprites->Add(sprite);
+				mCollisionSprites->Add(sprite);
 			}
 		}		
 
@@ -104,10 +108,10 @@ public:
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
-				Tree* object = CreateGameObject<Tree>(assetManager, std::move(definition), *this, mAllSprites);
-				mAllSprites.Add(object);
-				mCollisionSprites.Add(object);
-				mTreeSprites.Add(object);
+				Tree* object = CreateGameObject<Tree>(assetManager, std::move(definition), *this, *mAllSprites);
+				mAllSprites->Add(object);
+				mCollisionSprites->Add(object);
+				mTreeSprites->Add(object);
 			}
 		}
 
@@ -118,8 +122,8 @@ public:
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
 				WildFlower* object = CreateGameObject<WildFlower>(std::move(definition));
-				mAllSprites.Add(object);
-				mCollisionSprites.Add(object);
+				mAllSprites->Add(object);
+				mCollisionSprites->Add(object);
 			}
 		}
 
@@ -130,7 +134,7 @@ public:
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
 				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition);
-				mCollisionSprites.Add(sprite);
+				mCollisionSprites->Add(sprite);
 			}
 		}		
 
@@ -142,9 +146,9 @@ public:
 			{
 				mPlayer = CreateGameObject<Player>(assetManager, 
 												   definition.GetPosition(),
-					                               mCollisionSprites, 
-					                               mTreeSprites);
-				mAllSprites.Add(mPlayer);
+					                               *mCollisionSprites, 
+					                               *mTreeSprites);
+				mAllSprites->Add(mPlayer);
 			}
 		}
 
@@ -155,7 +159,7 @@ public:
 	{
 		mTiledMap->Update(timestamp);
 
-		for (GameObject* gameObject : mAllSprites)
+		for (GameObject* gameObject : *mAllSprites)
 		{
 			if (gameObject->IsMarkedForRemoval()) 
 			{ 
@@ -183,18 +187,13 @@ public:
 	{
 		window.setView(mWorldView);
 
-		mAllSprites.Sort(SpriteCompareFunc);
+		mAllSprites->Sort(SpriteCompareFunc);
 
 		const ViewRegion viewRegion = GetViewRegion();
 		for (size_t layerIndex = 0; layerIndex < mTiledMap->LayerCount(); layerIndex++)
 		{									
-			for (GameObject* gameObject : mAllSprites)
+			for (GameObject* gameObject : *mAllSprites)
 			{
-				if (gameObject->IsMarkedForRemoval())
-				{
-					continue;
-				}
-
 				if (gameObject->GetDepth() == layerIndex)
 				{
 					window.draw(*gameObject);
@@ -211,7 +210,7 @@ public:
 
 	void DebugDrawHitboxes(sf::RenderWindow& window)
 	{
-		for (GameObject* gameObject : mCollisionSprites)
+		for (GameObject* gameObject : *mCollisionSprites)
 		{
 			if (gameObject->IsMarkedForRemoval())
 			{
@@ -262,9 +261,9 @@ private:
 	Player* mPlayer;
 	Generic* mGround;
 
-	Group mAllSprites;
-	Group mTreeSprites;
-	Group mCollisionSprites;
+	Group* mAllSprites{ nullptr };
+	Group* mTreeSprites{ nullptr };
+	Group* mCollisionSprites{ nullptr };
 
 	std::unique_ptr<Overlay> mOverlay;
 	sf::View mWorldView;

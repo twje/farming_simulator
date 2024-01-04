@@ -21,6 +21,12 @@ public:
 		return ptr;
 	}
 
+	Group* CreateGroup()
+	{
+		mGroups.emplace_back(std::make_unique<Group>());
+		return mGroups.back().get();
+	}
+
 	void DeleteGameObject(GameObject* gameObject)
 	{
 		mDeadGameObjectList.insert(gameObject);
@@ -28,6 +34,7 @@ public:
 
 	bool IsGameObjectAlive(GameObject* gameObject)
 	{
+		// The object has been deletd but still iterated on
 		return mDeadGameObjectList.find(gameObject) == mDeadGameObjectList.end();
 	}
 
@@ -39,10 +46,16 @@ public:
 			gameObject->RemoveFromGroups();
 			mGameObjects.erase(gameObject);
 		}
-		mDeadGameObjectList.clear();
+		mDeadGameObjectList.clear();		
+	
+		for (auto& groupPtr : mGroups)
+		{
+			groupPtr->Update();
+		}
 	}
 
 private:
 	std::unordered_map<void*, std::unique_ptr<GameObject>> mGameObjects;
 	std::set<GameObject*> mDeadGameObjectList;
+	std::vector<std::unique_ptr<Group>> mGroups;
 };

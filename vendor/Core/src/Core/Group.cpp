@@ -1,10 +1,19 @@
 #include "Core/Group.h"
 #include "Core/Utils.h"
 
+void Group::Update()
+{
+    for (GameObject* gameObject : mPostFrameAddGameObjectList)
+    {
+        mGameObjects.push_back(gameObject);
+        gameObject->AddGroup(this);
+    }
+    mPostFrameAddGameObjectList.clear();
+}
+
 void Group::Add(GameObject* gameObject)
 {
-    mGameObjects.emplace_back(gameObject);
-    gameObject->AddGroup(this);
+    mPostFrameAddGameObjectList.push_back(gameObject);    
 }
 
 void Group::Remove(GameObject* gameObject)
@@ -25,7 +34,16 @@ GameObject* Group::GetRandomGameObject()
 {
     if (mGameObjects.size() > 0)
     {        
-        return GetRandomElement(mGameObjects);
+        size_t attempts = 0;
+        while (attempts < 10)
+        {
+            GameObject* gameObject = GetRandomElement(mGameObjects);
+            if (!gameObject->IsMarkedForRemoval())
+            {
+                return gameObject;
+            }
+            attempts++;
+        }   
     }
     return nullptr;
 }
