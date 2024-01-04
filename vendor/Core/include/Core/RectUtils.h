@@ -10,13 +10,13 @@ sf::Vector2f GetRectMidTop(const sf::FloatRect& rect);
 sf::Vector2f GetRectMidBottom(const sf::FloatRect& rect);
 
 template<typename T>
-void DrawRect(sf::RenderTarget& target, const T& rect)
+void DrawRect(sf::RenderTarget& target, const T& rect, const sf::Color& color)
 {
 	sf::RectangleShape rectangleShape;
 	rectangleShape.setSize(rect.getSize());
 	rectangleShape.setPosition(rect.getPosition());
 	rectangleShape.setFillColor({ 0, 0, 0, 0 });
-	rectangleShape.setOutlineColor(sf::Color::Red);
+	rectangleShape.setOutlineColor(color);
 	rectangleShape.setOutlineThickness(-1);
 
 	target.draw(rectangleShape);

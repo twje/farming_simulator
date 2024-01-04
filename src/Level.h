@@ -104,9 +104,10 @@ public:
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
-				Tree* object = CreateGameObject<Tree>(std::move(definition));
+				Tree* object = CreateGameObject<Tree>(assetManager, std::move(definition), *this, mAllSprites);
 				mAllSprites.Add(object);
 				mCollisionSprites.Add(object);
+				mTreeSprites.Add(object);
 			}
 		}
 
@@ -136,9 +137,13 @@ public:
 		// Player
 		for (auto& definition : mTiledMap->GetObjectDefinitions("Player"))
 		{
+			mLayerRenderer->ExcludeLayerFromRendering("Player");
 			if (definition.GetName() == "Start")
 			{
-				mPlayer = CreateGameObject<Player>(assetManager, definition.GetPosition(), mCollisionSprites);
+				mPlayer = CreateGameObject<Player>(assetManager, 
+												   definition.GetPosition(),
+					                               mCollisionSprites, 
+					                               mTreeSprites);
 				mAllSprites.Add(mPlayer);
 			}
 		}
@@ -197,7 +202,8 @@ public:
 			}
 			mLayerRenderer->DrawLayer(layerIndex, window, viewRegion);
 		}
-		// DebugDrawHitboxes(window);
+		//DebugDrawHitboxes(window);
+		//DrawPlayerTargetPosition(window);
 
 		window.setView(mHUDView);
 		mOverlay->Draw(window);
@@ -211,8 +217,22 @@ public:
 			{
 				continue;
 			}
-			DrawRect(window, static_cast<Sprite*>(gameObject)->GetHitbox());
+
+			DrawRect(window, static_cast<Sprite*>(gameObject)->GetHitbox(), sf::Color::Red);
+			DrawRect(window, static_cast<Sprite*>(gameObject)->GetGlobalBounds(), sf::Color::Blue);
 		}
+	}
+
+	void DrawPlayerTargetPosition(sf::RenderWindow& window)
+	{
+		float radius = 5.0f;
+		sf::Vector2f offset(-radius, -radius);
+
+		sf::CircleShape point(radius);
+		point.setPosition(mPlayer->GetTargetPosition() + offset);
+		point.setFillColor(sf::Color::Red);
+
+		window.draw(point);
 	}
 
 	virtual void OnWindowResize(const sf::Vector2u& size)
@@ -243,6 +263,7 @@ private:
 	Generic* mGround;
 
 	Group mAllSprites;
+	Group mTreeSprites;
 	Group mCollisionSprites;
 
 	std::unique_ptr<Overlay> mOverlay;

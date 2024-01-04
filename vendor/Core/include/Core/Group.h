@@ -11,6 +11,8 @@ class Group
 public:
     void Add(GameObject* gameObject);
     void Remove(GameObject* gameObject);
+    GameObject* GetRandomGameObject();
+    size_t GetSize();
 
     std::vector<GameObject*>::iterator begin() { return mGameObjects.begin(); }
     std::vector<GameObject*>::iterator end(){ return mGameObjects.end(); }

@@ -15,6 +15,7 @@
 #include "Core/RectUtils.h"
 
 #include "Settings.h"
+#include "Sprites.h"
 
 // --------------------------------------------------------------------------------
 enum class TimerId
@@ -63,13 +64,14 @@ private:
 class Player : public Sprite, public PlayerSubject
 {
 public:
-	Player(AssetManager& assetManager, const sf::Vector2f& position, Group& collisionSprites)
+	Player(AssetManager& assetManager, const sf::Vector2f& position, Group& collisionSprites, Group& treeSprites)
 		: mCollisionSprites(collisionSprites),
+		  mTreeSprites(treeSprites),
 		  mAnimationPlayer(assetManager.GetAsset<Animation>("character")),
 		  mSpeed(300),
 		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),
-		  mSeedPicker({ "corn", "tomato" })		  
+		  mSeedPicker({ "corn", "tomato" })
 	{		
 		mAnimationPlayer.SetAnimationSequence(mStatus);
 		SetPosition(position);
@@ -104,7 +106,18 @@ public:
 
 	void UseTool()
 	{
-		std::cout << mToolPicker.GetItem() << std::endl;
+		// Chop down tree
+		if (mToolPicker.GetItem() == "axe")
+		{
+			for (GameObject* gameObject : mTreeSprites)
+			{
+				Tree* tree = static_cast<Tree*>(gameObject);
+				if (tree->GetGlobalBounds().contains(mTargetPosition))
+				{
+					tree->InflictDemage();
+				}
+			}
+		}
 	}
 
 	void UseSeed()
@@ -274,10 +287,20 @@ public:
 		GetStatus();
 		UpdateTimers(timestamp);
 		Move(timestamp);
+		UpdateTargetPosition();
 		Animate(timestamp);
 	};
 
-private:	
+	const sf::Vector2f& GetTargetPosition() const { return mTargetPosition; }
+
+private:
+	void UpdateTargetPosition()
+	{
+		const sf::FloatRect globalBounds = GetGlobalBounds();
+		mTargetPosition = globalBounds.getCenter() + PLAYER_TOOL_OFFSET.at(SplitAndGetElement(mStatus, '_', 0));
+	}
+
+	sf::Vector2f mTargetPosition;
 	sf::FloatRect mHitbox;
 	sf::Vector2f mDirection;
 	float mSpeed;
@@ -288,4 +311,5 @@ private:
 	ItemPicker<std::string> mToolPicker;
 	ItemPicker<std::string> mSeedPicker;
 	Group& mCollisionSprites;
+	Group& mTreeSprites;
 };
