@@ -194,6 +194,11 @@ public:
 		{									
 			for (GameObject* gameObject : *mAllSprites)
 			{
+				if (gameObject->IsMarkedForRemoval())
+				{
+					continue;
+				}
+
 				if (gameObject->GetDepth() == layerIndex)
 				{
 					window.draw(*gameObject);

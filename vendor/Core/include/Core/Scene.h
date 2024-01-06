@@ -40,7 +40,7 @@ public:
 	}
 
 	// ILayer Interface
-	void EndFrame() override
+	void PostUpdate() override
 	{
 		for (auto gameObject : mDeadGameObjectList)
 		{

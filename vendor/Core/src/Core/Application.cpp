@@ -46,13 +46,11 @@ void Application::Run()
             timeSinceLastUpdate -= timePerFrame;
 
             mLayerStack.Update(timePerFrame);
+            mLayerStack.PostUpdate();
             
             mWindow.clear();
             mLayerStack.Draw(mWindow);
             mWindow.display();
-
-            mLayerStack.EndFrame();
         }
-
     }
 }

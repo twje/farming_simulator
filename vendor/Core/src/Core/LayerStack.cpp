@@ -16,11 +16,11 @@ void LayerStack::Draw(sf::RenderWindow& window)
 	}
 }
 
-void LayerStack::EndFrame()
+void LayerStack::PostUpdate()
 {
 	for (auto& layer : mLayers)
 	{
-		layer->EndFrame();
+		layer->PostUpdate();
 	}
 }
 
