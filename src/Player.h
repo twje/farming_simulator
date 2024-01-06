@@ -115,6 +115,7 @@ public:
 				if (tree->GetGlobalBounds().contains(mTargetPosition))
 				{
 					tree->ChopWood();
+					break;
 				}
 			}
 		}
