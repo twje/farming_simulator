@@ -1,8 +1,10 @@
 #pragma once
 
-#include <vector>
+#include "Core/Shader.h"
 
 #include <SFML/Graphics.hpp>
+
+#include <vector>
 
 class GameObject : public sf::Drawable
 {
@@ -40,6 +42,7 @@ public:
 	// Setters
 	void SetPosition(const sf::Vector2f& position) { mPosition = position; }
 	void SetOrigin(const sf::Vector2f& origin) { mOrigin = origin; }	
+	void SetShader(Shader* shader) { mShader = shader; }
 
 	void Move(const sf::Vector2f& offset);
 	void MoveX(float value) { Move(sf::Vector2f(value, 0)); }
@@ -60,5 +63,6 @@ private:
 private:
 	sf::Vector2f mPosition;		
 	sf::Vector2f mOrigin;
+	Shader* mShader{ nullptr };
 	mutable sf::Transform mTransform;
 };

@@ -9,6 +9,7 @@
 #include "Core/Utils.h"
 #include "Core/Scene.h"
 #include "Core/Timer.h"
+#include "Core/Shader.h"
 
 #include "Settings.h"
 
@@ -82,12 +83,13 @@ public:
 class Particle : public Generic
 {
 public:
-	Particle(const sf::Texture& texture, const sf::IntRect& textureRegion, const sf::Vector2f& origin, 
-			 const sf::Vector2f& position, uint16_t depth, int32_t msDuration)
+	Particle(AssetManager& assetManager, const sf::Texture& texture, const sf::IntRect& textureRegion,
+		     const sf::Vector2f& origin, const sf::Vector2f& position, uint16_t depth, 
+		     int32_t msDuration)
 		: Generic(texture, textureRegion, origin, position, depth)
 		, mTimer(sf::milliseconds(msDuration))
 	{ 
-
+		SetShader(&assetManager.GetAsset<Shader>("color"));
 		mTimer.Start();
 	}
 
@@ -188,6 +190,8 @@ private:
 
 	void ReplaceTreeWithStump()
 	{
+		CreateSilhouetteFlash(static_cast<Generic*>(this), LAYERS.at("fruit"), 200);
+		
 		static const std::unordered_map<std::string, std::string> textureMap = 
 		{
 			{"Small", "small_stump"},
@@ -199,7 +203,7 @@ private:
 		{
 			throw std::logic_error("Invalid mName value: " + mName);
 		}
-
+		
 		sf::FloatRect oldBounds = GetGlobalBounds();
 		sf::Texture* texture = &mAssetManager.GetAsset<Texture>(it->second).GetRawTexture();		
 		
@@ -211,6 +215,7 @@ private:
 		// Update hitbox
 		sf::FloatRect newBounds = GetGlobalBounds();
 		SetHitbox(InflateRect(newBounds, -10.0f, -newBounds.height * 0.6f));
+
 
 		KillAllApples();
 		mAlive = false;
@@ -237,18 +242,19 @@ private:
 		}
 	}
 
-	void CreateSilhouetteFlash(const Generic* source, uint16_t depth, float duration)
+	void CreateSilhouetteFlash(const Generic* source, uint16_t depth, int32_t msDuration)
 	{
 		const sf::FloatRect& bounds = source->GetGlobalBounds();
 		const sf::Texture& texture = source->GetSprite().getTexture();
 		const sf::IntRect textureRegion(sf::Vector2i(), sf::Vector2i(texture.getSize()));
 
-		Particle* particle = mScene.CreateGameObject<Particle>(texture,
+		Particle* particle = mScene.CreateGameObject<Particle>(mAssetManager,
+															   texture,
 															   textureRegion,
 															   sf::Vector2f(),
 															   sf::Vector2f(bounds.left, bounds.top),
 															   depth,
-															   duration);
+															   msDuration);
 		mSpriteGroup.Add(particle);
 	}
 

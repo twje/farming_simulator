@@ -33,7 +33,11 @@ void Sprite::Move(const sf::Vector2f& offset)
 void Sprite::draw(sf::RenderTarget& target, const sf::RenderStates& states) const
 {
 	sf::RenderStates statesCopy(states);
-	statesCopy.transform *= GetTransform();	
+	statesCopy.transform *= GetTransform();
+	if (mShader)
+	{
+		statesCopy.shader = &mShader->GetInternalShader();
+	}
 	target.draw(GetDrawable(), statesCopy);
 }
 
