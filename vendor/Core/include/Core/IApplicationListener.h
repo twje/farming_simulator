@@ -17,13 +17,14 @@ public:
 	void PushLayer(std::unique_ptr<ILayer> layer);
 
 	// Setters
-	void SetLayerStack(LayerStack* layerStack) { mLayerStack = layerStack; }
-	void SetResourceLocator(ResourceLocator* resourceLocator) { mResourceLocator = resourceLocator; }
+	void SetLayerStack(LayerStack* layerStack) { mLayerStack = layerStack; }	
 
 	// Getters
-	ResourceLocator& GetResourceLocator() const { return *mResourceLocator; }
+	ResourceLocator& GetResourceLocator() const 
+	{ 
+		return ResourceLocator::GetInstance();
+	}
 
 private:
-	LayerStack* mLayerStack;
-	ResourceLocator* mResourceLocator;
+	LayerStack* mLayerStack;	
 };

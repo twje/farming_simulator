@@ -17,8 +17,7 @@ public:
 
 private:
 	std::unique_ptr<IApplicationListener> mListener;
-	LayerStack mLayerStack;
-	ResourceLocator mResourceLocator;
+	LayerStack mLayerStack;	
 	sf::RenderWindow mWindow;
 	sf::Clock mClock;
 };

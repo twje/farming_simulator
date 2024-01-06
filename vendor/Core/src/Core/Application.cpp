@@ -6,14 +6,13 @@
 #include "Core/ApplicationConfig.h"
 
 Application::Application(std::unique_ptr<IApplicationListener> listener, ApplicationConfig config)
-	: mListener(std::move(listener)),
-	  mWindow(sf::VideoMode(sf::Vector2u(config.mWidth, config.mHeight), config.mBPP), config.mCaption),
-      mResourceLocator(config)
+    : mListener(std::move(listener))
+    , mWindow(sf::VideoMode(sf::Vector2u(config.mWidth, config.mHeight), config.mBPP), config.mCaption)
 {
+    ResourceLocator::GetInstance().Initialize(config);
     mWindow.setVerticalSyncEnabled(true);
 
-	mListener->SetLayerStack(&mLayerStack);
-	mListener->SetResourceLocator(&mResourceLocator);
+	mListener->SetLayerStack(&mLayerStack);	
 	mListener->Create();
 }
 
@@ -33,9 +32,11 @@ void Application::Run()
             }
             else if (event.type == sf::Event::Resized)
             {
-                mResourceLocator.mConfig.mHeight = event.size.width;
-                mResourceLocator.mConfig.mWidth = event.size.height;
-                mLayerStack.OnWindowResize(mResourceLocator.mConfig.GetWindowSize());
+                ApplicationConfig& config = ResourceLocator::GetInstance().GetApplicationConfig();
+                config.mHeight = event.size.width;
+                config.mWidth = event.size.height;
+
+                mLayerStack.OnWindowResize(config.GetWindowSize());
             }
             mLayerStack.OnEvent(event);
         }

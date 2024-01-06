@@ -10,6 +10,7 @@
 #include "Core/Scene.h"
 #include "Core/Timer.h"
 #include "Core/Shader.h"
+#include "Core/ResourceLocator.h"
 
 #include "Settings.h"
 
@@ -83,12 +84,13 @@ public:
 class Particle : public Generic
 {
 public:
-	Particle(AssetManager& assetManager, const sf::Texture& texture, const sf::IntRect& textureRegion,
+	Particle(const sf::Texture& texture, const sf::IntRect& textureRegion,
 		     const sf::Vector2f& origin, const sf::Vector2f& position, uint16_t depth, 
 		     int32_t msDuration)
 		: Generic(texture, textureRegion, origin, position, depth)
 		, mTimer(sf::milliseconds(msDuration))
 	{ 
+		AssetManager& assetManager = ResourceLocator::GetInstance().GetAssetManager();
 		SetShader(&assetManager.GetAsset<Shader>("color"));
 		mTimer.Start();
 	}
@@ -124,9 +126,8 @@ public:
 class Tree : public TiledMapObjectSprite
 {
 public:
-	Tree(AssetManager& assetManager, const TiledMapObjectDefinition& definition, Scene& scene, Group& spriteGroup, uint16_t depth = LAYERS.at("main"))
-		: TiledMapObjectSprite(definition, depth)
-		, mAssetManager(assetManager)		
+	Tree(const TiledMapObjectDefinition& definition, Scene& scene, Group& spriteGroup, uint16_t depth = LAYERS.at("main"))
+		: TiledMapObjectSprite(definition, depth)		
 		, mName(definition.GetName())
 		, mScene(scene)
 		, mSpriteGroup(spriteGroup)
@@ -161,11 +162,12 @@ private:
 		sf::FloatRect bounds = GetGlobalBounds();
 		const sf::Vector2f position = sf::Vector2f(bounds.left, bounds.top);
 
+		AssetManager& assetManager = ResourceLocator::GetInstance().GetAssetManager();
 		for (const sf::Vector2f& positionOffset : APPLE_POSITIONS.at(mName))
 		{
 			if (IsRandomNumberLessThanOrEqualTo(0, 10, 2))
 			{
-				const sf::Texture& texture = mAssetManager.GetAsset<Texture>("apple").GetRawTexture();
+				const sf::Texture& texture = assetManager.GetAsset<Texture>("apple").GetRawTexture();
 				const sf::IntRect textureRegion(sf::Vector2i(), sf::Vector2i(texture.getSize()));				
 
 				Generic* apple = mScene.CreateGameObject<Generic>(texture,
@@ -190,6 +192,8 @@ private:
 
 	void ReplaceTreeWithStump()
 	{
+		AssetManager& assetManager = ResourceLocator::GetInstance().GetAssetManager();
+		
 		CreateSilhouetteFlash(static_cast<Generic*>(this), LAYERS.at("fruit"), 200);
 		
 		static const std::unordered_map<std::string, std::string> textureMap = 
@@ -203,9 +207,9 @@ private:
 		{
 			throw std::logic_error("Invalid mName value: " + mName);
 		}
-		
+				
 		sf::FloatRect oldBounds = GetGlobalBounds();
-		sf::Texture* texture = &mAssetManager.GetAsset<Texture>(it->second).GetRawTexture();		
+		sf::Texture* texture = &assetManager.GetAsset<Texture>(it->second).GetRawTexture();
 		
 		// Update sprite texture
 		SetTexture(*texture, { sf::Vector2i(), sf::Vector2i(texture->getSize()) });
@@ -248,8 +252,7 @@ private:
 		const sf::Texture& texture = source->GetSprite().getTexture();
 		const sf::IntRect textureRegion(sf::Vector2i(), sf::Vector2i(texture.getSize()));
 
-		Particle* particle = mScene.CreateGameObject<Particle>(mAssetManager,
-															   texture,
+		Particle* particle = mScene.CreateGameObject<Particle>(texture,
 															   textureRegion,
 															   sf::Vector2f(),
 															   sf::Vector2f(bounds.left, bounds.top),
@@ -262,7 +265,6 @@ private:
 	Group& mSpriteGroup;
 	Scene& mScene;
 	std::string mName;
-	AssetManager& mAssetManager;	
 	bool mAlive;
 	int32_t mHealth;
 };
