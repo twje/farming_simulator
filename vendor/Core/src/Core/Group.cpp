@@ -43,7 +43,7 @@ GameObject* Group::GetRandomGameObject()
                 return gameObject;
             }
             attempts++;
-        }   
+        }
     }
     return nullptr;
 }
@@ -56,4 +56,19 @@ size_t Group::GetSize()
 void Group::Sort(const std::function<bool(const GameObject*, const GameObject*)>& compareFunc)
 {
     std::sort(mGameObjects.begin(), mGameObjects.end(), compareFunc);
+}
+
+ConditionalIterator<GameObject*> Group::begin()
+{
+    return ConditionalIterator<GameObject*>(mGameObjects.begin(), mGameObjects.end(), IsMarkedForRemoval);
+}
+
+ConditionalIterator<GameObject*> Group::end()
+{
+    return ConditionalIterator<GameObject*>(mGameObjects.end(), mGameObjects.end(), IsMarkedForRemoval);
+}
+
+bool Group::IsMarkedForRemoval(GameObject* gameObject)
+{
+    return !gameObject->IsMarkedForRemoval();
 }

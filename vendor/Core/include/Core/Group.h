@@ -1,26 +1,29 @@
 #pragma once
 
+#include "Core/GameObject.h"
+#include "Core/ConditionalIterable.h"
+
 #include <functional>
 #include <vector>
 #include <algorithm>
 
-#include "Core/GameObject.h"
-
 class Group
 {
-public:    
+public:
     void Update();
     void Add(GameObject* gameObject);
-
     void Remove(GameObject* gameObject);
+    void Sort(const std::function<bool(const GameObject*, const GameObject*)>& compareFunc);
+    
     GameObject* GetRandomGameObject();
     size_t GetSize();
+    
+    ConditionalIterator<GameObject*> begin();
+    ConditionalIterator<GameObject*> end();
 
-    std::vector<GameObject*>::iterator begin() { return mGameObjects.begin(); }
-    std::vector<GameObject*>::iterator end(){ return mGameObjects.end(); }
-    void Sort(const std::function<bool(const GameObject*, const GameObject*)>& compareFunc);
+private:
+    static bool IsMarkedForRemoval(GameObject* gameObject);
 
-public:
 	std::vector<GameObject*> mGameObjects;
     std::vector<GameObject*> mPostFrameAddGameObjectList;
 };

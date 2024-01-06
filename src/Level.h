@@ -161,11 +161,6 @@ public:
 
 		for (GameObject* gameObject : *mAllSprites)
 		{
-			if (gameObject->IsMarkedForRemoval()) 
-			{ 
-				continue; 
-			}
-
 			gameObject->Update(timestamp);
 		}
 
@@ -194,11 +189,6 @@ public:
 		{									
 			for (GameObject* gameObject : *mAllSprites)
 			{
-				if (gameObject->IsMarkedForRemoval())
-				{
-					continue;
-				}
-
 				if (gameObject->GetDepth() == layerIndex)
 				{
 					window.draw(*gameObject);
@@ -217,11 +207,6 @@ public:
 	{
 		for (GameObject* gameObject : *mCollisionSprites)
 		{
-			if (gameObject->IsMarkedForRemoval())
-			{
-				continue;
-			}
-
 			DrawRect(window, static_cast<Sprite*>(gameObject)->GetHitbox(), sf::Color::Red);
 			DrawRect(window, static_cast<Sprite*>(gameObject)->GetGlobalBounds(), sf::Color::Blue);
 		}
