@@ -108,7 +108,7 @@ public:
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
-				Tree* object = CreateGameObject<Tree>(std::move(definition), *this, *mAllSprites);
+				Tree* object = CreateGameObject<Tree>(std::move(definition), *mAllSprites);
 				mAllSprites->Add(object);
 				mCollisionSprites->Add(object);
 				mTreeSprites->Add(object);

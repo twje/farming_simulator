@@ -13,14 +13,16 @@ class GameObject : public sf::Drawable
 
 public:
 	// Hooks
+	virtual void SetUp(Scene& scene) { };
 	virtual void Update(const sf::Time& timestamp) { };
 	virtual uint16_t GetDepth() const { return 0; }
+	Scene& GetScene() { return *mScene; }
 
 	// Helper methods
 	bool IsMarkedForRemoval();
 	void Kill();
-	void RemoveFromGroups();
-	
+	void RemoveFromGroups();	
+
 private:
 	void SetScene(Scene* scene) { mScene = scene; }
 	void AddGroup(Group* group) { mGroups.emplace_back(group); }

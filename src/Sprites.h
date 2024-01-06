@@ -126,20 +126,23 @@ public:
 class Tree : public TiledMapObjectSprite
 {
 public:
-	Tree(const TiledMapObjectDefinition& definition, Scene& scene, Group& spriteGroup, uint16_t depth = LAYERS.at("main"))
+	Tree(const TiledMapObjectDefinition& definition, Group& spriteGroup, uint16_t depth = LAYERS.at("main"))
 		: TiledMapObjectSprite(definition, depth)		
-		, mName(definition.GetName())
-		, mScene(scene)
-		, mSpriteGroup(spriteGroup)
-		, mAppleGroup(scene.CreateGroup())
+		, mName(definition.GetName())		
+		, mSpriteGroup(spriteGroup)		
 		, mAlive(true)
 		, mHealth(5)
 	{
 		SetOrigin(definition.GetOrigin());
+	}
+
+	virtual void SetUp(Scene& scene) override
+	{
+		mAppleGroup = scene.CreateGroup();
 		CreateFruit();
 	}
 
-	virtual void Update(const sf::Time& timestamp)
+	virtual void Update(const sf::Time& timestamp) override
 	{
 		if (mAlive)
 		{
@@ -170,11 +173,11 @@ private:
 				const sf::Texture& texture = assetManager.GetAsset<Texture>("apple").GetRawTexture();
 				const sf::IntRect textureRegion(sf::Vector2i(), sf::Vector2i(texture.getSize()));				
 
-				Generic* apple = mScene.CreateGameObject<Generic>(texture,
-				    											  textureRegion, 
-						                                          sf::Vector2f(), 
-																  position + positionOffset,
-																  LAYERS.at("fruit"));
+				Generic* apple = GetScene().CreateGameObject<Generic>(texture,
+				    											      textureRegion, 
+						                                              sf::Vector2f(), 
+																      position + positionOffset,
+																      LAYERS.at("fruit"));
 				mSpriteGroup.Add(apple);
 				mAppleGroup->Add(apple);
 			}
@@ -252,19 +255,18 @@ private:
 		const sf::Texture& texture = source->GetSprite().getTexture();
 		const sf::IntRect textureRegion(sf::Vector2i(), sf::Vector2i(texture.getSize()));
 
-		Particle* particle = mScene.CreateGameObject<Particle>(texture,
-															   textureRegion,
-															   sf::Vector2f(),
-															   sf::Vector2f(bounds.left, bounds.top),
-															   depth,
-															   msDuration);
+		Particle* particle = GetScene().CreateGameObject<Particle>(texture,
+																   textureRegion,
+																   sf::Vector2f(),
+																   sf::Vector2f(bounds.left, bounds.top),
+																   depth,
+																   msDuration);
 		mSpriteGroup.Add(particle);
 	}
 
+	std::string mName;
+	int32_t mHealth;
+	bool mAlive;
 	Group* mAppleGroup;
 	Group& mSpriteGroup;
-	Scene& mScene;
-	std::string mName;
-	bool mAlive;
-	int32_t mHealth;
 };

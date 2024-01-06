@@ -15,6 +15,7 @@ public:
 	{
 		auto gameObject = std::make_unique<T>(std::forward<Args>(args)...);
 		gameObject->SetScene(this);
+		gameObject->SetUp(*this);
 
 		T* ptr = gameObject.get();
 		mGameObjects[ptr] = std::move(gameObject);
