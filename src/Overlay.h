@@ -30,12 +30,12 @@ public:
 	}
 
 private:
-	void ToolChanged(std::string tool) override
+	void ToolChanged(const std::string& tool) override
 	{
 		SetOverlayTexture(tool, "tool", mToolSprite);
 	}
 
-	void SeedChanged(std::string seed) override
+	void SeedChanged(const std::string& seed) override
 	{
 		SetOverlayTexture(seed, "seed", mSeedSprite);
 	}

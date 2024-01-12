@@ -16,6 +16,7 @@
 
 #include "Settings.h"
 #include "Sprites.h"
+#include "Tree.h"
 
 // --------------------------------------------------------------------------------
 enum class TimerId
@@ -30,8 +31,9 @@ enum class TimerId
 class IPlayerObserver
 {
 public:
-	virtual void ToolChanged(std::string tool) { }
-	virtual void SeedChanged(std::string seed) { }
+	virtual void ToolChanged(const std::string& tool) { }
+	virtual void SeedChanged(const std::string& seed) { }
+	virtual void AddItem(const std::string& item) { }
 };
 
 // --------------------------------------------------------------------------------
@@ -64,14 +66,15 @@ private:
 class Player : public Sprite, public PlayerSubject
 {
 public:
-	Player(AssetManager& assetManager, const sf::Vector2f& position, Group& collisionSprites, Group& treeSprites)
+	Player(AssetManager& assetManager, const sf::Vector2f& position, Group& collisionSprites, Group& treeSprites, uint16_t depth)
 		: mCollisionSprites(collisionSprites),
 		  mTreeSprites(treeSprites),
 		  mAnimationPlayer(assetManager.GetAsset<Animation>("character")),
 		  mSpeed(300),
 		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),
-		  mSeedPicker({ "corn", "tomato" })
+		  mSeedPicker({ "corn", "tomato" }),
+		  mDepth(depth)		  
 	{		
 		mAnimationPlayer.SetAnimationSequence(mStatus);
 		SetPosition(position);
@@ -83,6 +86,13 @@ public:
 		mTimers.emplace(TimerId::SEED_SWITCH, Timer(sf::milliseconds(200)));
 			
 		mHitbox = InflateRect(GetGlobalBounds(), -127, -70);
+
+		mInventory = { 
+			{ "water", 0}, 
+			{ "apple", 0}, 
+			{ "corn", 0}, 
+			{ "tomoato", 0} 
+		};
 	}
 
 	virtual sf::FloatRect GetLocalBoundsInternal() const override
@@ -100,9 +110,14 @@ public:
 		return mAnimationPlayer.GetSprite();
 	}
 
-	uint16_t GetDepth() const override { return LAYERS.at("main"); }
+	uint16_t GetDepth() const override { return mDepth; }
 	std::string GetActiveTool() const { return mToolPicker.GetItem(); }
 	std::string GetActiveSeed() const { return mSeedPicker.GetItem(); }
+
+	void AddItemToInventory(const std::string& item)
+	{
+		mInventory.at(item)++;
+	}
 
 	void UseTool()
 	{
@@ -301,6 +316,7 @@ private:
 		mTargetPosition = globalBounds.getCenter() + PLAYER_TOOL_OFFSET.at(SplitAndGetElement(mStatus, '_', 0));
 	}
 
+	std::map<std::string, int32_t> mInventory;
 	sf::Vector2f mTargetPosition;
 	sf::FloatRect mHitbox;
 	sf::Vector2f mDirection;
@@ -313,4 +329,5 @@ private:
 	ItemPicker<std::string> mSeedPicker;
 	Group& mCollisionSprites;
 	Group& mTreeSprites;
+	uint16_t mDepth;
 };

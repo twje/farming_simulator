@@ -14,6 +14,7 @@
 #include <iostream>
 #include "Overlay.h"
 #include "Sprites.h"
+#include "Tree.h"
 
 //------------------------------------------------------------------------------
 class SceneLayerRenderer
@@ -45,7 +46,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class Level : public Scene
+class Level : public Scene, public ITreeObserver
 {
 public:
 	void Create() override
@@ -70,12 +71,12 @@ public:
 		
 		// House
 		for (const std::string& layerName : { "HouseFloor", "HouseFurnitureBottom" })
-		{
+		{			
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
 				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition, 
-																	  LAYERS.at("house bottom"));
+																	  mTiledMap->GetLayerIndex(layerName).value());
 				mAllSprites->Add(sprite);
 			}
 		}
@@ -85,18 +86,20 @@ public:
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
-				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition);
+				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition,
+																	  mTiledMap->GetLayerIndex(layerName).value());
 				mAllSprites->Add(sprite);
 			}
-		}		
-		
+		}						
+
 		// Fence
 		for (const std::string& layerName : { "Fence" })
 		{
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
-				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition);
+				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition,
+																	  mTiledMap->GetLayerIndex(layerName).value());
 				mAllSprites->Add(sprite);
 				mCollisionSprites->Add(sprite);
 			}
@@ -108,10 +111,14 @@ public:
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
-				Tree* object = CreateGameObject<Tree>(std::move(definition), *mAllSprites);
+				Tree* object = CreateGameObject<Tree>(std::move(definition), 
+													  *mAllSprites,
+													  mTiledMap->GetLayerIndex(layerName).value());
 				mAllSprites->Add(object);
 				mCollisionSprites->Add(object);
 				mTreeSprites->Add(object);
+
+				object->Subscribe(this);
 			}
 		}
 
@@ -121,7 +128,8 @@ public:
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
-				WildFlower* object = CreateGameObject<WildFlower>(std::move(definition));
+				WildFlower* object = CreateGameObject<WildFlower>(std::move(definition),
+																  mTiledMap->GetLayerIndex(layerName).value());
 				mAllSprites->Add(object);
 				mCollisionSprites->Add(object);
 			}
@@ -133,10 +141,11 @@ public:
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
-				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition);
+				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition,
+																	  mTiledMap->GetLayerIndex(layerName).value());
 				mCollisionSprites->Add(sprite);
 			}
-		}		
+		}
 
 		// Player
 		for (auto& definition : mTiledMap->GetObjectDefinitions("Player"))
@@ -147,12 +156,19 @@ public:
 				mPlayer = CreateGameObject<Player>(assetManager, 
 												   definition.GetPosition(),
 					                               *mCollisionSprites, 
-					                               *mTreeSprites);
+					                               *mTreeSprites,
+												   mTiledMap->GetLayerIndex("HouseFurnitureTop").value());
 				mAllSprites->Add(mPlayer);
 			}
 		}
 
-		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
+		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);		
+	}
+
+	// ITreeObserver interface
+	virtual void AddItem(const std::string& item) 
+	{
+		mPlayer->AddItemToInventory(item);
 	}
 
 	void Update(const sf::Time& timestamp) override
@@ -187,6 +203,8 @@ public:
 		const ViewRegion viewRegion = GetViewRegion();
 		for (size_t layerIndex = 0; layerIndex < mTiledMap->LayerCount(); layerIndex++)
 		{									
+			mLayerRenderer->DrawLayer(layerIndex, window, viewRegion);
+			
 			for (GameObject* gameObject : *mAllSprites)
 			{
 				if (gameObject->GetDepth() == layerIndex)
@@ -194,7 +212,6 @@ public:
 					window.draw(*gameObject);
 				}
 			}
-			mLayerRenderer->DrawLayer(layerIndex, window, viewRegion);
 		}
 		//DebugDrawHitboxes(window);
 		//DrawPlayerTargetPosition(window);
@@ -247,7 +264,7 @@ private:
 		
 		return { mTiledMap->GetTileSize(), mTiledMap->GetMapSize(), { position, size } };
 	}
-
+	
 	Player* mPlayer;
 	Generic* mGround;
 
