@@ -14,7 +14,8 @@ public:
 	virtual ~IApplicationListener() = default;
 
 	virtual void Create() = 0;
-	void PushLayer(std::unique_ptr<ILayer> layer);
+	virtual void PushLayer(std::unique_ptr<ILayer> layer) = 0;
+	virtual void PopLayer() = 0;
 
 	// Setters
 	void SetLayerStack(LayerStack* layerStack) { mLayerStack = layerStack; }	
@@ -24,6 +25,8 @@ public:
 	{ 
 		return ResourceLocator::GetInstance();
 	}
+
+	LayerStack* GetLayerStack() { return mLayerStack; }
 
 private:
 	LayerStack* mLayerStack;	

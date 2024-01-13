@@ -28,6 +28,7 @@ public:
 			{
 				if (mCallback) { mCallback(); }
 				mActive = false;
+				mElapsedTime = mDuration.asSeconds();
 			}
 		}
 	}
@@ -38,6 +39,7 @@ public:
 	// Getters
 	bool IsFinished() { return mElapsedTime >= mDuration.asSeconds(); }
 	bool IsActive() { return mActive; }
+	float PercentComplete() { return mElapsedTime / mDuration.asSeconds(); }
 
 	// Setters
 	void SetDuration(const sf::Time& duration) { mDuration = duration; }

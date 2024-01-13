@@ -30,6 +30,7 @@ public:
 	}
 
 private:
+	// IPlayerObserver interface
 	void ToolChanged(const std::string& tool) override
 	{
 		SetOverlayTexture(tool, "tool", mToolSprite);

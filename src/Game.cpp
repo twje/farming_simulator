@@ -7,9 +7,11 @@
 #include "Core/Shader.h"
 #include "Core/Spritesheet.h"
 #include "Core/Tiled/TiledMap.h"
+#include "Core/ILayer.h"
+
 #include "Level.h"
 
-class Game : public IApplicationListener
+class Game : public ILayer
 {
 public:
 	void Create() override

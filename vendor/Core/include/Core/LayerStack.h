@@ -11,7 +11,9 @@ class LayerStack
 {
 public:
 	ILayer* GetTop() { return mLayers.back().get(); }
-	void PushLayer(std::unique_ptr<ILayer> layer) { mLayers.emplace_back(std::move(layer)); }
+	void PushLayer(std::unique_ptr<ILayer> layer);
+	void PopLayer(ILayer* layer);
+
 	void Update(const sf::Time& timestamp);
 	void Draw(sf::RenderWindow& window);
 	void PostUpdate();
@@ -19,5 +21,11 @@ public:
 	void OnEvent(const sf::Event& event);
 
 private:
+	void AddNewLayers();
+	void RemoveLayers();
+	void PostUpdateLayers();
+
 	std::vector<std::unique_ptr<ILayer>> mLayers;
+	std::vector<std::unique_ptr<ILayer>> mAddLayerList;
+	std::vector<ILayer*> mRemoveLayerList;
 };

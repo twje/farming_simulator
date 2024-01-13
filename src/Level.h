@@ -15,6 +15,7 @@
 #include "Overlay.h"
 #include "Sprites.h"
 #include "Tree.h"
+#include "Transition.h"
 
 //------------------------------------------------------------------------------
 class SceneLayerRenderer
@@ -45,8 +46,9 @@ private:
 	std::vector<bool> mExcludedLayers;
 };
 
+
 //------------------------------------------------------------------------------
-class Level : public Scene, public ITreeObserver
+class Level : public Scene, public ITreeObserver, public IPlayerObserver
 {
 public:
 	void Create() override
@@ -54,6 +56,7 @@ public:
 		mAllSprites = CreateGroup();
 		mTreeSprites = CreateGroup();
 		mCollisionSprites = CreateGroup();
+		mInteractionSprites = CreateGroup();
 
 		AssetManager& assetManager = GetResourceLocator().GetAssetManager();
 
@@ -157,18 +160,44 @@ public:
 												   definition.GetPosition(),
 					                               *mCollisionSprites, 
 					                               *mTreeSprites,
+												   *mInteractionSprites,
 												   mTiledMap->GetLayerIndex("HouseFurnitureTop").value());
 				mAllSprites->Add(mPlayer);
 			}
+
+			if (definition.GetName() == "Bed")
+			{
+				auto* sprite = CreateGameObject<Interaction>(definition);
+				mInteractionSprites->Add(sprite);				
+			}
 		}
 
-		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);		
+		mOverlay = std::make_unique<Overlay>(assetManager, *mPlayer);
+
+		// Subscribe observers
+		mPlayer->Subscribe(this);
+	}
+
+	void Reset()
+	{
+		for (GameObject* gameObject : *mTreeSprites)
+		{
+			Tree* tree = static_cast<Tree*>(gameObject);
+			tree->KillAllApples();
+			tree->CreateFruit();
+		}
 	}
 
 	// ITreeObserver interface
-	virtual void AddItem(const std::string& item) 
+	virtual void AddItem(const std::string& item) override
 	{
 		mPlayer->AddItemToInventory(item);
+	}
+
+	// IPlayerObserver interface
+	virtual void WentToSleep() override
+	{ 
+		PushLayer(std::make_unique<Transition>(*mPlayer, std::bind(&Level::Reset, this)));
 	}
 
 	void Update(const sf::Time& timestamp) override
@@ -222,7 +251,7 @@ public:
 
 	void DebugDrawHitboxes(sf::RenderWindow& window)
 	{
-		for (GameObject* gameObject : *mCollisionSprites)
+		for (GameObject* gameObject : *mInteractionSprites)
 		{
 			DrawRect(window, static_cast<Sprite*>(gameObject)->GetHitbox(), sf::Color::Red);
 			DrawRect(window, static_cast<Sprite*>(gameObject)->GetGlobalBounds(), sf::Color::Blue);
@@ -271,6 +300,7 @@ private:
 	Group* mAllSprites{ nullptr };
 	Group* mTreeSprites{ nullptr };
 	Group* mCollisionSprites{ nullptr };
+	Group* mInteractionSprites{ nullptr };
 
 	std::unique_ptr<Overlay> mOverlay;
 	sf::View mWorldView;

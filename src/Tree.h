@@ -76,7 +76,6 @@ public:
 		PickApple();
 	}
 
-private:
 	void CreateFruit()
 	{
 		sf::FloatRect bounds = GetGlobalBounds();
@@ -101,6 +100,18 @@ private:
 		}
 	}
 
+	void KillAllApples()
+	{
+		for (GameObject* apple : *mAppleGroup)
+		{
+			if (!apple->IsMarkedForRemoval())
+			{
+				apple->Kill();
+			}
+		}
+	}
+
+private:
 	void CheckDeath()
 	{
 		if (mHealth <= 0)
@@ -154,17 +165,6 @@ private:
 			CreateSilhouetteFlash(static_cast<Generic*>(apple), LAYERS.at("fruit"), 200);
 			apple->Kill();
 			AddItem("apple");
-		}
-	}
-
-	void KillAllApples()
-	{
-		for (GameObject* apple : *mAppleGroup)
-		{
-			if (!apple->IsMarkedForRemoval())
-			{
-				apple->Kill();
-			}
 		}
 	}
 

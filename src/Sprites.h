@@ -81,6 +81,42 @@ public:
 };
 
 //------------------------------------------------------------------------------
+class Interaction : public TiledMapObjectSprite
+{
+public:
+	Interaction(const TiledMapObjectDefinition& definition)
+		: TiledMapObjectSprite(definition)
+		, mName(definition.GetName())
+	{
+		mLocalBounds = sf::FloatRect(sf::Vector2f(), definition.GetSize());
+		mGlobalBounds = sf::FloatRect(definition.GetPosition(), definition.GetSize());
+	}
+
+	virtual sf::FloatRect GetLocalBoundsInternal() const override
+	{
+		return mLocalBounds;
+	}
+
+	virtual sf::FloatRect GetGlobalBoundsInternal() const override
+	{
+		return mLocalBounds;
+	}
+
+	virtual sf::FloatRect GetHitbox() const override
+	{
+		// World space
+		return mGlobalBounds;
+	}
+
+	const std::string& GetName() { return mName; }
+
+private:
+	std::string mName;
+	sf::FloatRect mLocalBounds;
+	sf::FloatRect mGlobalBounds;
+};
+
+//------------------------------------------------------------------------------
 class Particle : public Generic
 {
 public:

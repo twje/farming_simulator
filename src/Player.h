@@ -33,7 +33,7 @@ class IPlayerObserver
 public:
 	virtual void ToolChanged(const std::string& tool) { }
 	virtual void SeedChanged(const std::string& seed) { }
-	virtual void AddItem(const std::string& item) { }
+	virtual void WentToSleep() { }
 };
 
 // --------------------------------------------------------------------------------
@@ -58,6 +58,14 @@ public:
 		}
 	}
 
+	void NotifyWentToSleep()
+	{
+		for (auto& observer : mObservers)
+		{
+			observer->WentToSleep();
+		}
+	}
+
 private:
 	std::vector<IPlayerObserver*> mObservers;
 };
@@ -66,15 +74,18 @@ private:
 class Player : public Sprite, public PlayerSubject
 {
 public:
-	Player(AssetManager& assetManager, const sf::Vector2f& position, Group& collisionSprites, Group& treeSprites, uint16_t depth)
+	Player(AssetManager& assetManager, const sf::Vector2f& position, Group& collisionSprites, 
+		   Group& interactionSprites, Group& treeSprites, uint16_t depth)
 		: mCollisionSprites(collisionSprites),
+		  mInteractionSprites(interactionSprites),
 		  mTreeSprites(treeSprites),
 		  mAnimationPlayer(assetManager.GetAsset<Animation>("character")),
 		  mSpeed(300),
 		  mStatus("down_idle"),
 		  mToolPicker({ "hoe", "axe", "water"}),
 		  mSeedPicker({ "corn", "tomato" }),
-		  mDepth(depth)		  
+		  mDepth(depth),
+		  mIsAsleep(false)
 	{		
 		mAnimationPlayer.SetAnimationSequence(mStatus);
 		SetPosition(position);
@@ -91,7 +102,8 @@ public:
 			{ "water", 0}, 
 			{ "apple", 0}, 
 			{ "corn", 0}, 
-			{ "tomoato", 0} 
+			{ "tomoato", 0}, 
+			{ "wood", 0},
 		};
 	}
 
@@ -120,7 +132,7 @@ public:
 	}
 
 	void UseTool()
-	{
+    {
 		// Chop down tree
 		if (mToolPicker.GetItem() == "axe")
 		{
@@ -143,7 +155,7 @@ public:
 
 	void Input()
 	{
-		if (!mTimers[TimerId::TOOL_USE].IsActive())
+		if (!mTimers[TimerId::TOOL_USE].IsActive() && !mIsAsleep)
 		{
 			// directions
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
@@ -205,7 +217,37 @@ public:
 				mSeedPicker.Next();
 				NotifySeedChanged(mSeedPicker.GetItem());
 			}
+
+			// Sleep
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter))
+			{								
+				for (GameObject* gameObject : mInteractionSprites)
+				{
+					auto interaction = static_cast<Interaction*>(gameObject);										
+					if (interaction->GetGlobalBounds().findIntersection(GetHitbox()))
+					{
+						return;
+					}
+
+					if (interaction->GetName() == "Trader")
+					{
+						// TODO: implement
+					}
+					else
+					{
+						mIsAsleep = true;
+						mStatus = "left_idle";
+						NotifyWentToSleep();						
+						break;
+					}
+				}
+			}
 		}
+	}
+
+	void WakeUp()
+	{
+		mIsAsleep = false;
 	}
 
 	void GetStatus()
@@ -328,6 +370,8 @@ private:
 	ItemPicker<std::string> mToolPicker;
 	ItemPicker<std::string> mSeedPicker;
 	Group& mCollisionSprites;
+	Group& mInteractionSprites;
 	Group& mTreeSprites;
 	uint16_t mDepth;
+	bool mIsAsleep;
 };

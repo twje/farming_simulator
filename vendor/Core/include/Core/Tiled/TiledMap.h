@@ -77,11 +77,11 @@ enum class LayerType : uint8_t
 class TiledMapObjectDefinition
 {
 public:
-	TiledMapObjectDefinition(const std::string& name, sf::Texture* texture, const sf::IntRect textureRegion, 
-							 const sf::Vector2f& origin, const sf::Vector2f& position)
+	TiledMapObjectDefinition(const std::string& name, sf::Texture* texture, const sf::IntRect textureRegion, const sf::Vector2f& size, const sf::Vector2f& origin, const sf::Vector2f& position)
 		: mName(name)
 		, mTexture(texture)
 		, mTextureRegion(textureRegion)
+		, mSize(size)
 		, mOrigin(origin)
 		, mPosition(position)
 	{ }
@@ -89,6 +89,7 @@ public:
 	const std::string& GetName() const { return mName; }
 	const sf::Vector2f& GetPosition() const { return mPosition; }
 	const sf::IntRect& GetTextureRegion() const { return mTextureRegion; }
+	const sf::Vector2f GetSize() const { return mSize; }
 	const sf::Texture* GetTexture() const { return mTexture; }
 	const sf::Vector2f& GetOrigin() const { return mOrigin; }
 
@@ -96,6 +97,7 @@ private:
 	std::string mName;
 	sf::Texture* mTexture;
 	sf::IntRect mTextureRegion;
+	sf::Vector2f mSize;
 	sf::Vector2f mPosition;	
 	sf::Vector2f mOrigin;
 };
@@ -182,8 +184,8 @@ public:
 
 	std::vector<TiledMapObjectDefinition> GetObjectDefinitions(std::string layerName)
 	{
-		std::vector<TiledMapObjectDefinition> definitions;
-		
+		std::vector<TiledMapObjectDefinition> definitions;			
+
 		if (tson::Layer* layer = mData->getLayer(layerName))
 		{
 			// Iterate objects
@@ -193,7 +195,9 @@ public:
 				{				
 					sf::Texture* texture = nullptr;
 					sf::IntRect textureRegion;
-					sf::Vector2f origin(0, 0);
+					sf::Vector2f size;
+					sf::Vector2f origin;
+
 
 					if (object.getObjectType() == tson::ObjectType::Object)
 					{
@@ -201,11 +205,18 @@ public:
 
 						texture = &mTextureManager.GetTexture(object.getGid());
 						textureRegion = ConvertTsonRectToSFMLIntRect(tile->getDrawingRect());
+						size = ConvertTsonVectorToSFMLVector2f(textureRegion.getSize());
 						origin.y = 1;
 					}
+					if (object.getObjectType() == tson::ObjectType::Rectangle)
+					{
+						size = ConvertTsonVectorToSFMLVector2f(object.getSize());
+					}
+
 					definitions.emplace_back(object.getName(),
 											 texture,
 											 textureRegion,
+											 size,
 											 origin,
 											 ConvertTsonVectorToSFMLVector2f(object.getPosition()));
 				}
@@ -219,9 +230,11 @@ public:
 					sf::Texture* texture = &mTextureManager.GetTexture(tile->getGid());
 					sf::Vector2f origin(0, 0);
 
+					sf::IntRect textureRegion = ConvertTsonRectToSFMLIntRect(tile->getDrawingRect());
 					definitions.emplace_back("",
 											 texture,
-											 ConvertTsonRectToSFMLIntRect(tile->getDrawingRect()),
+											 textureRegion,
+											 ConvertTsonVectorToSFMLVector2f(textureRegion.getSize()),
 											 sf::Vector2f(0, 0),
 											 ConvertTsonVectorToSFMLVector2f(tile->getPosition(pair.first)));
 
