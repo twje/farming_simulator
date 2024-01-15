@@ -17,6 +17,7 @@
 #include "Settings.h"
 #include "Sprites.h"
 #include "Tree.h"
+#include "SoilLayer.h"
 
 // --------------------------------------------------------------------------------
 enum class TimerId
@@ -75,10 +76,11 @@ class Player : public Sprite, public PlayerSubject
 {
 public:
 	Player(AssetManager& assetManager, const sf::Vector2f& position, Group& collisionSprites, 
-		   Group& interactionSprites, Group& treeSprites, uint16_t depth)
+		   Group& interactionSprites, Group& treeSprites, SoilLayer& soilLayer, uint16_t depth)
 		: mCollisionSprites(collisionSprites),
 		  mInteractionSprites(interactionSprites),
 		  mTreeSprites(treeSprites),
+		  mSoilLayer(soilLayer),
 		  mAnimationPlayer(assetManager.GetAsset<Animation>("character")),
 		  mSpeed(300),
 		  mStatus("down_idle"),
@@ -132,9 +134,12 @@ public:
 	}
 
 	void UseTool()
-    {
-		// Chop down tree
-		if (mToolPicker.GetItem() == "axe")
+    {		
+		if (mToolPicker.GetItem() == "hoe")
+		{
+			mSoilLayer.foo(mTargetPosition);
+		}		
+		else if (mToolPicker.GetItem() == "axe")
 		{
 			for (GameObject* gameObject : mTreeSprites)
 			{
@@ -372,6 +377,7 @@ private:
 	Group& mCollisionSprites;
 	Group& mInteractionSprites;
 	Group& mTreeSprites;
+	SoilLayer& mSoilLayer;
 	uint16_t mDepth;
 	bool mIsAsleep;
 };

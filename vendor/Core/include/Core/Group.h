@@ -14,7 +14,7 @@ public:
     void Add(GameObject* gameObject);
     void Remove(GameObject* gameObject);
     void Sort(const std::function<bool(const GameObject*, const GameObject*)>& compareFunc);
-    
+
     GameObject* GetRandomGameObject();
     size_t GetSize();
     

@@ -16,6 +16,7 @@
 #include "Sprites.h"
 #include "Tree.h"
 #include "Transition.h"
+#include "SoilLayer.h"
 
 //------------------------------------------------------------------------------
 class SceneLayerRenderer
@@ -72,6 +73,8 @@ public:
 		mTiledMap = &assetManager.GetAsset<TiledMap>("main");
 		mLayerRenderer = std::make_unique<SceneLayerRenderer>(mTiledMap);
 		
+		mSoilLayer = std::make_unique<SoilLayer>(*mAllSprites, *this);
+
 		// House
 		for (const std::string& layerName : { "HouseFloor", "HouseFurnitureBottom" })
 		{			
@@ -161,6 +164,7 @@ public:
 					                               *mCollisionSprites, 
 					                               *mTreeSprites,
 												   *mInteractionSprites,
+												   *mSoilLayer,
 												   mTiledMap->GetLayerIndex("HouseFurnitureTop").value());
 				mAllSprites->Add(mPlayer);
 			}
@@ -296,6 +300,7 @@ private:
 	
 	Player* mPlayer;
 	Generic* mGround;
+	std::unique_ptr<SoilLayer> mSoilLayer;
 
 	Group* mAllSprites{ nullptr };
 	Group* mTreeSprites{ nullptr };

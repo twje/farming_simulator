@@ -266,6 +266,30 @@ public:
 		return std::nullopt; // Or return InvalidIndex if not using C++17.
 	}
 
+	tson::Layer* GetLayerByName(const std::string& layerName)
+	{		
+		if (std::optional<size_t> index = GetLayerIndex(layerName))
+		{
+			return &mData->getLayers()[index.value()];
+		}
+		return nullptr;
+	}
+
+	size_t GetTileCount() 
+	{ 
+		const sf::Vector2i& tileCount2d = GetTileCount2Dim();
+		return tileCount2d.x * tileCount2d.y;
+	}
+
+	sf::Vector2i GetTileCount2Dim()
+	{
+		const sf::Vector2f tileSize = GetTileSize();
+		const sf::Vector2f mapSize = GetMapSize();
+
+		return sf::Vector2i(static_cast<size_t>(mapSize.x / tileSize.x), 
+							static_cast<size_t>(mapSize.y / tileSize.y));
+	}
+
 	sf::Vector2f GetTileSize()
 	{
 		const tson::Vector2i& tileSize = mData->getTileSize();
