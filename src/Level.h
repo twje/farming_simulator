@@ -27,7 +27,7 @@ public:
 		, mExcludedLayers(tiledMap->LayerCount(), false)
 	{ }
 
-	void ExcludeLayerFromRendering(const std::string& layerName) 
+	void ExcludeLayerFromRendering(const std::string& layerName)
 	{
 		std::optional<size_t> index = mTiledMap->GetLayerIndex(layerName);
 		assert(index.has_value());
@@ -72,31 +72,20 @@ public:
 
 		mTiledMap = &assetManager.GetAsset<TiledMap>("main");
 		mLayerRenderer = std::make_unique<SceneLayerRenderer>(mTiledMap);
-		
+
 		mSoilLayer = std::make_unique<SoilLayer>(*mAllSprites, *this);
 
-		// House
-		for (const std::string& layerName : { "HouseFloor", "HouseFurnitureBottom" })
-		{			
-			mLayerRenderer->ExcludeLayerFromRendering(layerName);
-			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
-			{
-				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition, 
-																	  mTiledMap->GetLayerIndex(layerName).value());
-				mAllSprites->Add(sprite);
-			}
-		}
-		
-		for (const std::string& layerName : { "HouseWalls", "HouseFurnitureTop" })
-		{
-			mLayerRenderer->ExcludeLayerFromRendering(layerName);
-			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
-			{
-				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition,
-																	  mTiledMap->GetLayerIndex(layerName).value());
-				mAllSprites->Add(sprite);
-			}
-		}						
+		// 5 - player (temporary code)
+		std::map<std::string, uint16_t> depthMap = {
+			{ "Fence", 5 },
+			{ "HouseFloor", 3 },
+			{ "HouseFurnitureBottom", 4 },
+			{ "HouseWalls", 5 },
+			{ "HouseFurnitureTop", 5},
+			{ "Trees", 5 },
+			{ "Player", 5},
+			{ "Decoration", 5}
+		};
 
 		// Fence
 		for (const std::string& layerName : { "Fence" })
@@ -105,11 +94,33 @@ public:
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
 				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition,
-																	  mTiledMap->GetLayerIndex(layerName).value());
+					depthMap.at(layerName));
 				mAllSprites->Add(sprite);
 				mCollisionSprites->Add(sprite);
 			}
-		}		
+		}
+
+		for (const std::string& layerName : { "HouseFloor", "HouseFurnitureBottom" })
+		{
+			mLayerRenderer->ExcludeLayerFromRendering(layerName);
+			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
+			{
+				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition,
+					depthMap.at(layerName));
+				mAllSprites->Add(sprite);
+			}
+		}
+
+		for (const std::string& layerName : { "HouseWalls", "HouseFurnitureTop" })
+		{
+			mLayerRenderer->ExcludeLayerFromRendering(layerName);
+			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
+			{
+				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition,
+					depthMap.at(layerName));
+				mAllSprites->Add(sprite);
+			}
+		}
 
 		// Trees
 		for (const std::string& layerName : { "Trees" })
@@ -117,9 +128,9 @@ public:
 			mLayerRenderer->ExcludeLayerFromRendering(layerName);
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
-				Tree* object = CreateGameObject<Tree>(std::move(definition), 
-													  *mAllSprites,
-													  mTiledMap->GetLayerIndex(layerName).value());
+				Tree* object = CreateGameObject<Tree>(std::move(definition),
+					*mAllSprites,
+					depthMap.at(layerName));
 				mAllSprites->Add(object);
 				mCollisionSprites->Add(object);
 				mTreeSprites->Add(object);
@@ -135,7 +146,7 @@ public:
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
 				WildFlower* object = CreateGameObject<WildFlower>(std::move(definition),
-																  mTiledMap->GetLayerIndex(layerName).value());
+					depthMap.at(layerName));
 				mAllSprites->Add(object);
 				mCollisionSprites->Add(object);
 			}
@@ -148,7 +159,7 @@ public:
 			for (auto& definition : mTiledMap->GetObjectDefinitions(layerName))
 			{
 				auto* sprite = CreateGameObject<TiledMapObjectSprite>(definition,
-																	  mTiledMap->GetLayerIndex(layerName).value());
+					mTiledMap->GetLayerIndex(layerName).value());
 				mCollisionSprites->Add(sprite);
 			}
 		}
@@ -159,20 +170,20 @@ public:
 			mLayerRenderer->ExcludeLayerFromRendering("Player");
 			if (definition.GetName() == "Start")
 			{
-				mPlayer = CreateGameObject<Player>(assetManager, 
-												   definition.GetPosition(),
-					                               *mCollisionSprites, 
-					                               *mTreeSprites,
-												   *mInteractionSprites,
-												   *mSoilLayer,
-												   mTiledMap->GetLayerIndex("HouseFurnitureTop").value());
+				mPlayer = CreateGameObject<Player>(assetManager,
+					definition.GetPosition(),
+					*mCollisionSprites,
+					*mTreeSprites,
+					*mInteractionSprites,
+					*mSoilLayer,
+					depthMap.at("Player"));
 				mAllSprites->Add(mPlayer);
 			}
 
 			if (definition.GetName() == "Bed")
 			{
 				auto* sprite = CreateGameObject<Interaction>(definition);
-				mInteractionSprites->Add(sprite);				
+				mInteractionSprites->Add(sprite);
 			}
 		}
 
@@ -189,6 +200,7 @@ public:
 			Tree* tree = static_cast<Tree*>(gameObject);
 			tree->KillAllApples();
 			tree->CreateFruit();
+			mSoilLayer->RemoveAllWaterSoilTiles();
 		}
 	}
 
@@ -200,7 +212,7 @@ public:
 
 	// IPlayerObserver interface
 	virtual void WentToSleep() override
-	{ 
+	{
 		PushLayer(std::make_unique<Transition>(*mPlayer, std::bind(&Level::Reset, this)));
 	}
 
@@ -235,9 +247,9 @@ public:
 
 		const ViewRegion viewRegion = GetViewRegion();
 		for (size_t layerIndex = 0; layerIndex < mTiledMap->LayerCount(); layerIndex++)
-		{									
+		{
 			mLayerRenderer->DrawLayer(layerIndex, window, viewRegion);
-			
+
 			for (GameObject* gameObject : *mAllSprites)
 			{
 				if (gameObject->GetDepth() == layerIndex)
@@ -246,8 +258,8 @@ public:
 				}
 			}
 		}
-		//DebugDrawHitboxes(window);
-		//DrawPlayerTargetPosition(window);
+		DebugDrawHitboxes(window);
+		DrawPlayerTargetPosition(window);
 
 		window.setView(mHUDView);
 		mOverlay->Draw(window);
@@ -255,9 +267,9 @@ public:
 
 	void DebugDrawHitboxes(sf::RenderWindow& window)
 	{
-		for (GameObject* gameObject : *mInteractionSprites)
+		for (GameObject* gameObject : *mTreeSprites)
 		{
-			DrawRect(window, static_cast<Sprite*>(gameObject)->GetHitbox(), sf::Color::Red);
+			//DrawRect(window, static_cast<Sprite*>(gameObject)->GetHitbox(), sf::Color::Red);
 			DrawRect(window, static_cast<Sprite*>(gameObject)->GetGlobalBounds(), sf::Color::Blue);
 		}
 	}
@@ -282,7 +294,7 @@ public:
 
 private:
 	static bool SpriteCompareFunc(const GameObject* object1, const GameObject* object2)
-	{		
+	{
 		float y1 = static_cast<const Sprite*>(object1)->GetCenter().y;
 		float y2 = static_cast<const Sprite*>(object2)->GetCenter().y;
 
@@ -294,10 +306,10 @@ private:
 		sf::Vector2f halfSize = mWorldView.getSize() / 2.0f;
 		sf::Vector2f position = mWorldView.getCenter() - halfSize;
 		sf::Vector2f size = halfSize * 2.0f;
-		
+
 		return { mTiledMap->GetTileSize(), mTiledMap->GetMapSize(), { position, size } };
 	}
-	
+
 	Player* mPlayer;
 	Generic* mGround;
 	std::unique_ptr<SoilLayer> mSoilLayer;

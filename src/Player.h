@@ -76,7 +76,7 @@ class Player : public Sprite, public PlayerSubject
 {
 public:
 	Player(AssetManager& assetManager, const sf::Vector2f& position, Group& collisionSprites, 
-		   Group& interactionSprites, Group& treeSprites, SoilLayer& soilLayer, uint16_t depth)
+		   Group& treeSprites, Group& interactionSprites, SoilLayer& soilLayer, uint16_t depth)
 		: mCollisionSprites(collisionSprites),
 		  mInteractionSprites(interactionSprites),
 		  mTreeSprites(treeSprites),
@@ -147,8 +147,10 @@ public:
 		{
 			for (GameObject* gameObject : mTreeSprites)
 			{
-				Tree* tree = static_cast<Tree*>(gameObject);
-				if (tree->GetGlobalBounds().contains(mTargetPosition))
+ 				Tree* tree = static_cast<Tree*>(gameObject);
+				sf::FloatRect globalBounds = tree->GetGlobalBounds();
+
+				if (globalBounds.contains(mTargetPosition))
 				{
 					tree->ChopWood();
 					break;

@@ -320,6 +320,8 @@ public:
 	void DrawLayer(size_t layerIndex, sf::RenderWindow& window, const ViewRegion& viewRegion)
 	{		
 		tson::Layer& layer = mData->getLayers().at(layerIndex);
+		if (!layer.isVisible()) { return; }
+
 		if (layer.isVisible())
 		{
 			switch (layer.getType())
@@ -347,7 +349,7 @@ private:
 	}
 
 	void DrawTileLayer(sf::RenderWindow& window, const ViewRegion& viewRegion, tson::Layer& layer)
-	{
+	{		
 		auto& tileObjects = layer.getTileObjects();
 
 		const tson::Vector2i& mapSize = layer.getMap()->getSize();
@@ -390,7 +392,7 @@ private:
 	}
 
 	void DrawObjectLayer(sf::RenderWindow& window, const ViewRegion& viewRegion, tson::Layer& layer)
-	{
+	{		
 		for (tson::Object& object : layer.getObjects())
 		{
 			assert(object.getFlipFlags() == tson::TileFlipFlags::None);

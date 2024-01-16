@@ -93,7 +93,7 @@ public:
 					textureRegion,
 					sf::Vector2f(),
 					position + positionOffset,
-					LAYERS.at("fruit"));
+					6);
 				mSpriteGroup.Add(apple);
 				mAppleGroup->Add(apple);
 			}
@@ -126,7 +126,7 @@ private:
 	{
 		AssetManager& assetManager = ResourceLocator::GetInstance().GetAssetManager();
 
-		CreateSilhouetteFlash(static_cast<Generic*>(this), LAYERS.at("fruit"), 200);
+		CreateSilhouetteFlash(static_cast<Generic*>(this), 5, 200);
 
 		static const std::unordered_map<std::string, std::string> textureMap =
 		{
@@ -162,7 +162,7 @@ private:
 		GameObject* apple = mAppleGroup->GetRandomGameObject();
 		if (apple)
 		{
-			CreateSilhouetteFlash(static_cast<Generic*>(apple), LAYERS.at("fruit"), 200);
+			CreateSilhouetteFlash(static_cast<Generic*>(apple), 6, 200);
 			apple->Kill();
 			AddItem("apple");
 		}

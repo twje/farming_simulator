@@ -70,8 +70,21 @@ public:
             if (tile.mIsHit && tile.mBounds.contains(point))
             {
                 tile.mIsWatered = true;
-                AddTile(GetRandomElement(waterTextureIds), tile.mTileIndex, LAYERS.at("soil water"), mWaterSprites);
+                AddTile(GetRandomElement(waterTextureIds), tile.mTileIndex, 4, mWaterSprites);
             }
+        }
+    }
+
+    void RemoveAllWaterSoilTiles()
+    {        
+        for (GameObject* gameObject : mWaterSprites)
+        {
+            gameObject->Kill();
+        }
+
+        for (SoilCell& tile : mGrid)
+        {
+            tile.mIsWatered = false;
         }
     }
 
@@ -119,7 +132,7 @@ private:
                 if ((l && r && t) && !b) { tileType = "lrb"; }
                 if ((l && r && b) && !t) { tileType = "lrt"; }
 
-                AddTile(tileType, tile.mTileIndex, LAYERS.at("soil"), mSoilSprites);
+                AddTile(tileType, tile.mTileIndex, 3, mSoilSprites);
             }
         }
     }
@@ -136,7 +149,8 @@ private:
         auto sprite = mScene.CreateGameObject<Generic>(texture,
                                                        textureRegion,
                                                        sf::Vector2f(),
-                                                       sf::Vector2f(posX, posY));
+                                                       sf::Vector2f(posX, posY),
+                                                       depth);
         group.Add(sprite);
         mAllSprites.Add(sprite);
     }
