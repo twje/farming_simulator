@@ -4,19 +4,20 @@
 //------------------------------------------------------------------------------
 // Game
 #include "Settings.h"
+#include "Sprites.h"
 
 // Core
 #include "Core/ResourceLocator.h"
-#include "Sprites.h"
-
 #include "Core/Scene.h"
 #include "Core/Tiled/TiledMap.h"
+#include "Core/Utils.h"
 
 //------------------------------------------------------------------------------
 struct SoilCell
 {
     bool mFarmable{ false };
     bool mIsHit{ false };
+    bool mIsWatered{ false };
     sf::FloatRect mBounds;
     sf::Vector2i mTileIndex;
 };
@@ -29,6 +30,7 @@ public:
         : mAllSprites(allSprites)
         , mScene(scene)
         , mSoilSprites(*scene.CreateGroup())
+        , mWaterSprites(*scene.CreateGroup())
     { 
         AssetManager& assetManager = ResourceLocator::GetInstance().GetAssetManager();
         mMap = &assetManager.GetAsset<TiledMap>("main");                        
@@ -48,7 +50,7 @@ public:
         }
     }
 
-    void foo(const sf::Vector2f point)
+    void HoeSoil(const sf::Vector2f point)
     {        
         for (SoilCell& soilTile : mGrid)
         {
@@ -58,6 +60,19 @@ public:
                 CreateSoilTiles();
             }
         }        
+    }
+
+    void WaterSoil(const sf::Vector2f point)
+    {
+        std::vector<std::string> waterTextureIds = { "water_0", "water_1", "water_2" };
+        for (SoilCell& tile : mGrid)
+        {
+            if (tile.mIsHit && tile.mBounds.contains(point))
+            {
+                tile.mIsWatered = true;
+                AddTile(GetRandomElement(waterTextureIds), tile.mTileIndex, LAYERS.at("soil water"), mWaterSprites);
+            }
+        }
     }
 
 private:
@@ -104,12 +119,12 @@ private:
                 if ((l && r && t) && !b) { tileType = "lrb"; }
                 if ((l && r && b) && !t) { tileType = "lrt"; }
 
-                AddSoilTile(tileType, tile.mTileIndex);
+                AddTile(tileType, tile.mTileIndex, LAYERS.at("soil"), mSoilSprites);
             }
         }
     }
 
-    void AddSoilTile(const std::string& tileType, sf::Vector2i tileIndex)
+    void AddTile(const std::string& tileType, sf::Vector2i tileIndex, uint16_t depth, Group& group)
     {
         AssetManager& assetManager = ResourceLocator::GetInstance().GetAssetManager();
         sf::Texture& texture = assetManager.GetAsset<Texture>(tileType).GetRawTexture();
@@ -122,7 +137,7 @@ private:
                                                        textureRegion,
                                                        sf::Vector2f(),
                                                        sf::Vector2f(posX, posY));
-        mSoilSprites.Add(sprite);
+        group.Add(sprite);
         mAllSprites.Add(sprite);
     }
 
@@ -135,5 +150,6 @@ private:
     Group& mAllSprites;
     Scene& mScene;
     Group& mSoilSprites;
+    Group& mWaterSprites;
     TiledMap* mMap;
 };

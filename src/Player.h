@@ -137,8 +137,12 @@ public:
     {		
 		if (mToolPicker.GetItem() == "hoe")
 		{
-			mSoilLayer.foo(mTargetPosition);
-		}		
+			mSoilLayer.HoeSoil(mTargetPosition);
+		}
+		if (mToolPicker.GetItem() == "water")
+		{
+			mSoilLayer.WaterSoil(mTargetPosition);
+		}
 		else if (mToolPicker.GetItem() == "axe")
 		{
 			for (GameObject* gameObject : mTreeSprites)
