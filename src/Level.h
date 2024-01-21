@@ -17,6 +17,7 @@
 #include "Tree.h"
 #include "Transition.h"
 #include "SoilLayer.h"
+#include "Sky.h"
 
 //------------------------------------------------------------------------------
 class SceneLayerRenderer
@@ -74,6 +75,11 @@ public:
 		mLayerRenderer = std::make_unique<SceneLayerRenderer>(mTiledMap);
 
 		mSoilLayer = std::make_unique<SoilLayer>(*mAllSprites, *this);
+		
+		// Rain
+		mRain = std::make_unique<Rain>(*mAllSprites, *this);
+		mIsRaining = mIsRaining = IsRandomNumberLessThanOrEqualTo(0, 10, 3);
+		mSoilLayer->SetIsRaining(mIsRaining);
 
 		// 5 - player (temporary code)
 		std::map<std::string, uint16_t> depthMap = {
@@ -202,6 +208,13 @@ public:
 			tree->CreateFruit();
 			mSoilLayer->RemoveAllWaterSoilTiles();
 		}
+
+		mIsRaining = IsRandomNumberLessThanOrEqualTo(0, 10, 3);
+		mSoilLayer->SetIsRaining(mIsRaining);
+		if (mIsRaining)
+		{
+			mSoilLayer->WaterAll();
+		}
 	}
 
 	// ITreeObserver interface
@@ -223,6 +236,11 @@ public:
 		for (GameObject* gameObject : *mAllSprites)
 		{
 			gameObject->Update(timestamp);
+		}
+
+		if (mIsRaining)
+		{
+			mRain->Update(GetViewRegion());
 		}
 
 		mWorldView.setCenter(mPlayer->GetCenter());
@@ -313,6 +331,8 @@ private:
 	Player* mPlayer;
 	Generic* mGround;
 	std::unique_ptr<SoilLayer> mSoilLayer;
+	std::unique_ptr<Rain> mRain;
+	bool mIsRaining;
 
 	Group* mAllSprites{ nullptr };
 	Group* mTreeSprites{ nullptr };

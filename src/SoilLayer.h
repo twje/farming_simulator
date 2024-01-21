@@ -31,27 +31,31 @@ public:
         , mScene(scene)
         , mSoilSprites(*scene.CreateGroup())
         , mWaterSprites(*scene.CreateGroup())
-    { 
+        , mIsRaining(false)
+        , mWaterTextureIds({ "water_0", "water_1", "water_2" })
+    {
         AssetManager& assetManager = ResourceLocator::GetInstance().GetAssetManager();
-        mMap = &assetManager.GetAsset<TiledMap>("main");                        
-        mGrid.resize(mMap->GetTileCount());        
-        
+        mMap = &assetManager.GetAsset<TiledMap>("main");
+        mGrid.resize(mMap->GetTileCount());
+
         tson::Layer* farmableLayer = mMap->GetLayerByName("Farmable");
-        assert(farmableLayer);                
+        assert(farmableLayer);
         for (const auto& pair : farmableLayer->getTileObjects()) // Only returns non-empty tiles
-        {            
+        {
             tson::Vector2f pixelPos = pair.second.getPosition();
             tson::Vector2i tilePos = pair.second.getPositionInTileUnits();
             SoilCell& soilTile = mGrid.at(TileIndex(tilePos.x, tilePos.y));
-            
+
             soilTile.mBounds = sf::FloatRect(sf::Vector2f(pixelPos.x, pixelPos.y), mMap->GetTileSize());
             soilTile.mTileIndex = sf::Vector2i(tilePos.x, tilePos.y);
-            soilTile.mFarmable = true;            
+            soilTile.mFarmable = true;
         }
     }
 
+    void SetIsRaining(bool flag) { mIsRaining = flag; }
+
     void HoeSoil(const sf::Vector2f point)
-    {        
+    {
         for (SoilCell& soilTile : mGrid)
         {
             if (soilTile.mBounds.contains(point))
@@ -59,24 +63,38 @@ public:
                 soilTile.mIsHit = true;
                 CreateSoilTiles();
             }
-        }        
+        }
+
+        if (mIsRaining)
+        {
+            WaterAll();
+        }
     }
 
     void WaterSoil(const sf::Vector2f point)
-    {
-        std::vector<std::string> waterTextureIds = { "water_0", "water_1", "water_2" };
+    {        
         for (SoilCell& tile : mGrid)
         {
             if (tile.mIsHit && tile.mBounds.contains(point))
             {
-                tile.mIsWatered = true;
-                AddTile(GetRandomElement(waterTextureIds), tile.mTileIndex, 4, mWaterSprites);
+                CreateWaterTile(tile);
+            }
+        }
+    }
+
+    void WaterAll()
+    {
+        for (SoilCell& tile : mGrid)
+        {
+            if (tile.mIsHit && !tile.mIsWatered)
+            {
+                CreateWaterTile(tile);
             }
         }
     }
 
     void RemoveAllWaterSoilTiles()
-    {        
+    {
         for (GameObject* gameObject : mWaterSprites)
         {
             gameObject->Kill();
@@ -89,6 +107,12 @@ public:
     }
 
 private:
+    void CreateWaterTile(SoilCell& soilTile)
+    {
+        soilTile.mIsWatered = true;
+        AddTile(GetRandomElement(mWaterTextureIds), soilTile.mTileIndex, 4, mWaterSprites);
+    }
+
     void CreateSoilTiles()
     {
         for (GameObject* gameObject : mSoilSprites)
@@ -166,4 +190,6 @@ private:
     Group& mSoilSprites;
     Group& mWaterSprites;
     TiledMap* mMap;
+    bool mIsRaining;
+    std::vector<std::string> mWaterTextureIds;
 };

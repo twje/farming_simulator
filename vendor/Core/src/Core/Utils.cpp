@@ -13,3 +13,12 @@ bool IsRandomNumberLessThanOrEqualTo(int32_t min, int32_t max, int32_t threshold
 
     return distrib(gen) <= threshold;
 }
+
+int32_t RandomInteger(int32_t min, int32_t max)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(min, max);
+
+    return distrib(gen);
+}
